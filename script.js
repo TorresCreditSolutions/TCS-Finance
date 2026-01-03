@@ -125,7 +125,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const opcoes = {
       Receita: ["Salário", "Mesada", "Renda Extra", "Dividendos", "Bônus"],
-      Despesa: ["Moradia", "Saúde", "Alimentação", "Transporte", "Contas", "Lazer"],
+      Despesa: ["Moradia", "Saúde", "Alimentação", "Compras Diversas", "Cartão de Crédito", "Transporte", "Contas", "Lazer"],
       Investimento: ["Renda Fixa", "Poupança", "Renda Variável"]
     };
 
