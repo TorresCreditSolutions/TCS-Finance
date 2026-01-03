@@ -13,8 +13,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   let usuarioLogado = null;
   let dados = [];
-  let grafico;
-  let graficoMensal;
+  let grafico = null;
+  let graficoMensal = null;
 
   /* ================= ELEMENTOS ================= */
   const loginContainer = document.getElementById("login-container");
@@ -37,7 +37,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const categoria = document.getElementById("categoria");
   const descricao = document.getElementById("descricao");
   const valor = document.getElementById("valor");
-  const data = document.getElementById("data");
+  const dataInput = document.getElementById("data");
 
   const totalReceitas = document.getElementById("totalReceitas");
   const totalDespesas = document.getElementById("totalDespesas");
@@ -49,11 +49,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   const filtroMes = document.getElementById("filtroMes");
   const filtroAno = document.getElementById("filtroAno");
   const btnLimparFiltro = document.getElementById("btnLimparFiltro");
-  const tipoGrafico = document.getElementById("tipoGrafico");
 
   /* ================= AUTH ================= */
 
-  // LOGIN
   btnLogin.onclick = async () => {
     const email = emailInput.value.trim();
     const senha = senhaInput.value.trim();
@@ -76,38 +74,31 @@ document.addEventListener("DOMContentLoaded", async () => {
     iniciarSessao();
   };
 
-  // CADASTRO (COM REDIRECT CORRETO)
-  if (btnCadastro) {
-    btnCadastro.onclick = async () => {
-      const email = emailInput.value.trim();
-      const senha = senhaInput.value.trim();
+  btnCadastro.onclick = async () => {
+    const email = emailInput.value.trim();
+    const senha = senhaInput.value.trim();
 
-      if (!email || !senha) {
-        alert("Informe email e senha");
-        return;
+    if (!email || !senha) {
+      alert("Informe email e senha");
+      return;
+    }
+
+    const { error } = await supabase.auth.signUp({
+      email,
+      password: senha,
+      options: {
+        emailRedirectTo: "https://torrescreditsolutions.github.io/TCS-Finance/"
       }
+    });
 
-      const { error } = await supabase.auth.signUp({
-        email,
-        password: senha,
-        options: {
-          emailRedirectTo: "https://torrescreditsolutions.github.io/TCS-Finance/"
-        }
-      });
+    if (error) {
+      alert(error.message);
+      return;
+    }
 
-      if (error) {
-        alert(error.message);
-        return;
-      }
+    alert("Conta criada com sucesso! Confirme no email.");
+  };
 
-      alert(
-        "Conta criada com sucesso!\n\n" +
-        "Verifique seu email para confirmar o cadastro."
-      );
-    };
-  }
-
-  // LOGOUT
   btnLogout.onclick = async () => {
     await supabase.auth.signOut();
     location.reload();
@@ -119,8 +110,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     usuarioLogado = session.session.user.id;
 
-    loginContainer.style.display = "none";
-    app.style.display = "flex";
+    loginContainer.classList.add("hidden");
+    app.classList.remove("hidden");
 
     await carregarDados();
     mostrarDashboard();
@@ -142,7 +133,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   btnSalvar.onclick = async () => {
-    if (!tipo.value || !categoria.value || !valor.value || !data.value) {
+    if (!tipo.value || !categoria.value || !valor.value || !dataInput.value) {
       alert("Preencha os campos obrigatórios");
       return;
     }
@@ -152,7 +143,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       categoria: categoria.value,
       descricao: descricao.value,
       valor: Number(valor.value),
-      data: data.value
+      data: dataInput.value
     });
 
     if (error) {
@@ -165,15 +156,15 @@ document.addEventListener("DOMContentLoaded", async () => {
     atualizarDashboard();
 
     tipo.value = "";
-    categoria.innerHTML = "<option value=''>Categoria</option>";
+    categoria.innerHTML = "";
     descricao.value = "";
     valor.value = "";
-    data.value = "";
+    dataInput.value = "";
   };
 
   /* ================= CATEGORIAS ================= */
   tipo.addEventListener("change", () => {
-    categoria.innerHTML = "<option value=''>Categoria</option>";
+    categoria.innerHTML = "<option value=''>Selecione</option>";
 
     const opcoes = {
       Receita: ["Salário", "Mesada", "Renda Extra", "Dividendos", "Bônus"],
@@ -195,19 +186,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   function filtrarLancamentos() {
     return dados.filter(l => {
       if (!l.data) return false;
-      const [ano] = l.data.split("-");
       if (filtroMes.value && !l.data.startsWith(filtroMes.value)) return false;
-      if (filtroAno.value && ano !== filtroAno.value) return false;
+      if (filtroAno.value && !l.data.startsWith(filtroAno.value)) return false;
       return true;
     });
-  }
-
-  function agruparPorCategoria() {
-    const map = {};
-    filtrarLancamentos().forEach(l => {
-      map[l.categoria] = (map[l.categoria] || 0) + l.valor;
-    });
-    return map;
   }
 
   function calcularResumoMensal() {
@@ -223,14 +205,18 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   /* ================= UI ================= */
   function mostrarDashboard() {
-    secLancamentos.style.display = "none";
-    dashboard.style.display = "block";
-    atualizarDashboard();
+    secLancamentos.classList.add("hidden");
+    dashboard.classList.remove("hidden");
+
+    // 🔥 garante que o canvas já esteja visível
+    setTimeout(() => {
+      atualizarDashboard();
+    }, 80);
   }
 
   function mostrarLancamentos() {
-    dashboard.style.display = "none";
-    secLancamentos.style.display = "block";
+    dashboard.classList.add("hidden");
+    secLancamentos.classList.remove("hidden");
     renderizarLista();
   }
 
@@ -257,62 +243,65 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   function renderizarGrafico(r, d, i) {
+    const canvas = document.getElementById("grafico");
+    if (!canvas) return;
+
+    canvas.width = canvas.parentElement.clientWidth;
+    canvas.height = 280;
+
     if (grafico) grafico.destroy();
 
-    let labels, values, colors;
-
-    if (tipoGrafico.value === "categoria") {
-      const cat = agruparPorCategoria();
-      labels = Object.keys(cat);
-      values = Object.values(cat);
-      colors = labels.map(() => "#" + Math.floor(Math.random() * 16777215).toString(16));
-    } else {
-      labels = ["Receitas", "Despesas", "Investimentos"];
-      values = [r, d, i];
-      colors = ["#2ecc71", "#e74c3c", "#3498db"];
-    }
-
-    grafico = new Chart(document.getElementById("grafico"), {
+    grafico = new Chart(canvas, {
       type: "pie",
-      data: { labels, datasets: [{ data: values, backgroundColor: colors }] }
+      data: {
+        labels: ["Receitas", "Despesas", "Investimentos"],
+        datasets: [{
+          data: [r, d, i],
+          backgroundColor: ["#2ecc71", "#e74c3c", "#3498db"]
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false
+      }
     });
   }
 
   function renderizarGraficoMensal() {
-  const canvas = document.getElementById("graficoMensal");
-  if (!canvas) return;
+    const canvas = document.getElementById("graficoMensal");
+    if (!canvas) return;
 
-  canvas.width = canvas.parentElement.clientWidth;
-  canvas.height = canvas.parentElement.clientHeight;
+    canvas.width = canvas.parentElement.clientWidth;
+    canvas.height = 280;
 
-  if (graficoMensal) graficoMensal.destroy();
+    if (graficoMensal) graficoMensal.destroy();
 
-  const resumo = calcularResumoMensal();
-  const meses = Object.keys(resumo).sort();
+    const resumo = calcularResumoMensal();
+    const meses = Object.keys(resumo).sort();
 
-  graficoMensal = new Chart(canvas, {
-    type: "bar",
-    data: {
-      labels: meses,
-      datasets: [
-        {
-          label: "Receitas",
-          data: meses.map(m => resumo[m].receita),
-          backgroundColor: "#2ecc71"
-        },
-        {
-          label: "Despesas",
-          data: meses.map(m => resumo[m].despesa),
-          backgroundColor: "#e74c3c"
-        }
-      ]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false
-    }
-  });
-}
+    graficoMensal = new Chart(canvas, {
+      type: "bar",
+      data: {
+        labels: meses,
+        datasets: [
+          {
+            label: "Receitas",
+            data: meses.map(m => resumo[m].receita),
+            backgroundColor: "#2ecc71"
+          },
+          {
+            label: "Despesas",
+            data: meses.map(m => resumo[m].despesa),
+            backgroundColor: "#e74c3c"
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false
+      }
+    });
+  }
 
   function renderizarLista() {
     lista.innerHTML = "";
