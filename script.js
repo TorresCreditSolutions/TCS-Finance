@@ -94,6 +94,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   btnSalvar.onclick = async () => {
+    if (!tipo.value || !categoria.value || !valor.value || !dataInput.value) {
+      return alert("Preencha todos os campos obrigatórios");
+    }
+
     const { error } = await supabase.from("lancamentos").insert({
       tipo: tipo.value,
       categoria: categoria.value,
@@ -107,7 +111,33 @@ document.addEventListener("DOMContentLoaded", async () => {
     await carregarDados();
     atualizarDashboard();
     renderizarLista();
+
+    tipo.value = "";
+    categoria.innerHTML = "<option value=''>Selecione a categoria</option>";
+    descricao.value = "";
+    valor.value = "";
+    dataInput.value = "";
   };
+
+  /* ================= CATEGORIAS (FIX DEFINITIVO) ================= */
+  tipo.addEventListener("change", () => {
+    categoria.innerHTML = "<option value=''>Selecione a categoria</option>";
+
+    const opcoes = {
+      Receita: ["Salário", "Mesada", "Renda Extra", "Dividendos", "Bônus"],
+      Despesa: ["Moradia", "Saúde", "Alimentação", "Transporte", "Contas", "Lazer"],
+      Investimento: ["Renda Fixa", "Poupança", "Renda Variável"]
+    };
+
+    if (!tipo.value || !opcoes[tipo.value]) return;
+
+    opcoes[tipo.value].forEach(item => {
+      const opt = document.createElement("option");
+      opt.value = item;
+      opt.textContent = item;
+      categoria.appendChild(opt);
+    });
+  });
 
   /* ================= UI ================= */
   btnDashboard.onclick = mostrarDashboard;
@@ -168,25 +198,17 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     grafico = new Chart(document.getElementById("grafico"), {
       type: "pie",
-      data: {
-        labels,
-        datasets: [{ data: values, backgroundColor: colors }]
-      },
+      data: { labels, datasets: [{ data: values, backgroundColor: colors }] },
       options: {
         responsive: true,
         maintainAspectRatio: true,
-        plugins: {
-          legend: { position: "bottom" }
-        }
+        plugins: { legend: { position: "bottom" } }
       }
     });
   }
 
-  /* 🔄 ATUALIZA AO TROCAR O SELECT */
   if (tipoGrafico) {
-    tipoGrafico.addEventListener("change", () => {
-      atualizarDashboard();
-    });
+    tipoGrafico.addEventListener("change", atualizarDashboard);
   }
 
   /* ================= GRÁFICO DE BARRAS ================= */
@@ -208,16 +230,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       data: {
         labels: meses,
         datasets: [
-          {
-            label: "Receitas",
-            data: meses.map(m => resumo[m].receita),
-            backgroundColor: "#2ecc71"
-          },
-          {
-            label: "Despesas",
-            data: meses.map(m => resumo[m].despesa),
-            backgroundColor: "#e74c3c"
-          }
+          { label: "Receitas", data: meses.map(m => resumo[m].receita), backgroundColor: "#2ecc71" },
+          { label: "Despesas", data: meses.map(m => resumo[m].despesa), backgroundColor: "#e74c3c" }
         ]
       },
       options: {
@@ -232,8 +246,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     lista.innerHTML = "";
     dados.forEach(l => {
       const li = document.createElement("li");
-      li.textContent =
-        `${l.data} - ${l.tipo} - ${l.categoria} - R$ ${l.valor.toFixed(2)}`;
+      li.textContent = `${l.data} - ${l.tipo} - ${l.categoria} - R$ ${l.valor.toFixed(2)}`;
       lista.appendChild(li);
     });
   }
