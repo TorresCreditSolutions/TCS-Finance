@@ -255,3 +255,35 @@ input[type="month"]::before {
     max-height: 360px;
   }
 }
+/* ================= FIX DEFINITIVO DOS GRÁFICOS ================= */
+
+.graficos {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 20px;
+}
+
+.grafico-box {
+  background: #ffffff;
+  border-radius: 10px;
+  padding: 12px;
+  height: 360px;           /* 🔥 ALTURA REAL */
+  display: flex;
+}
+
+.grafico-box canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* MOBILE */
+@media (max-width: 768px) {
+  .graficos {
+    grid-template-columns: 1fr;
+  }
+
+  .grafico-box {
+    height: 280px;
+  }
+}
