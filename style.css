@@ -348,3 +348,173 @@ body {
         padding: 8px;
     }
 }
+/* ================= AJUSTES MOBILE / UX ================= */
+
+/* Inputs visíveis no mobile */
+input,
+select {
+  background-color: #ffffff;
+  color: #222;
+  font-size: 16px; /* evita zoom automático no mobile */
+}
+
+/* Corrige inputs de data e mês */
+input[type="date"],
+input[type="month"],
+input[type="number"] {
+  color: #222;
+  background-color: #ffffff;
+}
+
+/* Placeholder mais visível (quando existir) */
+input::placeholder {
+  color: #888;
+  opacity: 1;
+}
+
+/* Filtros do dashboard */
+.filtros input {
+  min-height: 44px;
+  padding: 10px;
+  border: 1px solid #ccc;
+  border-radius: 6px;
+}
+
+/* Select de lançamentos */
+select {
+  min-height: 44px;
+  padding: 10px;
+}
+
+/* Melhor contraste no mobile */
+@media (max-width: 768px) {
+
+  body {
+    background-color: #f4f6f8;
+  }
+
+  .filtros {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .filtros input {
+    width: 100%;
+  }
+
+  .content {
+    padding: 12px;
+  }
+
+  h1, h2, h3 {
+    margin-bottom: 10px;
+  }
+}
+/* ================= MOBILE FIRST AJUSTES ================= */
+
+@media (max-width: 768px) {
+
+  /* Layout geral */
+  #app {
+    flex-direction: column;
+  }
+
+  /* SIDEBAR vira topo */
+  .sidebar {
+    width: 100%;
+    height: auto;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+    padding: 10px;
+  }
+
+  .sidebar h2 {
+    display: none; /* oculta título grande */
+  }
+
+  .sidebar nav {
+    display: flex;
+    gap: 8px;
+  }
+
+  .sidebar nav button {
+    font-size: 13px;
+    padding: 8px 10px;
+  }
+
+  /* Conteúdo ocupa tela inteira */
+  .content {
+    width: 100%;
+    padding: 12px;
+  }
+
+  /* Inputs e selects mais claros */
+  input,
+  select {
+    background-color: #fff;
+    color: #222;
+    font-size: 16px;
+    min-height: 44px;
+  }
+
+  /* Filtros empilhados */
+  .filtros {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .filtros input,
+  .filtros button {
+    width: 100%;
+  }
+
+  /* Cards do dashboard */
+  .cards {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .card {
+    padding: 12px;
+    font-size: 14px;
+  }
+
+  /* Gráficos empilhados */
+  .graficos-linha {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  /* Botões grandes para touch */
+  button {
+    min-height: 44px;
+  }
+
+  /* Lista de lançamentos */
+  #listaLancamentos li {
+    font-size: 14px;
+    padding: 8px;
+  }
+}
+
+/* ================= MELHORIA VISUAL PARA DATAS ================= */
+
+/* iOS não mostra placeholder em date */
+input[type="date"]::before,
+input[type="month"]::before {
+  content: attr(data-label);
+  color: #777;
+  margin-right: 6px;
+}
+
+input[type="date"]:focus::before,
+input[type="month"]:focus::before,
+input[type="date"]:valid::before,
+input[type="month"]:valid::before {
+  content: "";
+}
