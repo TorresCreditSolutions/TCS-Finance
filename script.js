@@ -76,7 +76,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     iniciarSessao();
   };
 
-  // CADASTRO
+  // CADASTRO (COM REDIRECT CORRETO)
   if (btnCadastro) {
     btnCadastro.onclick = async () => {
       const email = emailInput.value.trim();
@@ -89,7 +89,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       const { error } = await supabase.auth.signUp({
         email,
-        password: senha
+        password: senha,
+        options: {
+          emailRedirectTo: "https://torrescreditsolutions.github.io/TCS-Finance/"
+        }
       });
 
       if (error) {
