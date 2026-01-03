@@ -2,12 +2,12 @@ console.log("SCRIPT CARREGADO");
 
 document.addEventListener("DOMContentLoaded", async () => {
 
+  /* ================= CHART GLOBAL ================= */
   Chart.defaults.devicePixelRatio = window.devicePixelRatio || 1;
 
   /* ================= SUPABASE ================= */
   const supabaseUrl = "https://figkamlmpangolnasaby.supabase.co";
   const supabaseKey = "sb_publishable_qkDLfEnWNNXyqQVdogQzBQ_Sre7CVBL";
-
   const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
 
   let dados = [];
@@ -46,15 +46,15 @@ document.addEventListener("DOMContentLoaded", async () => {
   const filtroMes = document.getElementById("filtroMes");
   const filtroAno = document.getElementById("filtroAno");
 
+  const tipoGrafico = document.getElementById("tipoGrafico");
+
   /* ================= AUTH ================= */
   btnLogin.onclick = async () => {
     const { error } = await supabase.auth.signInWithPassword({
       email: emailInput.value.trim(),
       password: senhaInput.value.trim()
     });
-
     if (error) return alert(error.message);
-
     iniciarSessao();
   };
 
@@ -66,9 +66,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         emailRedirectTo: "https://torrescreditsolutions.github.io/TCS-Finance/"
       }
     });
-
     if (error) return alert(error.message);
-
     alert("Conta criada! Confirme no email.");
   };
 
@@ -118,7 +116,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   function mostrarDashboard() {
     lancamentos.classList.add("hidden");
     dashboard.classList.remove("hidden");
-    setTimeout(atualizarDashboard, 50);
+    setTimeout(atualizarDashboard, 60);
   }
 
   function mostrarLancamentos() {
@@ -146,26 +144,52 @@ document.addEventListener("DOMContentLoaded", async () => {
     renderizarGraficoMensal();
   }
 
+  /* ================= GRÁFICO DE PIZZA ================= */
   function renderizarGrafico(r, d, i) {
     if (grafico) grafico.destroy();
+
+    let labels, values, colors;
+
+    if (tipoGrafico && tipoGrafico.value === "categoria") {
+      const map = {};
+      dados.forEach(l => {
+        map[l.categoria] = (map[l.categoria] || 0) + l.valor;
+      });
+      labels = Object.keys(map);
+      values = Object.values(map);
+      colors = labels.map(() =>
+        "#" + Math.floor(Math.random() * 16777215).toString(16)
+      );
+    } else {
+      labels = ["Receitas", "Despesas", "Investimentos"];
+      values = [r, d, i];
+      colors = ["#2ecc71", "#e74c3c", "#3498db"];
+    }
 
     grafico = new Chart(document.getElementById("grafico"), {
       type: "pie",
       data: {
-        labels: ["Receitas", "Despesas", "Investimentos"],
-        datasets: [{
-          data: [r, d, i],
-          backgroundColor: ["#2ecc71", "#e74c3c", "#3498db"]
-        }]
+        labels,
+        datasets: [{ data: values, backgroundColor: colors }]
       },
       options: {
         responsive: true,
         maintainAspectRatio: true,
-        plugins: { legend: { position: "bottom" } }
+        plugins: {
+          legend: { position: "bottom" }
+        }
       }
     });
   }
 
+  /* 🔄 ATUALIZA AO TROCAR O SELECT */
+  if (tipoGrafico) {
+    tipoGrafico.addEventListener("change", () => {
+      atualizarDashboard();
+    });
+  }
+
+  /* ================= GRÁFICO DE BARRAS ================= */
   function renderizarGraficoMensal() {
     if (graficoMensal) graficoMensal.destroy();
 
@@ -184,8 +208,16 @@ document.addEventListener("DOMContentLoaded", async () => {
       data: {
         labels: meses,
         datasets: [
-          { label: "Receitas", data: meses.map(m => resumo[m].receita), backgroundColor: "#2ecc71" },
-          { label: "Despesas", data: meses.map(m => resumo[m].despesa), backgroundColor: "#e74c3c" }
+          {
+            label: "Receitas",
+            data: meses.map(m => resumo[m].receita),
+            backgroundColor: "#2ecc71"
+          },
+          {
+            label: "Despesas",
+            data: meses.map(m => resumo[m].despesa),
+            backgroundColor: "#e74c3c"
+          }
         ]
       },
       options: {
@@ -195,15 +227,18 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
+  /* ================= LISTA ================= */
   function renderizarLista() {
     lista.innerHTML = "";
     dados.forEach(l => {
       const li = document.createElement("li");
-      li.textContent = `${l.data} - ${l.tipo} - ${l.categoria} - R$ ${l.valor.toFixed(2)}`;
+      li.textContent =
+        `${l.data} - ${l.tipo} - ${l.categoria} - R$ ${l.valor.toFixed(2)}`;
       lista.appendChild(li);
     });
   }
 
+  /* ================= INIT ================= */
   const { data: session } = await supabase.auth.getSession();
   if (session.session) iniciarSessao();
 
