@@ -224,3 +224,41 @@ input[type="month"] {
     height: 280px;
   }
 }
+/* ================= AJUSTE FINO DOS GRÁFICOS ================= */
+
+.grafico-box {
+  background: #ffffff;
+  border-radius: 10px;
+  padding: 14px;
+  height: 360px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden; /* 🔥 impede estouro lateral */
+}
+
+/* Select do gráfico de pizza */
+.grafico-box select {
+  max-width: 220px;
+  margin: 0 auto 10px auto;
+  padding: 8px;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+/* Canvas ocupa o espaço certo */
+.grafico-box canvas {
+  flex: 1;
+  width: 100% !important;
+  height: 100% !important;
+}
+
+/* MOBILE */
+@media (max-width: 768px) {
+  .grafico-box {
+    height: 280px;
+  }
+
+  .grafico-box select {
+    max-width: 100%;
+  }
+}
