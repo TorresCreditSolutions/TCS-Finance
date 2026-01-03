@@ -279,24 +279,40 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   function renderizarGraficoMensal() {
-    const canvas = document.getElementById("graficoMensal");
-    if (!canvas) return;
-    if (graficoMensal) graficoMensal.destroy();
+  const canvas = document.getElementById("graficoMensal");
+  if (!canvas) return;
 
-    const resumo = calcularResumoMensal();
-    const meses = Object.keys(resumo).sort();
+  canvas.width = canvas.parentElement.clientWidth;
+  canvas.height = canvas.parentElement.clientHeight;
 
-    graficoMensal = new Chart(canvas, {
-      type: "bar",
-      data: {
-        labels: meses,
-        datasets: [
-          { label: "Receitas", data: meses.map(m => resumo[m].receita), backgroundColor: "#2ecc71" },
-          { label: "Despesas", data: meses.map(m => resumo[m].despesa), backgroundColor: "#e74c3c" }
-        ]
-      }
-    });
-  }
+  if (graficoMensal) graficoMensal.destroy();
+
+  const resumo = calcularResumoMensal();
+  const meses = Object.keys(resumo).sort();
+
+  graficoMensal = new Chart(canvas, {
+    type: "bar",
+    data: {
+      labels: meses,
+      datasets: [
+        {
+          label: "Receitas",
+          data: meses.map(m => resumo[m].receita),
+          backgroundColor: "#2ecc71"
+        },
+        {
+          label: "Despesas",
+          data: meses.map(m => resumo[m].despesa),
+          backgroundColor: "#e74c3c"
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false
+    }
+  });
+}
 
   function renderizarLista() {
     lista.innerHTML = "";
