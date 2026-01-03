@@ -3,42 +3,55 @@
 <head>
     <meta charset="UTF-8">
     <title>Controle Financeiro</title>
+
+    <!-- RESPONSIVO -->
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <!-- CSS -->
     <link rel="stylesheet" href="style.css">
 
     <!-- LIBS -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <!-- SUPABASE -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
-<!-- LOGIN -->
+<!-- ================= LOGIN ================= -->
 <div id="login-container">
     <h2>Login</h2>
+
     <input type="email" id="email" placeholder="Email">
     <input type="password" id="senha" placeholder="Senha">
-    <button id="btnLogin">Entrar</button>
-    <button id="btnCadastro">Criar Conta</button>
+
+    <button id="btnLogin" type="button">Entrar</button>
+    <button id="btnCadastro" type="button">Criar Conta</button>
 </div>
 
-<!-- APP -->
+<!-- ================= APP ================= -->
 <div id="app" class="hidden">
 
+    <!-- SIDEBAR / TOPBAR -->
     <aside class="sidebar">
         <span class="logo">Controle</span>
+
         <nav>
-            <button id="btnDashboard">Dashboard</button>
-            <button id="btnLancamentos">Lançamentos</button>
-            <button id="btnLogout">Sair</button>
+            <button id="btnDashboard" type="button">Dashboard</button>
+            <button id="btnLancamentos" type="button">Lançamentos</button>
+            <button id="btnLogout" type="button">Sair</button>
         </nav>
     </aside>
 
+    <!-- CONTEÚDO -->
     <main class="content">
 
-        <!-- DASHBOARD -->
+        <!-- ================= DASHBOARD ================= -->
         <section id="dashboard">
+
             <h1>Dashboard Financeiro</h1>
 
+            <!-- FILTROS -->
             <div class="filtros">
                 <label>
                     Mês
@@ -47,30 +60,49 @@
 
                 <label>
                     Ano
-                    <input type="number" id="filtroAno" placeholder="2026">
+                    <input type="number" id="filtroAno" placeholder="2026" min="2000" max="2100">
                 </label>
 
-                <button id="btnLimparFiltro">Limpar</button>
+                <button id="btnLimparFiltro" type="button">Limpar</button>
             </div>
 
+            <!-- CARDS -->
             <div class="cards">
-                <div class="card receita"><span>Receitas</span><strong id="totalReceitas">R$ 0,00</strong></div>
-                <div class="card despesa"><span>Despesas</span><strong id="totalDespesas">R$ 0,00</strong></div>
-                <div class="card investimento"><span>Investimentos</span><strong id="totalInvestimentos">R$ 0,00</strong></div>
-                <div class="card saldo"><span>Saldo</span><strong id="saldo">R$ 0,00</strong></div>
+                <div class="card receita">
+                    <span>Receitas</span>
+                    <strong id="totalReceitas">R$ 0,00</strong>
+                </div>
+
+                <div class="card despesa">
+                    <span>Despesas</span>
+                    <strong id="totalDespesas">R$ 0,00</strong>
+                </div>
+
+                <div class="card investimento">
+                    <span>Investimentos</span>
+                    <strong id="totalInvestimentos">R$ 0,00</strong>
+                </div>
+
+                <div class="card saldo">
+                    <span>Saldo</span>
+                    <strong id="saldo">R$ 0,00</strong>
+                </div>
             </div>
 
+            <!-- GRÁFICOS -->
             <div class="graficos">
                 <canvas id="grafico"></canvas>
                 <canvas id="graficoMensal"></canvas>
             </div>
+
         </section>
 
-        <!-- LANÇAMENTOS -->
+        <!-- ================= LANÇAMENTOS ================= -->
         <section id="lancamentos" class="hidden">
+
             <h2>Novo Lançamento</h2>
 
-            <label>Tipo</label>
+            <label for="tipo">Tipo</label>
             <select id="tipo">
                 <option value="">Selecione</option>
                 <option value="Receita">Receita</option>
@@ -78,27 +110,31 @@
                 <option value="Investimento">Investimento</option>
             </select>
 
-            <label>Categoria</label>
+            <label for="categoria">Categoria</label>
             <select id="categoria"></select>
 
-            <label>Descrição</label>
+            <label for="descricao">Descrição</label>
             <input type="text" id="descricao">
 
-            <label>Valor</label>
-            <input type="number" id="valor">
+            <label for="valor">Valor</label>
+            <input type="number" id="valor" step="0.01">
 
-            <label>Data</label>
+            <!-- ✅ ÚNICO CAMPO DE DATA -->
+            <label for="data">Data do lançamento</label>
             <input type="date" id="data">
 
-            <button id="btnSalvar">Salvar</button>
+            <button id="btnSalvar" type="button">Salvar</button>
 
             <h3>Extrato</h3>
             <ul id="listaLancamentos"></ul>
+
         </section>
 
     </main>
 </div>
 
+<!-- SCRIPT PRINCIPAL -->
 <script src="script.js"></script>
+
 </body>
 </html>

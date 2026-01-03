@@ -1,3 +1,4 @@
+/* ================= RESET ================= */
 * {
   box-sizing: border-box;
   font-family: "Segoe UI", sans-serif;
@@ -6,15 +7,17 @@
 body {
   margin: 0;
   background: #f4f6f8;
+  color: #222;
 }
 
 .hidden {
   display: none;
 }
 
-/* LOGIN */
+/* ================= LOGIN ================= */
 #login-container {
   height: 100vh;
+  width: 100vw;
   display: flex;
   flex-direction: column;
   justify-content: center;
@@ -23,54 +26,76 @@ body {
   background: linear-gradient(135deg, #0a3d62, #1e90ff);
 }
 
+#login-container h2 {
+  color: #fff;
+}
+
 #login-container input,
 #login-container button {
   width: 260px;
   padding: 12px;
   border-radius: 6px;
   border: none;
+  font-size: 16px;
 }
 
-/* APP */
+#login-container button {
+  background: #00c853;
+  color: #fff;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+/* ================= APP ================= */
 #app {
   display: flex;
+  min-height: 100vh;
 }
 
-/* SIDEBAR */
+/* ================= SIDEBAR ================= */
 .sidebar {
   width: 220px;
   background: #0a3d62;
   color: #fff;
   padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.sidebar .logo {
+  font-size: 18px;
+  font-weight: bold;
 }
 
 .sidebar nav button {
   width: 100%;
-  margin-top: 8px;
   padding: 10px;
   border: 1px solid #1e90ff;
   background: transparent;
   color: #fff;
   border-radius: 6px;
+  cursor: pointer;
 }
 
-/* CONTENT */
+/* ================= CONTENT ================= */
 .content {
   flex: 1;
   padding: 16px;
 }
 
-/* DASHBOARD */
+/* ================= DASHBOARD ================= */
+.filtros {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
 .filtros label {
   display: flex;
   flex-direction: column;
   font-size: 13px;
-}
-
-.filtros {
-  display: flex;
-  gap: 10px;
-  margin-bottom: 16px;
+  gap: 4px;
 }
 
 .cards {
@@ -83,6 +108,7 @@ body {
   padding: 14px;
   border-radius: 10px;
   color: #fff;
+  text-align: center;
 }
 
 .receita { background: #2ecc71; }
@@ -92,11 +118,23 @@ body {
 
 .graficos {
   margin-top: 20px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
 }
 
-/* LANÇAMENTOS */
+.graficos canvas {
+  width: 100% !important;
+  max-height: 320px;
+}
+
+/* ================= LANÇAMENTOS ================= */
 #lancamentos label {
   font-size: 13px;
+  font-weight: 500;
+  margin-top: 8px;
+  margin-bottom: 4px;
+  display: block;
 }
 
 #lancamentos input,
@@ -107,33 +145,96 @@ body {
   margin-bottom: 10px;
   border-radius: 6px;
   border: 1px solid #ccc;
+  font-size: 16px; /* impede zoom no iOS */
 }
 
 #lancamentos button {
   background: #1e90ff;
   color: #fff;
   border: none;
+  cursor: pointer;
 }
 
-/* MOBILE */
+#listaLancamentos li {
+  background: #fff;
+  margin-top: 6px;
+  padding: 8px;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+/* ================= INPUTS (iOS / ANDROID) ================= */
+input,
+select {
+  background-color: #ffffff;
+  color: #222;
+}
+
+/* Corrige campos date/month no iOS */
+input[type="date"],
+input[type="month"] {
+  appearance: auto;
+  -webkit-appearance: auto;
+  color: #222;
+  background-color: #ffffff;
+}
+
+/* Remove hacks antigos que causavam duplicação */
+input[type="date"]::before,
+input[type="month"]::before {
+  content: none !important;
+}
+
+/* ================= MOBILE ================= */
 @media (max-width: 768px) {
 
+  /* Layout geral */
   #app {
     flex-direction: column;
   }
 
+  /* Sidebar vira topbar */
   .sidebar {
     width: 100%;
-    display: flex;
+    flex-direction: row;
     justify-content: space-around;
+    align-items: center;
+    padding: 10px;
   }
 
-  .cards {
-    grid-template-columns: 1fr;
+  .sidebar .logo {
+    display: none;
   }
 
+  .sidebar nav {
+    display: flex;
+    gap: 8px;
+  }
+
+  .sidebar nav button {
+    font-size: 13px;
+    padding: 8px 10px;
+  }
+
+  /* Conteúdo */
+  .content {
+    padding: 12px;
+  }
+
+  /* Filtros empilhados */
   .filtros {
     flex-direction: column;
+    gap: 8px;
+  }
+
+  /* Cards em coluna */
+  .cards {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  /* Gráficos empilhados (mantidos no mobile) */
+  .graficos {
+    grid-template-columns: 1fr;
   }
 
   .graficos canvas {
