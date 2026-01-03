@@ -1,17 +1,13 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <link rel="icon" href="data:,">
     <meta charset="UTF-8">
     <title>Controle Financeiro</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="style.css">
 
     <!-- LIBS -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-
-    <!-- SUPABASE -->
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
@@ -21,20 +17,19 @@
     <h2>Login</h2>
     <input type="email" id="email" placeholder="Email">
     <input type="password" id="senha" placeholder="Senha">
-    <button id="btnLogin" type="button">Entrar</button>
-    <button id="btnCadastro" type="button">Criar Conta</button>
-
+    <button id="btnLogin">Entrar</button>
+    <button id="btnCadastro">Criar Conta</button>
 </div>
 
 <!-- APP -->
 <div id="app" class="hidden">
 
     <aside class="sidebar">
-        <h2 class="logo">Controle Financeiro</h2>
+        <span class="logo">Controle</span>
         <nav>
-            <button id="btnDashboard" type="button">Dashboard</button>
-            <button id="btnLancamentos" type="button">Lançamentos</button>
-            <button id="btnLogout" type="button">Sair</button>
+            <button id="btnDashboard">Dashboard</button>
+            <button id="btnLancamentos">Lançamentos</button>
+            <button id="btnLogout">Sair</button>
         </nav>
     </aside>
 
@@ -45,46 +40,29 @@
             <h1>Dashboard Financeiro</h1>
 
             <div class="filtros">
-                <input type="month" id="filtroMes">
-                <input type="number" id="filtroAno" placeholder="Ano (ex: 2024)" min="2000" max="2100">
-                <button id="btnLimparFiltro" type="button">Limpar Filtro</button>
+                <label>
+                    Mês
+                    <input type="month" id="filtroMes">
+                </label>
+
+                <label>
+                    Ano
+                    <input type="number" id="filtroAno" placeholder="2026">
+                </label>
+
+                <button id="btnLimparFiltro">Limpar</button>
             </div>
 
             <div class="cards">
-                <div class="card receita">
-                    <span>Receitas</span>
-                    <strong id="totalReceitas">R$ 0,00</strong>
-                </div>
-
-                <div class="card despesa">
-                    <span>Despesas</span>
-                    <strong id="totalDespesas">R$ 0,00</strong>
-                </div>
-
-                <div class="card investimento">
-                    <span>Investimentos</span>
-                    <strong id="totalInvestimentos">R$ 0,00</strong>
-                </div>
-
-                <div class="card saldo">
-                    <span>Saldo</span>
-                    <strong id="saldo">R$ 0,00</strong>
-                </div>
+                <div class="card receita"><span>Receitas</span><strong id="totalReceitas">R$ 0,00</strong></div>
+                <div class="card despesa"><span>Despesas</span><strong id="totalDespesas">R$ 0,00</strong></div>
+                <div class="card investimento"><span>Investimentos</span><strong id="totalInvestimentos">R$ 0,00</strong></div>
+                <div class="card saldo"><span>Saldo</span><strong id="saldo">R$ 0,00</strong></div>
             </div>
 
-            <div class="graficos-linha">
-                <div class="grafico-item">
-                    <select id="tipoGrafico">
-                        <option value="geral">Resumo Geral</option>
-                        <option value="categoria">Por Categoria</option>
-                    </select>
-                    <canvas id="grafico"></canvas>
-                </div>
-
-                <div class="grafico-item">
-                    <h4>Comparativo Mensal</h4>
-                    <canvas id="graficoMensal"></canvas>
-                </div>
+            <div class="graficos">
+                <canvas id="grafico"></canvas>
+                <canvas id="graficoMensal"></canvas>
             </div>
         </section>
 
@@ -92,50 +70,35 @@
         <section id="lancamentos" class="hidden">
             <h2>Novo Lançamento</h2>
 
+            <label>Tipo</label>
             <select id="tipo">
-                <option value="">Tipo</option>
+                <option value="">Selecione</option>
                 <option value="Receita">Receita</option>
                 <option value="Despesa">Despesa</option>
                 <option value="Investimento">Investimento</option>
             </select>
 
+            <label>Categoria</label>
             <select id="categoria"></select>
 
-            <input type="text" id="descricao" placeholder="Descrição">
-            <input type="number" id="valor" placeholder="Valor">
+            <label>Descrição</label>
+            <input type="text" id="descricao">
+
+            <label>Valor</label>
+            <input type="number" id="valor">
+
+            <label>Data</label>
             <input type="date" id="data">
-            <input type="month" id="filtroMes" data-label="Mês">
-<input type="number" id="filtroAno" placeholder="Ano">
 
-<input type="date" id="data" data-label="Data">
-
-
-            <button id="btnSalvar" type="button">Salvar</button>
-
-            <div class="acoes-exportacao">
-                <button id="btnBackup">Backup (JSON)</button>
-
-                <label for="inputImportar" class="btn-importar">
-                    Importar Backup
-                </label>
-                <input type="file" id="inputImportar" accept=".json" hidden>
-            </div>
+            <button id="btnSalvar">Salvar</button>
 
             <h3>Extrato</h3>
-
-            <div class="acoes-exportacao">
-                <button id="btnExportarExcel" type="button">Exportar Excel</button>
-                <button id="btnExportarPDF" type="button">Exportar PDF</button>
-            </div>
-
             <ul id="listaLancamentos"></ul>
         </section>
 
     </main>
 </div>
 
-<!-- SCRIPT -->
 <script src="script.js"></script>
-
 </body>
 </html>

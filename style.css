@@ -1,110 +1,88 @@
 * {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-    font-family: "Segoe UI", sans-serif;
+  box-sizing: border-box;
+  font-family: "Segoe UI", sans-serif;
 }
 
 body {
-    background: #f4f6f8;
-    overflow-y: auto;
+  margin: 0;
+  background: #f4f6f8;
+}
+
+.hidden {
+  display: none;
 }
 
 /* LOGIN */
 #login-container {
-    overflow: hidden;
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100vw;
-    height: 100vh;
-    background: linear-gradient(135deg, #0a3d62, #1e90ff);
-    display: flex;
-    flex-direction: column;
-    justify-content: center;
-    align-items: center;
-    gap: 12px;
-    color: #fff;
-    z-index: 9999;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  background: linear-gradient(135deg, #0a3d62, #1e90ff);
 }
 
-
-#login-container input {
-    padding: 12px;
-    width: 260px;
-    border-radius: 6px;
-    border: none;
-}
-
+#login-container input,
 #login-container button {
-    padding: 12px;
-    width: 260px;
-    background: #00c853;
-    border: none;
-    color: white;
-    font-weight: bold;
-    border-radius: 6px;
-    cursor: pointer;
+  width: 260px;
+  padding: 12px;
+  border-radius: 6px;
+  border: none;
 }
 
 /* APP */
-.hidden {
-    display: none;
-}
-
 #app {
-    display: flex;
-    pointer-events: none; /* ✅ NÃO INTERCEPTA CLIQUES ANTES DO LOGIN */
+  display: flex;
 }
 
 /* SIDEBAR */
 .sidebar {
-    width: 220px;
-    background: #0a3d62;
-    min-height: 100vh;
-    padding: 20px;
-    color: white;
+  width: 220px;
+  background: #0a3d62;
+  color: #fff;
+  padding: 16px;
 }
 
-.sidebar button {
-    width: 100%;
-    margin-top: 10px;
-    padding: 10px;
-    background: transparent;
-    border: 1px solid #1e90ff;
-    color: white;
-    border-radius: 6px;
-    cursor: pointer;
+.sidebar nav button {
+  width: 100%;
+  margin-top: 8px;
+  padding: 10px;
+  border: 1px solid #1e90ff;
+  background: transparent;
+  color: #fff;
+  border-radius: 6px;
 }
 
 /* CONTENT */
 .content {
-    flex: 1;
-    padding: 20px;
+  flex: 1;
+  padding: 16px;
 }
 
-/* CARDS */
+/* DASHBOARD */
+.filtros label {
+  display: flex;
+  flex-direction: column;
+  font-size: 13px;
+}
+
+.filtros {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
 .cards {
-    display: flex;
-    gap: 20px;
-    margin: 20px 0;
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
 }
 
 .card {
-    flex: 1;
-    padding: 20px;
-    border-radius: 10px;
-    color: white;
-
-    .card {
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-}
-
-.card.atualizado {
-    transform: scale(1.03);
-    box-shadow: 0 6px 18px rgba(0,0,0,0.15);
-}
-
+  padding: 14px;
+  border-radius: 10px;
+  color: #fff;
 }
 
 .receita { background: #2ecc71; }
@@ -112,409 +90,53 @@ body {
 .investimento { background: #3498db; }
 .saldo { background: #34495e; }
 
-/* LANÇAMENTOS */
-#lancamentos {
-    max-width: 500px;
+.graficos {
+  margin-top: 20px;
 }
 
+/* LANÇAMENTOS */
+#lancamentos label {
+  font-size: 13px;
+}
+
+#lancamentos input,
 #lancamentos select,
-#lancamentos input {
-    width: 100%;
-    padding: 10px;
-    margin: 8px 0;
+#lancamentos button {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
 }
 
 #lancamentos button {
-    width: 100%;
-    padding: 12px;
-    background: #1e90ff;
-    border: none;
-    color: white;
-    border-radius: 6px;
+  background: #1e90ff;
+  color: #fff;
+  border: none;
 }
 
-#listaLancamentos li {
-    margin-top: 6px;
-    background: #fff;
-    padding: 8px;
-    border-radius: 4px;
-}
-.filtros {
-    display: flex;
-    gap: 10px;
-    margin-bottom: 15px;
-}
-
-.filtros input,
-.filtros button {
-    padding: 8px;
-    border-radius: 6px;
-}
-
-
-.grafico-box {
-    max-width: 420px;
-    max-height: 420px;
-}
-
-#grafico {
-    width: 100% !important;
-    height: 100% !important;
-}
-/* GARANTE CLIQUES NA SIDEBAR */
-.sidebar {
-    position: relative;
-    z-index: 10;
-    pointer-events: auto;
-}
-
-/* GARANTE QUE O LOGIN NÃO BLOQUEIA QUANDO ESCONDIDO */
-#login-container {
-    pointer-events: auto;
-}
-
-#login-container[style*="display: none"] {
-    pointer-events: none;
-}
-/* GARANTE INTERAÇÃO NO CONTEÚDO */
-#app,
-.content,
-#lancamentos,
-#dashboard {
-    pointer-events: auto;
-}
-
-/* GARANTE QUE SIDEBAR NÃO BLOQUEIA O CONTEÚDO */
-.sidebar {
-    pointer-events: auto;
-    z-index: 10;
-}
-
-/* LOGIN NÃO INTERCEPTA QUANDO ESCONDIDO */
-#login-container {
-    pointer-events: auto;
-}
-
-#login-container[style*="display: none"] {
-    pointer-events: none;
-}
-.acoes {
-    display: flex;
-    gap: 6px;
-    margin-top: 6px;
-}
-
-.acoes button {
-    padding: 4px 8px;
-    border: none;
-    border-radius: 4px;
-    cursor: pointer;
-    font-size: 12px;
-}
-
-.btn-editar {
-    background: #f1c40f;
-    color: #000;
-}
-
-.btn-excluir {
-    background: #e74c3c;
-    color: #fff;
-}
-.graficos-linha {
-    display: flex;
-    gap: 20px;
-    align-items: stretch;
-}
-
-.grafico-item {
-    flex: 1;
-    max-width: 50%;
-    height: 320px;              /* 🔥 trava altura */
-    background: #fff;
-    padding: 15px;
-    border-radius: 10px;
-    display: flex;
-    flex-direction: column;
-}
-
-.grafico-item canvas {
-    flex: 1;
-    width: 100% !important;
-    height: 100% !important;    /* 🔥 não empurra a tela */
-}
-
-.fade {
-    animation: fadeSlide 0.4s ease;
-}
-
-@keyframes fadeSlide {
-    from {
-        opacity: 0;
-        transform: translateY(8px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-/* ================= MOBILE FIRST ================= */
+/* MOBILE */
 @media (max-width: 768px) {
 
-    body {
-        overflow-x: hidden;
-    }
-
-    /* APP LAYOUT */
-    #app {
-        flex-direction: column;
-    }
-
-    /* SIDEBAR → TOPBAR */
-    .sidebar {
-        width: 100%;
-        min-height: auto;
-        display: flex;
-        flex-direction: row;
-        align-items: center;
-        justify-content: space-between;
-        padding: 12px;
-    }
-
-    .sidebar h2 {
-        font-size: 16px;
-        margin: 0;
-    }
-
-    .sidebar nav {
-        display: flex;
-        gap: 8px;
-    }
-
-    .sidebar button {
-        padding: 8px 10px;
-        font-size: 12px;
-    }
-
-    /* CONTENT */
-    .content {
-        padding: 12px;
-    }
-
-    /* CARDS → COLUNA */
-    .cards {
-        flex-direction: column;
-        gap: 12px;
-    }
-
-    .card {
-        width: 100%;
-        text-align: center;
-    }
-
-    /* GRÁFICOS → EMPILHADOS */
-    .graficos-linha {
-        flex-direction: column;
-    }
-
-    .grafico-item {
-        max-width: 100%;
-        height: 280px;
-    }
-
-    /* FILTROS */
-    .filtros {
-        display: flex;
-        flex-direction: column;
-        gap: 8px;
-    }
-
-    .filtros input,
-    .filtros button {
-        width: 100%;
-    }
-
-    /* LANÇAMENTOS */
-    #lancamentos select,
-    #lancamentos input,
-    #lancamentos button {
-        width: 100%;
-        font-size: 14px;
-    }
-
-    /* EXTRATO */
-    #listaLancamentos li {
-        font-size: 13px;
-        padding: 8px;
-    }
-}
-/* ================= AJUSTES MOBILE / UX ================= */
-
-/* Inputs visíveis no mobile */
-input,
-select {
-  background-color: #ffffff;
-  color: #222;
-  font-size: 16px; /* evita zoom automático no mobile */
-}
-
-/* Corrige inputs de data e mês */
-input[type="date"],
-input[type="month"],
-input[type="number"] {
-  color: #222;
-  background-color: #ffffff;
-}
-
-/* Placeholder mais visível (quando existir) */
-input::placeholder {
-  color: #888;
-  opacity: 1;
-}
-
-/* Filtros do dashboard */
-.filtros input {
-  min-height: 44px;
-  padding: 10px;
-  border: 1px solid #ccc;
-  border-radius: 6px;
-}
-
-/* Select de lançamentos */
-select {
-  min-height: 44px;
-  padding: 10px;
-}
-
-/* Melhor contraste no mobile */
-@media (max-width: 768px) {
-
-  body {
-    background-color: #f4f6f8;
-  }
-
-  .filtros {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .filtros input {
-    width: 100%;
-  }
-
-  .content {
-    padding: 12px;
-  }
-
-  h1, h2, h3 {
-    margin-bottom: 10px;
-  }
-}
-/* ================= MOBILE FIRST AJUSTES ================= */
-
-@media (max-width: 768px) {
-
-  /* Layout geral */
   #app {
     flex-direction: column;
   }
 
-  /* SIDEBAR vira topo */
   .sidebar {
     width: 100%;
-    height: auto;
-    flex-direction: row;
+    display: flex;
     justify-content: space-around;
-    align-items: center;
-    padding: 10px;
   }
 
-  .sidebar h2 {
-    display: none; /* oculta título grande */
-  }
-
-  .sidebar nav {
-    display: flex;
-    gap: 8px;
-  }
-
-  .sidebar nav button {
-    font-size: 13px;
-    padding: 8px 10px;
-  }
-
-  /* Conteúdo ocupa tela inteira */
-  .content {
-    width: 100%;
-    padding: 12px;
-  }
-
-  /* Inputs e selects mais claros */
-  input,
-  select {
-    background-color: #fff;
-    color: #222;
-    font-size: 16px;
-    min-height: 44px;
-  }
-
-  /* Filtros empilhados */
-  .filtros {
-    display: flex;
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  .filtros input,
-  .filtros button {
-    width: 100%;
-  }
-
-  /* Cards do dashboard */
   .cards {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 10px;
+    grid-template-columns: 1fr;
   }
 
-  .card {
-    padding: 12px;
-    font-size: 14px;
-  }
-
-  /* Gráficos empilhados */
-  .graficos-linha {
-    display: flex;
+  .filtros {
     flex-direction: column;
-    gap: 16px;
   }
 
-  /* Botões grandes para touch */
-  button {
-    min-height: 44px;
+  .graficos canvas {
+    max-height: 260px;
   }
-
-  /* Lista de lançamentos */
-  #listaLancamentos li {
-    font-size: 14px;
-    padding: 8px;
-  }
-}
-
-/* ================= MELHORIA VISUAL PARA DATAS ================= */
-
-/* iOS não mostra placeholder em date */
-input[type="date"]::before,
-input[type="month"]::before {
-  content: attr(data-label);
-  color: #777;
-  margin-right: 6px;
-}
-
-input[type="date"]:focus::before,
-input[type="month"]:focus::before,
-input[type="date"]:valid::before,
-input[type="month"]:valid::before {
-  content: "";
 }
