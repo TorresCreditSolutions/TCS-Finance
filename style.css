@@ -241,3 +241,17 @@ input[type="month"]::before {
     max-height: 260px;
   }
 }
+/* ================= FIX GRÁFICOS DESKTOP ================= */
+
+@media (min-width: 769px) {
+
+  .graficos {
+    grid-template-columns: 1fr 1fr;
+    align-items: stretch;
+  }
+
+  .graficos canvas {
+    min-height: 320px;
+    max-height: 360px;
+  }
+}
