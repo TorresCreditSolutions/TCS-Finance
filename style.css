@@ -8,6 +8,7 @@ body {
   margin: 0;
   background: #f4f6f8;
   color: #222;
+  overflow-x: hidden;
 }
 
 .hidden {
@@ -16,14 +17,17 @@ body {
 
 /* ================= LOGIN ================= */
 #login-container {
-  height: 100vh;
+  position: fixed;
+  inset: 0;
   width: 100vw;
+  height: 100vh;
+  background: linear-gradient(135deg, #0a3d62, #1e90ff);
   display: flex;
   flex-direction: column;
   justify-content: center;
   align-items: center;
   gap: 12px;
-  background: linear-gradient(135deg, #0a3d62, #1e90ff);
+  z-index: 9999;
 }
 
 #login-container h2 {
@@ -48,7 +52,7 @@ body {
 
 /* ================= APP ================= */
 #app {
-  display: flex;
+  display: none;
   min-height: 100vh;
 }
 
@@ -116,16 +120,25 @@ body {
 .investimento { background: #3498db; }
 .saldo { background: #34495e; }
 
+/* ================= GRÁFICOS ================= */
 .graficos {
-  margin-top: 20px;
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 16px;
+  margin-top: 20px;
 }
 
-.graficos canvas {
+.grafico-box {
+  background: #ffffff;
+  border-radius: 10px;
+  padding: 12px;
+  height: 360px;
+  display: flex;
+}
+
+.grafico-box canvas {
   width: 100% !important;
-  max-height: 320px;
+  height: 100% !important;
 }
 
 /* ================= LANÇAMENTOS ================= */
@@ -145,7 +158,7 @@ body {
   margin-bottom: 10px;
   border-radius: 6px;
   border: 1px solid #ccc;
-  font-size: 16px; /* impede zoom no iOS */
+  font-size: 16px;
 }
 
 #lancamentos button {
@@ -170,30 +183,19 @@ select {
   color: #222;
 }
 
-/* Corrige campos date/month no iOS */
 input[type="date"],
 input[type="month"] {
-  appearance: auto;
   -webkit-appearance: auto;
-  color: #222;
-  background-color: #ffffff;
-}
-
-/* Remove hacks antigos que causavam duplicação */
-input[type="date"]::before,
-input[type="month"]::before {
-  content: none !important;
+  appearance: auto;
 }
 
 /* ================= MOBILE ================= */
 @media (max-width: 768px) {
 
-  /* Layout geral */
   #app {
     flex-direction: column;
   }
 
-  /* Sidebar vira topbar */
   .sidebar {
     width: 100%;
     flex-direction: row;
@@ -206,119 +208,14 @@ input[type="month"]::before {
     display: none;
   }
 
-  .sidebar nav {
-    display: flex;
-    gap: 8px;
-  }
-
-  .sidebar nav button {
-    font-size: 13px;
-    padding: 8px 10px;
-  }
-
-  /* Conteúdo */
-  .content {
-    padding: 12px;
-  }
-
-  /* Filtros empilhados */
-  .filtros {
-    flex-direction: column;
-    gap: 8px;
-  }
-
-  /* Cards em coluna */
   .cards {
     grid-template-columns: 1fr 1fr;
   }
 
-  /* Gráficos empilhados (mantidos no mobile) */
-  .graficos {
-    grid-template-columns: 1fr;
+  .filtros {
+    flex-direction: column;
   }
 
-  .graficos canvas {
-    max-height: 260px;
-  }
-}
-/* ================= FIX GRÁFICOS DESKTOP ================= */
-
-@media (min-width: 769px) {
-
-  .graficos {
-    grid-template-columns: 1fr 1fr;
-    align-items: stretch;
-  }
-
-  .graficos canvas {
-    min-height: 320px;
-    max-height: 360px;
-  }
-}
-/* ================= FIX DEFINITIVO DOS GRÁFICOS ================= */
-
-.graficos {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-  margin-top: 20px;
-}
-
-.grafico-box {
-  background: #ffffff;
-  border-radius: 10px;
-  padding: 12px;
-  height: 360px;           /* 🔥 ALTURA REAL */
-  display: flex;
-}
-
-.grafico-box canvas {
-  width: 100% !important;
-  height: 100% !important;
-}
-
-/* MOBILE */
-@media (max-width: 768px) {
-  .graficos {
-    grid-template-columns: 1fr;
-  }
-
-  .grafico-box {
-    height: 280px;
-  }
-}
-/* ================= GRÁFICOS - FIX DEFINITIVO ================= */
-
-.graficos {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-  margin-top: 20px;
-}
-
-.grafico-box {
-  background: #ffffff;
-  border-radius: 10px;
-  padding: 12px;
-  height: 360px;                 /* 🔥 ALTURA REAL */
-  display: flex;
-  flex-direction: column;
-}
-
-.grafico-box canvas {
-  flex: 1;
-  width: 100% !important;
-  height: 100% !important;
-}
-
-.grafico-box select {
-  margin-bottom: 8px;
-  padding: 8px;
-  border-radius: 6px;
-}
-
-/* MOBILE */
-@media (max-width: 768px) {
   .graficos {
     grid-template-columns: 1fr;
   }
