@@ -48,6 +48,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   /* ================= RECOVERY MODE (FIX DEFINITIVO) ================= */
   const params = new URLSearchParams(window.location.search);
+
   if (params.get("type") === "recovery") {
     const novaSenha = prompt("Crie sua nova senha (mínimo 6 caracteres):");
 
@@ -116,14 +117,23 @@ document.addEventListener("DOMContentLoaded", async () => {
     };
   }
 
+  /* ================= LOGOUT (FIX DESKTOP + MOBILE) ================= */
   btnLogout.onclick = async () => {
     await supabase.auth.signOut();
-    location.reload();
+
+    app.style.display = "none";
+    loginContainer.style.display = "flex";
+    loginContainer.style.pointerEvents = "auto";
+
+    dashboard.classList.remove("hidden");
+    lancamentos.classList.add("hidden");
+
+    setTimeout(() => location.reload(), 100);
   };
 
   async function iniciarSessao() {
     loginContainer.style.display = "none";
-    loginContainer.style.pointerEvents = "none"; // FIX DESKTOP
+    loginContainer.style.pointerEvents = "none"; // 🔥 ESSENCIAL
     app.style.display = "flex";
 
     await carregarDados();
@@ -167,34 +177,15 @@ document.addEventListener("DOMContentLoaded", async () => {
     dataInput.value = "";
   };
 
-  /* ================= CATEGORIAS (RESTaurado) ================= */
+  /* ================= CATEGORIAS ================= */
   tipo.addEventListener("change", () => {
     categoria.innerHTML =
       "<option value=''>Selecione a categoria</option>";
 
     const opcoes = {
-      Receita: [
-        "Salário",
-        "Mesada",
-        "Renda Extra",
-        "Dividendos",
-        "Bônus"
-      ],
-      Despesa: [
-        "Moradia",
-        "Saúde",
-        "Alimentação",
-        "Compras Diversas",
-        "Cartão de Crédito",
-        "Transporte",
-        "Contas",
-        "Lazer"
-      ],
-      Investimento: [
-        "Renda Fixa",
-        "Poupança",
-        "Renda Variável"
-      ]
+      Receita: ["Salário","Mesada","Renda Extra","Dividendos","Bônus"],
+      Despesa: ["Moradia","Saúde","Alimentação","Compras Diversas","Cartão de Crédito","Transporte","Contas","Lazer"],
+      Investimento: ["Renda Fixa","Poupança","Renda Variável"]
     };
 
     if (!opcoes[tipo.value]) return;
@@ -225,9 +216,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   /* ================= DASHBOARD ================= */
   function atualizarDashboard() {
-    let r = 0,
-      d = 0,
-      i = 0;
+    let r = 0, d = 0, i = 0;
 
     dados.forEach(l => {
       if (l.tipo === "Receita") r += l.valor;
@@ -251,16 +240,10 @@ document.addEventListener("DOMContentLoaded", async () => {
       type: "pie",
       data: {
         labels: ["Receitas", "Despesas", "Investimentos"],
-        datasets: [
-          {
-            data: [r, d, i],
-            backgroundColor: [
-              "#2ecc71",
-              "#e74c3c",
-              "#3498db"
-            ]
-          }
-        ]
+        datasets: [{
+          data: [r, d, i],
+          backgroundColor: ["#2ecc71","#e74c3c","#3498db"]
+        }]
       },
       options: {
         responsive: true,
@@ -274,10 +257,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const resumo = {};
     dados.forEach(l => {
-      const mes = l.data.slice(0, 7);
-      if (!resumo[mes]) resumo[mes] = { receita: 0, despesa: 0 };
-      if (l.tipo === "Receita") resumo[mes].receita += l.valor;
-      if (l.tipo === "Despesa") resumo[mes].despesa += l.valor;
+      const mes = l.data.slice(0,7);
+      if (!resumo[mes]) resumo[mes] = { receita:0, despesa:0 };
+      if (l.tipo==="Receita") resumo[mes].receita += l.valor;
+      if (l.tipo==="Despesa") resumo[mes].despesa += l.valor;
     });
 
     graficoMensal = new Chart(
@@ -287,19 +270,11 @@ document.addEventListener("DOMContentLoaded", async () => {
         data: {
           labels: Object.keys(resumo),
           datasets: [
-            {
-              label: "Receitas",
-              data: Object.values(resumo).map(v => v.receita),
-              backgroundColor: "#2ecc71"
-            },
-            {
-              label: "Despesas",
-              data: Object.values(resumo).map(v => v.despesa),
-              backgroundColor: "#e74c3c"
-            }
+            { label:"Receitas", data:Object.values(resumo).map(v=>v.receita), backgroundColor:"#2ecc71" },
+            { label:"Despesas", data:Object.values(resumo).map(v=>v.despesa), backgroundColor:"#e74c3c" }
           ]
         },
-        options: { responsive: true, maintainAspectRatio: false }
+        options:{ responsive:true, maintainAspectRatio:false }
       }
     );
   }
@@ -308,15 +283,19 @@ document.addEventListener("DOMContentLoaded", async () => {
     lista.innerHTML = "";
     dados.forEach(l => {
       const li = document.createElement("li");
-      li.textContent = `${l.data} - ${l.tipo} - ${l.categoria} - R$ ${l.valor.toFixed(
-        2
-      )}`;
+      li.textContent = `${l.data} - ${l.tipo} - ${l.categoria} - R$ ${l.valor.toFixed(2)}`;
       lista.appendChild(li);
     });
   }
 
-  /* ================= INIT ================= */
+  /* ================= INIT (FIX FINAL) ================= */
   const { data: session } = await supabase.auth.getSession();
-  if (session.session) iniciarSessao();
+
+  if (
+    session.session &&
+    !window.location.search.includes("type=recovery")
+  ) {
+    iniciarSessao();
+  }
 
 });
