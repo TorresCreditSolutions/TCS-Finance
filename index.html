@@ -1,142 +1,101 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-    <meta charset="UTF-8">
-    <title>Controle Financeiro</title>
+  <meta charset="UTF-8">
+  <title>Controle Financeiro</title>
 
-    <!-- RESPONSIVO -->
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <!-- CSS -->
-    <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="style.css">
 
-    <!-- LIBS -->
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
-    <!-- SUPABASE -->
-    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
-<!-- ================= LOGIN ================= -->
+<!-- LOGIN -->
 <div id="login-container">
-    <h2>Login</h2>
+  <h2>Login</h2>
 
-    <input type="email" id="email" placeholder="Email">
-    <input type="password" id="senha" placeholder="Senha">
+  <input type="email" id="email" placeholder="Email">
+  <input type="password" id="senha" placeholder="Senha">
 
-    <button id="btnLogin" type="button">Entrar</button>
-    <button id="btnCadastro" type="button">Criar Conta</button>
+  <button id="btnLogin">Entrar</button>
+  <button id="btnCadastro">Criar Conta</button>
 
-    <!-- 🔐 ESQUECI SENHA -->
-    <a href="#" id="btnEsqueciSenha" class="esqueci-senha">
-        Esqueci minha senha
-    </a>
+  <a href="#" id="btnEsqueciSenha" class="esqueci-senha">Esqueci minha senha</a>
 
-    <!-- © CRÉDITOS -->
-    <div class="creditos">
-        Direitos reservados ao criador Torres Credit Solutions
-    </div>
+  <div class="creditos">
+    Direitos reservados ao criador Torres Credit Solutions
+  </div>
 </div>
 
-<!-- ================= APP ================= -->
+<!-- APP -->
 <div id="app" class="hidden">
 
-    <!-- SIDEBAR / TOPBAR -->
-    <aside class="sidebar">
-        <span class="logo">Controle</span>
+  <aside class="sidebar">
+    <span class="logo">Controle</span>
+    <nav>
+      <button id="btnDashboard">Dashboard</button>
+      <button id="btnLancamentos">Lançamentos</button>
+      <button id="btnLogout">Sair</button>
+    </nav>
+  </aside>
 
-        <nav>
-            <button id="btnDashboard" type="button">Dashboard</button>
-            <button id="btnLancamentos" type="button">Lançamentos</button>
-            <button id="btnLogout" type="button">Sair</button>
-        </nav>
-    </aside>
+  <main class="content">
 
-    <!-- CONTEÚDO -->
-    <main class="content">
+    <section id="dashboard">
+      <h1>Dashboard Financeiro</h1>
 
-        <!-- ================= DASHBOARD ================= -->
-        <section id="dashboard">
+      <div class="cards">
+        <div class="card receita"><span>Receitas</span><strong id="totalReceitas">R$ 0,00</strong></div>
+        <div class="card despesa"><span>Despesas</span><strong id="totalDespesas">R$ 0,00</strong></div>
+        <div class="card investimento"><span>Investimentos</span><strong id="totalInvestimentos">R$ 0,00</strong></div>
+        <div class="card saldo"><span>Saldo</span><strong id="saldo">R$ 0,00</strong></div>
+      </div>
 
-            <h1>Dashboard Financeiro</h1>
+      <div class="graficos">
+        <div class="grafico-box">
+          <select id="tipoGrafico">
+            <option value="geral">Resumo Geral</option>
+            <option value="categoria">Por Categoria</option>
+          </select>
+          <canvas id="grafico"></canvas>
+        </div>
 
-            <div class="filtros">
-                <label>
-                    Mês
-                    <input type="month" id="filtroMes">
-                </label>
+        <div class="grafico-box">
+          <h4>Comparativo Mensal</h4>
+          <canvas id="graficoMensal"></canvas>
+        </div>
+      </div>
+    </section>
 
-                <label>
-                    Ano
-                    <input type="number" id="filtroAno" placeholder="2026" min="2000" max="2100">
-                </label>
+    <section id="lancamentos" class="hidden">
+      <h2>Novo Lançamento</h2>
 
-                <button id="btnLimparFiltro" type="button">Limpar</button>
-            </div>
+      <select id="tipo">
+        <option value="">Tipo</option>
+        <option value="Receita">Receita</option>
+        <option value="Despesa">Despesa</option>
+        <option value="Investimento">Investimento</option>
+      </select>
 
-            <div class="cards">
-                <div class="card receita"><span>Receitas</span><strong id="totalReceitas">R$ 0,00</strong></div>
-                <div class="card despesa"><span>Despesas</span><strong id="totalDespesas">R$ 0,00</strong></div>
-                <div class="card investimento"><span>Investimentos</span><strong id="totalInvestimentos">R$ 0,00</strong></div>
-                <div class="card saldo"><span>Saldo</span><strong id="saldo">R$ 0,00</strong></div>
-            </div>
+      <select id="categoria"></select>
+      <input type="text" id="descricao" placeholder="Descrição">
+      <input type="number" id="valor" placeholder="Valor">
+      <input type="date" id="data">
 
-            <div class="graficos">
-                <div class="grafico-box">
-                    <select id="tipoGrafico">
-                        <option value="geral">Resumo Geral</option>
-                        <option value="categoria">Por Categoria</option>
-                    </select>
-                    <canvas id="grafico"></canvas>
-                </div>
+      <button id="btnSalvar">Salvar</button>
 
-                <div class="grafico-box">
-                    <h4>Comparativo Mensal</h4>
-                    <canvas id="graficoMensal"></canvas>
-                </div>
-            </div>
+      <h3>Extrato</h3>
+      <ul id="listaLancamentos"></ul>
+    </section>
 
-        </section>
+    <footer class="creditos-app">
+      Direitos reservados ao criador Torres Credit Solutions
+    </footer>
 
-        <!-- ================= LANÇAMENTOS ================= -->
-        <section id="lancamentos" class="hidden">
-
-            <h2>Novo Lançamento</h2>
-
-            <label>Tipo</label>
-            <select id="tipo">
-                <option value="">Selecione</option>
-                <option value="Receita">Receita</option>
-                <option value="Despesa">Despesa</option>
-                <option value="Investimento">Investimento</option>
-            </select>
-
-            <label>Categoria</label>
-            <select id="categoria"></select>
-
-            <label>Descrição</label>
-            <input type="text" id="descricao">
-
-            <label>Valor</label>
-            <input type="number" id="valor" step="0.01">
-
-            <label>Data do lançamento</label>
-            <input type="date" id="data">
-
-            <button id="btnSalvar" type="button">Salvar</button>
-
-            <h3>Extrato</h3>
-            <ul id="listaLancamentos"></ul>
-
-        </section>
-
-        <!-- © CRÉDITOS APP -->
-        <footer class="creditos-app">
-            Direitos reservados ao criador Torres Credit Solutions
-        </footer>
-
-    </main>
+  </main>
 </div>
 
 <script src="script.js"></script>

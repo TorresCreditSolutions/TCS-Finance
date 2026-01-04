@@ -2,19 +2,15 @@ console.log("SCRIPT CARREGADO");
 
 document.addEventListener("DOMContentLoaded", async () => {
 
-  /* ================= CHART GLOBAL ================= */
-  Chart.defaults.devicePixelRatio = window.devicePixelRatio || 1;
-
-  /* ================= SUPABASE ================= */
-  const supabaseUrl = "https://figkamlmpangolnasaby.supabase.co";
-  const supabaseKey = "sb_publishable_qkDLfEnWNNXyqQVdogQzBQ_Sre7CVBL";
-  const supabase = window.supabase.createClient(supabaseUrl, supabaseKey);
+  const supabase = window.supabase.createClient(
+    "https://figkamlmpangolnasaby.supabase.co",
+    "sb_publishable_qkDLfEnWNNXyqQVdogQzBQ_Sre7CVBL"
+  );
 
   let dados = [];
   let grafico = null;
   let graficoMensal = null;
 
-  /* ================= ELEMENTOS ================= */
   const loginContainer = document.getElementById("login-container");
   const app = document.getElementById("app");
   const dashboard = document.getElementById("dashboard");
@@ -46,117 +42,78 @@ document.addEventListener("DOMContentLoaded", async () => {
   const lista = document.getElementById("listaLancamentos");
   const tipoGrafico = document.getElementById("tipoGrafico");
 
-  /* ================= RECOVERY MODE (FIX DEFINITIVO) ================= */
+  /* ================= RECOVERY ================= */
   const params = new URLSearchParams(window.location.search);
-
   if (params.get("type") === "recovery") {
     const novaSenha = prompt("Crie sua nova senha (mínimo 6 caracteres):");
 
     if (!novaSenha || novaSenha.length < 6) {
-      alert("Senha inválida. Mínimo 6 caracteres.");
+      alert("Senha inválida.");
       return;
     }
 
-    const { error } = await supabase.auth.updateUser({
-      password: novaSenha
-    });
+    const { error } = await supabase.auth.updateUser({ password: novaSenha });
+    if (error) return alert(error.message);
 
-    if (error) {
-      alert("Erro ao redefinir senha: " + error.message);
-      return;
-    }
-
-    alert("Senha redefinida com sucesso! Faça login novamente.");
-
-    window.location.href =
-      window.location.origin + window.location.pathname;
+    alert("Senha redefinida com sucesso.");
+    await supabase.auth.signOut();
+    window.location.href = window.location.pathname;
     return;
   }
 
   /* ================= AUTH ================= */
   btnLogin.onclick = async () => {
     const { error } = await supabase.auth.signInWithPassword({
-      email: emailInput.value.trim(),
-      password: senhaInput.value.trim()
+      email: emailInput.value,
+      password: senhaInput.value
     });
-
     if (error) return alert(error.message);
     iniciarSessao();
   };
 
   btnCadastro.onclick = async () => {
     const { error } = await supabase.auth.signUp({
-      email: emailInput.value.trim(),
-      password: senhaInput.value.trim(),
+      email: emailInput.value,
+      password: senhaInput.value,
       options: {
-        emailRedirectTo:
-          "https://torrescreditsolutions.github.io/TCS-Finance/"
+        emailRedirectTo: window.location.origin + window.location.pathname
       }
     });
-
     if (error) return alert(error.message);
-    alert("Conta criada! Confirme no email.");
+    alert("Conta criada. Confirme no email.");
   };
 
-  if (btnEsqueciSenha) {
-    btnEsqueciSenha.onclick = async () => {
-      if (!emailInput.value.trim())
-        return alert("Informe seu email.");
+  btnEsqueciSenha.onclick = async () => {
+    if (!emailInput.value) return alert("Informe o email.");
+    await supabase.auth.resetPasswordForEmail(emailInput.value, {
+      redirectTo: window.location.origin + window.location.pathname
+    });
+    alert("Email de redefinição enviado.");
+  };
 
-      const { error } =
-        await supabase.auth.resetPasswordForEmail(
-          emailInput.value.trim(),
-          {
-            redirectTo:
-              "https://torrescreditsolutions.github.io/TCS-Finance/"
-          }
-        );
-
-      if (error) return alert(error.message);
-      alert("Email de redefinição enviado.");
-    };
-  }
-
-  /* ================= LOGOUT (FIX DESKTOP + MOBILE) ================= */
   btnLogout.onclick = async () => {
     await supabase.auth.signOut();
-
-    app.style.display = "none";
-    loginContainer.style.display = "flex";
-    loginContainer.style.pointerEvents = "auto";
-
-    dashboard.classList.remove("hidden");
-    lancamentos.classList.add("hidden");
-
-    setTimeout(() => location.reload(), 100);
+    location.reload();
   };
 
   async function iniciarSessao() {
     loginContainer.style.display = "none";
-    loginContainer.style.pointerEvents = "none"; // 🔥 ESSENCIAL
-    app.style.display = "flex";
-
+    app.classList.remove("hidden");
     await carregarDados();
     mostrarDashboard();
   }
 
-  /* ================= DATABASE ================= */
   async function carregarDados() {
-    const { data, error } = await supabase
-      .from("lancamentos")
-      .select("*")
-      .order("data", { ascending: true });
-
-    if (error) return alert(error.message);
+    const { data } = await supabase.from("lancamentos").select("*");
     dados = data || [];
   }
 
   btnSalvar.onclick = async () => {
     if (!tipo.value || !categoria.value || !valor.value || !dataInput.value) {
-      return alert("Preencha todos os campos obrigatórios");
+      return alert("Preencha todos os campos");
     }
 
-    const { error } = await supabase.from("lancamentos").insert({
+    await supabase.from("lancamentos").insert({
       tipo: tipo.value,
       categoria: categoria.value,
       descricao: descricao.value,
@@ -164,48 +121,33 @@ document.addEventListener("DOMContentLoaded", async () => {
       data: dataInput.value
     });
 
-    if (error) return alert(error.message);
-
     await carregarDados();
     atualizarDashboard();
     renderizarLista();
-
-    tipo.value = "";
-    categoria.innerHTML = "<option value=''>Selecione a categoria</option>";
-    descricao.value = "";
-    valor.value = "";
-    dataInput.value = "";
   };
 
-  /* ================= CATEGORIAS ================= */
   tipo.addEventListener("change", () => {
-    categoria.innerHTML =
-      "<option value=''>Selecione a categoria</option>";
-
-    const opcoes = {
-      Receita: ["Salário","Mesada","Renda Extra","Dividendos","Bônus"],
-      Despesa: ["Moradia","Saúde","Alimentação","Compras Diversas","Cartão de Crédito","Transporte","Contas","Lazer"],
-      Investimento: ["Renda Fixa","Poupança","Renda Variável"]
+    categoria.innerHTML = "";
+    const map = {
+      Receita: ["Salário","Renda Extra","Dividendos"],
+      Despesa: ["Moradia","Alimentação","Lazer"],
+      Investimento: ["Renda Fixa","Renda Variável"]
     };
-
-    if (!opcoes[tipo.value]) return;
-
-    opcoes[tipo.value].forEach(item => {
-      const opt = document.createElement("option");
-      opt.value = item;
-      opt.textContent = item;
-      categoria.appendChild(opt);
+    (map[tipo.value] || []).forEach(c => {
+      const o = document.createElement("option");
+      o.value = c;
+      o.textContent = c;
+      categoria.appendChild(o);
     });
   });
 
-  /* ================= UI ================= */
   btnDashboard.onclick = mostrarDashboard;
   btnLancamentos.onclick = mostrarLancamentos;
 
   function mostrarDashboard() {
     lancamentos.classList.add("hidden");
     dashboard.classList.remove("hidden");
-    setTimeout(atualizarDashboard, 60);
+    atualizarDashboard();
   }
 
   function mostrarLancamentos() {
@@ -214,88 +156,59 @@ document.addEventListener("DOMContentLoaded", async () => {
     renderizarLista();
   }
 
-  /* ================= DASHBOARD ================= */
   function atualizarDashboard() {
-    let r = 0, d = 0, i = 0;
-
-    dados.forEach(l => {
-      if (l.tipo === "Receita") r += l.valor;
-      if (l.tipo === "Despesa") d += l.valor;
-      if (l.tipo === "Investimento") i += l.valor;
+    let r=0,d=0,i=0;
+    dados.forEach(l=>{
+      if(l.tipo==="Receita") r+=l.valor;
+      if(l.tipo==="Despesa") d+=l.valor;
+      if(l.tipo==="Investimento") i+=l.valor;
     });
-
-    totalReceitas.innerText = `R$ ${r.toFixed(2)}`;
-    totalDespesas.innerText = `R$ ${d.toFixed(2)}`;
-    totalInvestimentos.innerText = `R$ ${i.toFixed(2)}`;
-    saldo.innerText = `R$ ${(r - d).toFixed(2)}`;
-
-    renderizarGrafico(r, d, i);
+    totalReceitas.innerText=`R$ ${r.toFixed(2)}`;
+    totalDespesas.innerText=`R$ ${d.toFixed(2)}`;
+    totalInvestimentos.innerText=`R$ ${i.toFixed(2)}`;
+    saldo.innerText=`R$ ${(r-d).toFixed(2)}`;
+    renderizarGrafico(r,d,i);
     renderizarGraficoMensal();
   }
 
-  function renderizarGrafico(r, d, i) {
-    if (grafico) grafico.destroy();
-
-    grafico = new Chart(document.getElementById("grafico"), {
-      type: "pie",
-      data: {
-        labels: ["Receitas", "Despesas", "Investimentos"],
-        datasets: [{
-          data: [r, d, i],
-          backgroundColor: ["#2ecc71","#e74c3c","#3498db"]
-        }]
-      },
-      options: {
-        responsive: true,
-        plugins: { legend: { position: "bottom" } }
-      }
+  function renderizarGrafico(r,d,i){
+    if(grafico) grafico.destroy();
+    grafico=new Chart(document.getElementById("grafico"),{
+      type:"pie",
+      data:{labels:["Receitas","Despesas","Investimentos"],datasets:[{data:[r,d,i]}]},
+      options:{responsive:true}
     });
   }
 
-  function renderizarGraficoMensal() {
-    if (graficoMensal) graficoMensal.destroy();
-
-    const resumo = {};
-    dados.forEach(l => {
-      const mes = l.data.slice(0,7);
-      if (!resumo[mes]) resumo[mes] = { receita:0, despesa:0 };
-      if (l.tipo==="Receita") resumo[mes].receita += l.valor;
-      if (l.tipo==="Despesa") resumo[mes].despesa += l.valor;
+  function renderizarGraficoMensal(){
+    if(graficoMensal) graficoMensal.destroy();
+    const resumo={};
+    dados.forEach(l=>{
+      const m=l.data.slice(0,7);
+      resumo[m]=resumo[m]||{r:0,d:0};
+      if(l.tipo==="Receita") resumo[m].r+=l.valor;
+      if(l.tipo==="Despesa") resumo[m].d+=l.valor;
     });
-
-    graficoMensal = new Chart(
-      document.getElementById("graficoMensal"),
-      {
-        type: "bar",
-        data: {
-          labels: Object.keys(resumo),
-          datasets: [
-            { label:"Receitas", data:Object.values(resumo).map(v=>v.receita), backgroundColor:"#2ecc71" },
-            { label:"Despesas", data:Object.values(resumo).map(v=>v.despesa), backgroundColor:"#e74c3c" }
-          ]
-        },
-        options:{ responsive:true, maintainAspectRatio:false }
-      }
-    );
+    graficoMensal=new Chart(document.getElementById("graficoMensal"),{
+      type:"bar",
+      data:{labels:Object.keys(resumo),datasets:[
+        {label:"Receitas",data:Object.values(resumo).map(v=>v.r)},
+        {label:"Despesas",data:Object.values(resumo).map(v=>v.d)}
+      ]},
+      options:{responsive:true,maintainAspectRatio:false}
+    });
   }
 
-  function renderizarLista() {
-    lista.innerHTML = "";
-    dados.forEach(l => {
-      const li = document.createElement("li");
-      li.textContent = `${l.data} - ${l.tipo} - ${l.categoria} - R$ ${l.valor.toFixed(2)}`;
+  function renderizarLista(){
+    lista.innerHTML="";
+    dados.forEach(l=>{
+      const li=document.createElement("li");
+      li.textContent=`${l.data} - ${l.tipo} - ${l.categoria} - R$ ${l.valor}`;
       lista.appendChild(li);
     });
   }
 
-  /* ================= INIT (FIX FINAL) ================= */
   const { data: session } = await supabase.auth.getSession();
-
-  if (
-    session.session &&
-    !window.location.search.includes("type=recovery")
-  ) {
-    iniciarSessao();
-  }
+  if (session.session && !params.get("type")) iniciarSessao();
 
 });
