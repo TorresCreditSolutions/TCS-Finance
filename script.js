@@ -97,11 +97,24 @@ document.addEventListener("DOMContentLoaded", async () => {
   };
 
   async function iniciarSessao() {
-    loginContainer.style.display = "none";
-    app.classList.remove("hidden");
-    await carregarDados();
-    mostrarDashboard();
-  }
+  // Esconde login
+  loginContainer.style.display = "none";
+  loginContainer.style.pointerEvents = "none";
+
+  // Mostra app corretamente
+  app.style.display = "flex";
+  app.classList.remove("hidden");
+
+  // Estado inicial da UI
+  dashboard.classList.remove("hidden");
+  lancamentos.classList.add("hidden");
+
+  // Carrega dados
+  await carregarDados();
+
+  // Render inicial
+  atualizarDashboard();
+}
 
   async function carregarDados() {
     const { data } = await supabase.from("lancamentos").select("*");
