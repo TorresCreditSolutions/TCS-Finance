@@ -1,77 +1,237 @@
-/* RESET */
-* { box-sizing: border-box; font-family: "Segoe UI", sans-serif; }
+/* ================= RESET ================= */
+* {
+  box-sizing: border-box;
+  font-family: "Segoe UI", sans-serif;
+}
 
-body { margin: 0; background: #f4f6f8; }
-.hidden { display: none; }
+body {
+  margin: 0;
+  background: #f4f6f8;
+  color: #222;
+  overflow-x: hidden;
+}
 
-/* LOGIN */
+.hidden {
+  display: none;
+}
+
+/* ================= LOGIN ================= */
 #login-container {
   position: fixed;
   inset: 0;
-  background: linear-gradient(135deg,#0a3d62,#1e90ff);
+  width: 100vw;
+  height: 100vh;
+  background: linear-gradient(135deg, #0a3d62, #1e90ff);
   display: flex;
   flex-direction: column;
-  align-items: center;
   justify-content: center;
+  align-items: center;
   gap: 12px;
+  z-index: 9999;
 }
 
-#login-container input, #login-container button {
+#login-container h2 {
+  color: #ffffff;
+}
+
+#login-container input,
+#login-container button {
   width: 260px;
   padding: 12px;
   border-radius: 6px;
   border: none;
+  font-size: 16px;
+}
+
+#login-container button {
+  background: #00c853;
+  color: #ffffff;
+  font-weight: bold;
+  cursor: pointer;
 }
 
 .esqueci-senha {
   font-size: 12px;
-  color: rgba(255,255,255,.8);
+  color: rgba(255, 255, 255, 0.75);
   cursor: pointer;
+  text-decoration: underline;
 }
 
 .creditos {
   position: absolute;
-  bottom: 10px;
+  bottom: 12px;
   font-size: 10px;
-  color: rgba(255,255,255,.6);
+  color: rgba(255, 255, 255, 0.6);
 }
 
-/* RESET PASSWORD */
-#reset-container {
-  position: fixed;
-  inset: 0;
-  background: #f4f6f8;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+/* ================= APP ================= */
+#app {
+  display: none;
+  min-height: 100vh;
 }
 
-.reset-box {
-  background: #fff;
-  padding: 24px;
-  border-radius: 10px;
-  width: 300px;
+/* ================= SIDEBAR ================= */
+.sidebar {
+  width: 220px;
+  background: #0a3d62;
+  color: #ffffff;
+  padding: 16px;
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 12px;
 }
 
-.reset-box input {
-  padding: 12px;
+.sidebar .logo {
+  font-size: 18px;
+  font-weight: bold;
 }
 
-.reset-box button {
-  padding: 12px;
+.sidebar nav button {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #1e90ff;
+  background: transparent;
+  color: #ffffff;
   border-radius: 6px;
+  cursor: pointer;
+}
+
+/* ================= CONTENT ================= */
+.content {
+  flex: 1;
+  padding: 16px;
+}
+
+/* ================= DASHBOARD ================= */
+.cards {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 12px;
+}
+
+.card {
+  padding: 14px;
+  border-radius: 10px;
+  color: #ffffff;
+  text-align: center;
+}
+
+.receita { background: #2ecc71; }
+.despesa { background: #e74c3c; }
+.investimento { background: #3498db; }
+.saldo { background: #34495e; }
+
+/* ================= GRÁFICOS ================= */
+.graficos {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+  margin-top: 20px;
+}
+
+/* CAIXA DO GRÁFICO (FIX DEFINITIVO) */
+.grafico-box {
+  background: #ffffff;
+  border-radius: 10px;
+  padding: 14px;
+  height: 320px;               /* 🔥 trava altura */
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;            /* 🔥 impede estouro */
+}
+
+/* SELECT DO GRÁFICO */
+.grafico-box select {
+  max-width: 220px;
+  margin: 0 auto 10px auto;
+  padding: 8px;
+  border-radius: 6px;
+  font-size: 14px;
+}
+
+/* CANVAS (FIX REAL DO PROBLEMA) */
+.grafico-box canvas {
+  flex: 1;
+  width: 100% !important;
+  height: auto !important;
+  max-height: 240px;           /* 🔥 evita gráfico gigante */
+}
+
+/* ================= LANÇAMENTOS ================= */
+#lancamentos label {
+  font-size: 13px;
+  font-weight: 500;
+  margin-top: 8px;
+  margin-bottom: 4px;
+  display: block;
+}
+
+#lancamentos input,
+#lancamentos select,
+#lancamentos button {
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 10px;
+  border-radius: 6px;
+  border: 1px solid #ccc;
+  font-size: 16px;
+}
+
+#lancamentos button {
+  background: #1e90ff;
+  color: #ffffff;
   border: none;
   cursor: pointer;
 }
 
-.reset-box .secundario {
-  background: #ccc;
+#listaLancamentos li {
+  background: #ffffff;
+  margin-top: 6px;
+  padding: 8px;
+  border-radius: 6px;
+  font-size: 14px;
 }
 
-/* APP */
-#app { display: none; min-height: 100vh; }
+/* ================= FOOTER ================= */
+.creditos-app {
+  margin-top: 30px;
+  text-align: center;
+  font-size: 10px;
+  color: rgba(0, 0, 0, 0.4);
+}
 
-/* sidebar, cards, gráficos permanecem iguais aos seus */
+/* ================= MOBILE ================= */
+@media (max-width: 768px) {
+
+  #app {
+    flex-direction: column;
+  }
+
+  .sidebar {
+    width: 100%;
+    flex-direction: row;
+    justify-content: space-around;
+    align-items: center;
+    padding: 10px;
+  }
+
+  .sidebar .logo {
+    display: none;
+  }
+
+  .cards {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .graficos {
+    grid-template-columns: 1fr;
+  }
+
+  .grafico-box {
+    height: 260px;
+  }
+
+  .grafico-box canvas {
+    max-height: 200px;
+  }
+}

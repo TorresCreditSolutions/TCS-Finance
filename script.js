@@ -190,30 +190,65 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
-  function renderizarGraficoMensal(){
+   function renderizarGraficoMensal(){
     if(graficoMensal) graficoMensal.destroy();
-    const resumo={};
-    dados.forEach(l=>{
-      const m=l.data.slice(0,7);
-      resumo[m]=resumo[m]||{r:0,d:0};
-      if(l.tipo==="Receita") resumo[m].r+=l.valor;
-      if(l.tipo==="Despesa") resumo[m].d+=l.valor;
+
+    const resumo = {};
+    dados.forEach(l => {
+      const m = l.data.slice(0,7);
+      resumo[m] = resumo[m] || { r:0, d:0 };
+      if(l.tipo === "Receita") resumo[m].r += l.valor;
+      if(l.tipo === "Despesa") resumo[m].d += l.valor;
     });
-    graficoMensal=new Chart(document.getElementById("graficoMensal"),{
-      type:"bar",
-      data:{labels:Object.keys(resumo),datasets:[
-        {label:"Receitas",data:Object.values(resumo).map(v=>v.r)},
-        {label:"Despesas",data:Object.values(resumo).map(v=>v.d)}
-      ]},
-      options:{responsive:true,maintainAspectRatio:false}
-    });
+
+    graficoMensal = new Chart(
+      document.getElementById("graficoMensal"),
+      {
+        type: "bar",
+        data: {
+          labels: Object.keys(resumo),
+          datasets: [
+            {
+              label: "Receitas",
+              data: Object.values(resumo).map(v => v.r)
+            },
+            {
+              label: "Despesas",
+              data: Object.values(resumo).map(v => v.d)
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          scales: {
+            x: {
+              ticks: {
+                autoSkip: true,
+                maxTicksLimit: 6,
+                maxRotation: 0
+              }
+            },
+            y: {
+              beginAtZero: true
+            }
+          },
+          plugins: {
+            legend: {
+              position: "bottom"
+            }
+          }
+        }
+      }
+    );
   }
 
   function renderizarLista(){
-    lista.innerHTML="";
-    dados.forEach(l=>{
-      const li=document.createElement("li");
-      li.textContent=`${l.data} - ${l.tipo} - ${l.categoria} - R$ ${l.valor}`;
+    lista.innerHTML = "";
+    dados.forEach(l => {
+      const li = document.createElement("li");
+      li.textContent =
+        `${l.data} - ${l.tipo} - ${l.categoria} - R$ ${l.valor}`;
       lista.appendChild(li);
     });
   }
@@ -221,4 +256,5 @@ document.addEventListener("DOMContentLoaded", async () => {
   /* ================= INIT ================= */
   const { data: session } = await supabase.auth.getSession();
   if (session.session) iniciarSessao();
+
 });
