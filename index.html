@@ -4,10 +4,16 @@
   <meta charset="UTF-8">
   <title>Controle Financeiro</title>
 
+  <!-- RESPONSIVO -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+  <!-- ✅ FAVICON (CORREÇÃO PROFISSIONAL) -->
+  <link rel="icon" href="favicon.ico" type="image/x-icon">
+
+  <!-- CSS -->
   <link rel="stylesheet" href="style.css">
 
+  <!-- LIBS -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
@@ -23,7 +29,9 @@
   <button id="btnLogin">Entrar</button>
   <button id="btnCadastro">Criar Conta</button>
 
-  <a href="#" id="btnEsqueciSenha" class="esqueci-senha">Esqueci minha senha</a>
+  <a href="#" id="btnEsqueciSenha" class="esqueci-senha">
+    Esqueci minha senha
+  </a>
 
   <div class="creditos">
     Direitos reservados ao criador Torres Credit Solutions
@@ -44,14 +52,30 @@
 
   <main class="content">
 
+    <!-- DASHBOARD -->
     <section id="dashboard">
       <h1>Dashboard Financeiro</h1>
 
       <div class="cards">
-        <div class="card receita"><span>Receitas</span><strong id="totalReceitas">R$ 0,00</strong></div>
-        <div class="card despesa"><span>Despesas</span><strong id="totalDespesas">R$ 0,00</strong></div>
-        <div class="card investimento"><span>Investimentos</span><strong id="totalInvestimentos">R$ 0,00</strong></div>
-        <div class="card saldo"><span>Saldo</span><strong id="saldo">R$ 0,00</strong></div>
+        <div class="card receita">
+          <span>Receitas</span>
+          <strong id="totalReceitas">R$ 0,00</strong>
+        </div>
+
+        <div class="card despesa">
+          <span>Despesas</span>
+          <strong id="totalDespesas">R$ 0,00</strong>
+        </div>
+
+        <div class="card investimento">
+          <span>Investimentos</span>
+          <strong id="totalInvestimentos">R$ 0,00</strong>
+        </div>
+
+        <div class="card saldo">
+          <span>Saldo</span>
+          <strong id="saldo">R$ 0,00</strong>
+        </div>
       </div>
 
       <div class="graficos">
@@ -70,6 +94,7 @@
       </div>
     </section>
 
+    <!-- LANÇAMENTOS -->
     <section id="lancamentos" class="hidden">
       <h2>Novo Lançamento</h2>
 
@@ -81,6 +106,7 @@
       </select>
 
       <select id="categoria"></select>
+
       <input type="text" id="descricao" placeholder="Descrição">
       <input type="number" id="valor" placeholder="Valor">
       <input type="date" id="data">
@@ -98,6 +124,7 @@
   </main>
 </div>
 
+<!-- SCRIPT -->
 <script src="script.js"></script>
 </body>
 </html>
