@@ -129,9 +129,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   tipo.addEventListener("change", () => {
     categoria.innerHTML = "";
     const map = {
-      Receita: ["Salário","Renda Extra","Dividendos"],
-      Despesa: ["Moradia","Alimentação","Lazer"],
-      Investimento: ["Renda Fixa","Renda Variável"]
+      Receita: ["Salário", "Mesada", "Bônus", "Renda Extra","Dividendos"],
+      Despesa: ["Moradia","Alimentação", "Saúde", "Cartão de Crédito", "Contas de Consumo", "Compras diversas", "Lazer"],
+      Investimento: ["Renda Fixa","Renda Variável", "Poupança"]
     };
     (map[tipo.value] || []).forEach(c => {
       const o = document.createElement("option");
