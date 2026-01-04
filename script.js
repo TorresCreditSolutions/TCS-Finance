@@ -11,6 +11,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   let grafico = null;
   let graficoMensal = null;
 
+  /* ================= ELEMENTOS ================= */
   const loginContainer = document.getElementById("login-container");
   const app = document.getElementById("app");
   const dashboard = document.getElementById("dashboard");
@@ -47,7 +48,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   if (params.get("type") === "recovery") {
     const novaSenha = prompt("Crie sua nova senha (mínimo 6 caracteres):");
-
     if (!novaSenha || novaSenha.length < 6) {
       alert("Senha inválida.");
       return;
@@ -94,7 +94,16 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   btnLogout.onclick = async () => {
     await supabase.auth.signOut();
-    location.reload();
+
+    // RESET TOTAL DA UI
+    app.style.display = "none";
+    app.classList.add("hidden");
+
+    dashboard.classList.remove("hidden");
+    lancamentos.classList.add("hidden");
+
+    loginContainer.style.display = "flex";
+    loginContainer.style.pointerEvents = "auto";
   };
 
   /* ================= CORE ================= */
@@ -110,7 +119,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     await carregarDados();
 
-    setTimeout(atualizarDashboard, 50);
+    setTimeout(() => {
+      atualizarDashboard();
+    }, 80);
   }
 
   async function carregarDados() {
@@ -190,71 +201,45 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
-   function renderizarGraficoMensal(){
+  function renderizarGraficoMensal(){
     if(graficoMensal) graficoMensal.destroy();
 
-    const resumo = {};
-    dados.forEach(l => {
-      const m = l.data.slice(0,7);
-      resumo[m] = resumo[m] || { r:0, d:0 };
-      if(l.tipo === "Receita") resumo[m].r += l.valor;
-      if(l.tipo === "Despesa") resumo[m].d += l.valor;
+    const resumo={};
+    dados.forEach(l=>{
+      const m=l.data.slice(0,7);
+      resumo[m]=resumo[m]||{r:0,d:0};
+      if(l.tipo==="Receita") resumo[m].r+=l.valor;
+      if(l.tipo==="Despesa") resumo[m].d+=l.valor;
     });
 
-    graficoMensal = new Chart(
-      document.getElementById("graficoMensal"),
-      {
-        type: "bar",
-        data: {
-          labels: Object.keys(resumo),
-          datasets: [
-            {
-              label: "Receitas",
-              data: Object.values(resumo).map(v => v.r)
-            },
-            {
-              label: "Despesas",
-              data: Object.values(resumo).map(v => v.d)
-            }
-          ]
+    graficoMensal=new Chart(document.getElementById("graficoMensal"),{
+      type:"bar",
+      data:{
+        labels:Object.keys(resumo),
+        datasets:[
+          {label:"Receitas",data:Object.values(resumo).map(v=>v.r)},
+          {label:"Despesas",data:Object.values(resumo).map(v=>v.d)}
+        ]
+      },
+      options:{
+        responsive:true,
+        maintainAspectRatio:false,
+        scales:{
+          x:{ticks:{autoSkip:true,maxTicksLimit:6}},
+          y:{beginAtZero:true}
         },
-        options: {
-          responsive: true,
-          maintainAspectRatio: false,
-          scales: {
-            x: {
-              ticks: {
-                autoSkip: true,
-                maxTicksLimit: 6,
-                maxRotation: 0
-              }
-            },
-            y: {
-              beginAtZero: true
-            }
-          },
-          plugins: {
-            legend: {
-              position: "bottom"
-            }
-          }
-        }
+        plugins:{legend:{position:"bottom"}}
       }
-    );
+    });
   }
 
   function renderizarLista(){
-    lista.innerHTML = "";
-    dados.forEach(l => {
-      const li = document.createElement("li");
-      li.textContent =
-        `${l.data} - ${l.tipo} - ${l.categoria} - R$ ${l.valor}`;
+    lista.innerHTML="";
+    dados.forEach(l=>{
+      const li=document.createElement("li");
+      li.textContent=`${l.data} - ${l.tipo} - ${l.categoria} - R$ ${l.valor}`;
       lista.appendChild(li);
     });
   }
-
-  /* ================= INIT ================= */
-  const { data: session } = await supabase.auth.getSession();
-  if (session.session) iniciarSessao();
 
 });
