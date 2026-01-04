@@ -2,14 +2,20 @@ console.log("SCRIPT CARREGADO");
 
 document.addEventListener("DOMContentLoaded", async () => {
 
+  /* ================= SUPABASE ================= */
   const supabase = window.supabase.createClient(
     "https://figkamlmpangolnasaby.supabase.co",
     "sb_publishable_qkDLfEnWNNXyqQVdogQzBQ_Sre7CVBL"
   );
 
+  /* ================= ESTADO ================= */
   let dados = [];
   let grafico = null;
   let graficoMensal = null;
+  let idEmEdicao = null;
+
+  const LIMITE_FREE = 30; // limite de lançamentos plano free
+  let planoUsuario = "FREE";
 
   /* ================= ELEMENTOS ================= */
   const loginContainer = document.getElementById("login-container");
@@ -35,6 +41,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   const valor = document.getElementById("valor");
   const dataInput = document.getElementById("data");
 
+  const filtroMes = document.getElementById("filtroMes");
+  const filtroAno = document.getElementById("filtroAno");
+  const btnLimparFiltro = document.getElementById("btnLimparFiltro");
+
   const totalReceitas = document.getElementById("totalReceitas");
   const totalDespesas = document.getElementById("totalDespesas");
   const totalInvestimentos = document.getElementById("totalInvestimentos");
@@ -42,25 +52,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   const lista = document.getElementById("listaLancamentos");
   const tipoGrafico = document.getElementById("tipoGrafico");
-
-  /* ================= RECOVERY ================= */
-  const params = new URLSearchParams(window.location.search);
-
-  if (params.get("type") === "recovery") {
-    const novaSenha = prompt("Crie sua nova senha (mínimo 6 caracteres):");
-    if (!novaSenha || novaSenha.length < 6) {
-      alert("Senha inválida.");
-      return;
-    }
-
-    const { error } = await supabase.auth.updateUser({ password: novaSenha });
-    if (error) return alert(error.message);
-
-    alert("Senha redefinida com sucesso.");
-    await supabase.auth.signOut();
-    window.location.href = window.location.pathname;
-    return;
-  }
 
   /* ================= AUTH ================= */
   btnLogin.onclick = async () => {
@@ -75,10 +66,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   btnCadastro.onclick = async () => {
     const { error } = await supabase.auth.signUp({
       email: emailInput.value,
-      password: senhaInput.value,
-      options: {
-        emailRedirectTo: window.location.origin + window.location.pathname
-      }
+      password: senhaInput.value
     });
     if (error) return alert(error.message);
     alert("Conta criada. Confirme no email.");
@@ -86,42 +74,25 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   btnEsqueciSenha.onclick = async () => {
     if (!emailInput.value) return alert("Informe o email.");
-    await supabase.auth.resetPasswordForEmail(emailInput.value, {
-      redirectTo: window.location.origin + window.location.pathname
-    });
+    await supabase.auth.resetPasswordForEmail(emailInput.value);
     alert("Email de redefinição enviado.");
   };
 
   btnLogout.onclick = async () => {
     await supabase.auth.signOut();
-
-    // RESET TOTAL DA UI
-    app.style.display = "none";
-    app.classList.add("hidden");
-
-    dashboard.classList.remove("hidden");
-    lancamentos.classList.add("hidden");
-
-    loginContainer.style.display = "flex";
-    loginContainer.style.pointerEvents = "auto";
+    location.reload();
   };
 
   /* ================= CORE ================= */
   async function iniciarSessao() {
     loginContainer.style.display = "none";
-    loginContainer.style.pointerEvents = "none";
-
     app.style.display = "flex";
-    app.classList.remove("hidden");
 
     dashboard.classList.remove("hidden");
     lancamentos.classList.add("hidden");
 
     await carregarDados();
-
-    setTimeout(() => {
-      atualizarDashboard();
-    }, 80);
+    atualizarDashboard();
   }
 
   async function carregarDados() {
@@ -129,117 +100,159 @@ document.addEventListener("DOMContentLoaded", async () => {
     dados = data || [];
   }
 
+  /* ================= SALVAR / EDITAR ================= */
   btnSalvar.onclick = async () => {
+
     if (!tipo.value || !categoria.value || !valor.value || !dataInput.value) {
-      return alert("Preencha todos os campos");
+      return alert("Preencha todos os campos.");
     }
 
-    await supabase.from("lancamentos").insert({
-      tipo: tipo.value,
-      categoria: categoria.value,
-      descricao: descricao.value,
-      valor: Number(valor.value),
-      data: dataInput.value
+    if (planoUsuario === "FREE" && dados.length >= LIMITE_FREE && !idEmEdicao) {
+      return alert("Limite do plano gratuito atingido.");
+    }
+
+    if (idEmEdicao) {
+      await supabase.from("lancamentos")
+        .update({
+          tipo: tipo.value,
+          categoria: categoria.value,
+          descricao: descricao.value,
+          valor: Number(valor.value),
+          data: dataInput.value
+        })
+        .eq("id", idEmEdicao);
+      idEmEdicao = null;
+    } else {
+      await supabase.from("lancamentos").insert({
+        tipo: tipo.value,
+        categoria: categoria.value,
+        descricao: descricao.value,
+        valor: Number(valor.value),
+        data: dataInput.value
+      });
+    }
+
+    await carregarDados();
+    atualizarDashboard();
+    renderizarLista();
+    limparFormulario();
+  };
+
+  function limparFormulario() {
+    tipo.value = "";
+    categoria.innerHTML = "";
+    descricao.value = "";
+    valor.value = "";
+    dataInput.value = "";
+  }
+
+  /* ================= FILTROS ================= */
+  filtroMes.onchange = atualizarDashboard;
+  filtroAno.onchange = atualizarDashboard;
+  btnLimparFiltro.onclick = () => {
+    filtroMes.value = "";
+    filtroAno.value = "";
+    atualizarDashboard();
+  };
+
+  /* ================= DASHBOARD ================= */
+  function atualizarDashboard() {
+    let filtrados = [...dados];
+
+    if (filtroMes.value)
+      filtrados = filtrados.filter(l => l.data.startsWith(filtroMes.value));
+
+    if (filtroAno.value)
+      filtrados = filtrados.filter(l => l.data.startsWith(filtroAno.value));
+
+    let r = 0, d = 0, i = 0;
+    filtrados.forEach(l => {
+      if (l.tipo === "Receita") r += l.valor;
+      if (l.tipo === "Despesa") d += l.valor;
+      if (l.tipo === "Investimento") i += l.valor;
     });
 
+    totalReceitas.innerText = `R$ ${r.toFixed(2)}`;
+    totalDespesas.innerText = `R$ ${d.toFixed(2)}`;
+    totalInvestimentos.innerText = `R$ ${i.toFixed(2)}`;
+    saldo.innerText = `R$ ${(r - d).toFixed(2)}`;
+
+    renderizarGrafico(r, d, i);
+    renderizarGraficoMensal();
+  }
+
+  function renderizarGrafico(r, d, i) {
+    if (grafico) grafico.destroy();
+    grafico = new Chart(document.getElementById("grafico"), {
+      type: "pie",
+      data: {
+        labels: ["Receitas", "Despesas", "Investimentos"],
+        datasets: [{ data: [r, d, i] }]
+      },
+      options: { responsive: true }
+    });
+  }
+
+  function renderizarGraficoMensal() {
+    if (graficoMensal) graficoMensal.destroy();
+
+    const resumo = {};
+    dados.forEach(l => {
+      const m = l.data.slice(0, 7);
+      resumo[m] = resumo[m] || { r: 0, d: 0 };
+      if (l.tipo === "Receita") resumo[m].r += l.valor;
+      if (l.tipo === "Despesa") resumo[m].d += l.valor;
+    });
+
+    graficoMensal = new Chart(document.getElementById("graficoMensal"), {
+      type: "bar",
+      data: {
+        labels: Object.keys(resumo),
+        datasets: [
+          { label: "Receitas", data: Object.values(resumo).map(v => v.r) },
+          { label: "Despesas", data: Object.values(resumo).map(v => v.d) }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { position: "bottom" } }
+      }
+    });
+  }
+
+  /* ================= LISTA ================= */
+  function renderizarLista() {
+    lista.innerHTML = "";
+    dados.forEach(l => {
+      const li = document.createElement("li");
+      li.innerHTML = `
+        ${l.data} - ${l.tipo} - ${l.categoria} - R$ ${l.valor}
+        <button onclick="editar(${l.id})">✏️</button>
+        <button onclick="excluir(${l.id})">🗑</button>
+      `;
+      lista.appendChild(li);
+    });
+  }
+
+  window.excluir = async (id) => {
+    if (!confirm("Excluir lançamento?")) return;
+    await supabase.from("lancamentos").delete().eq("id", id);
     await carregarDados();
     atualizarDashboard();
     renderizarLista();
   };
 
-  tipo.addEventListener("change", () => {
-    categoria.innerHTML = "";
-    const map = {
-      Receita: ["Salário","Mesada","Bônus","Renda Extra","Dividendos"],
-      Despesa: ["Moradia","Alimentação","Saúde","Cartão de Crédito","Contas de Consumo","Compras diversas","Lazer"],
-      Investimento: ["Renda Fixa","Renda Variável","Poupança"]
-    };
-    (map[tipo.value] || []).forEach(c => {
-      const o = document.createElement("option");
-      o.value = c;
-      o.textContent = c;
-      categoria.appendChild(o);
-    });
-  });
-
-  btnDashboard.onclick = mostrarDashboard;
-  btnLancamentos.onclick = mostrarLancamentos;
-
-  function mostrarDashboard() {
-    lancamentos.classList.add("hidden");
-    dashboard.classList.remove("hidden");
-    atualizarDashboard();
-  }
-
-  function mostrarLancamentos() {
-    dashboard.classList.add("hidden");
-    lancamentos.classList.remove("hidden");
-    renderizarLista();
-  }
-
-  function atualizarDashboard() {
-    let r=0,d=0,i=0;
-    dados.forEach(l=>{
-      if(l.tipo==="Receita") r+=l.valor;
-      if(l.tipo==="Despesa") d+=l.valor;
-      if(l.tipo==="Investimento") i+=l.valor;
-    });
-    totalReceitas.innerText=`R$ ${r.toFixed(2)}`;
-    totalDespesas.innerText=`R$ ${d.toFixed(2)}`;
-    totalInvestimentos.innerText=`R$ ${i.toFixed(2)}`;
-    saldo.innerText=`R$ ${(r-d).toFixed(2)}`;
-    renderizarGrafico(r,d,i);
-    renderizarGraficoMensal();
-  }
-
-  function renderizarGrafico(r,d,i){
-    if(grafico) grafico.destroy();
-    grafico=new Chart(document.getElementById("grafico"),{
-      type:"pie",
-      data:{labels:["Receitas","Despesas","Investimentos"],datasets:[{data:[r,d,i]}]},
-      options:{responsive:true}
-    });
-  }
-
-  function renderizarGraficoMensal(){
-    if(graficoMensal) graficoMensal.destroy();
-
-    const resumo={};
-    dados.forEach(l=>{
-      const m=l.data.slice(0,7);
-      resumo[m]=resumo[m]||{r:0,d:0};
-      if(l.tipo==="Receita") resumo[m].r+=l.valor;
-      if(l.tipo==="Despesa") resumo[m].d+=l.valor;
-    });
-
-    graficoMensal=new Chart(document.getElementById("graficoMensal"),{
-      type:"bar",
-      data:{
-        labels:Object.keys(resumo),
-        datasets:[
-          {label:"Receitas",data:Object.values(resumo).map(v=>v.r)},
-          {label:"Despesas",data:Object.values(resumo).map(v=>v.d)}
-        ]
-      },
-      options:{
-        responsive:true,
-        maintainAspectRatio:false,
-        scales:{
-          x:{ticks:{autoSkip:true,maxTicksLimit:6}},
-          y:{beginAtZero:true}
-        },
-        plugins:{legend:{position:"bottom"}}
-      }
-    });
-  }
-
-  function renderizarLista(){
-    lista.innerHTML="";
-    dados.forEach(l=>{
-      const li=document.createElement("li");
-      li.textContent=`${l.data} - ${l.tipo} - ${l.categoria} - R$ ${l.valor}`;
-      lista.appendChild(li);
-    });
-  }
+  window.editar = (id) => {
+    const l = dados.find(d => d.id === id);
+    if (!l) return;
+    idEmEdicao = id;
+    tipo.value = l.tipo;
+    categoria.innerHTML = `<option>${l.categoria}</option>`;
+    descricao.value = l.descricao;
+    valor.value = l.valor;
+    dataInput.value = l.data;
+    mostrarLancamentos();
+  };
 
 });

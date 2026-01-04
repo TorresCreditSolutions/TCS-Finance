@@ -2,12 +2,12 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <title>Controle Financeiro</title>
+  <title>TCS Finance | Controle Financeiro</title>
 
   <!-- RESPONSIVO -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- ✅ FAVICON (CORREÇÃO PROFISSIONAL) -->
+  <!-- FAVICON -->
   <link rel="icon" href="favicon.ico" type="image/x-icon">
 
   <!-- CSS -->
@@ -19,9 +19,9 @@
 </head>
 <body>
 
-<!-- LOGIN -->
+<!-- ================= LOGIN ================= -->
 <div id="login-container">
-  <h2>Login</h2>
+  <h2>TCS Finance</h2>
 
   <input type="email" id="email" placeholder="Email">
   <input type="password" id="senha" placeholder="Senha">
@@ -33,16 +33,23 @@
     Esqueci minha senha
   </a>
 
+  <!-- TERMOS -->
+  <label class="termos">
+    <input type="checkbox" id="aceiteTermos">
+    Li e aceito os termos de uso
+  </label>
+
   <div class="creditos">
-    Direitos reservados ao criador Torres Credit Solutions
+    © Torres Credit Solutions • Dados criptografados
   </div>
 </div>
 
-<!-- APP -->
+<!-- ================= APP ================= -->
 <div id="app" class="hidden">
 
+  <!-- SIDEBAR -->
   <aside class="sidebar">
-    <span class="logo">Controle</span>
+    <span class="logo">TCS Finance</span>
     <nav>
       <button id="btnDashboard">Dashboard</button>
       <button id="btnLancamentos">Lançamentos</button>
@@ -50,12 +57,36 @@
     </nav>
   </aside>
 
+  <!-- CONTEÚDO -->
   <main class="content">
 
     <!-- DASHBOARD -->
     <section id="dashboard">
       <h1>Dashboard Financeiro</h1>
 
+      <!-- AVISOS PROFISSIONAIS -->
+      <div class="avisos-sistema">
+        <span id="nomeCliente">Olá!</span>
+        <span class="badge">Sistema Profissional</span>
+        <span id="planoUsuario">Plano Free</span>
+      </div>
+
+      <!-- FILTROS -->
+      <div class="filtros">
+        <label>
+          Mês
+          <input type="month" id="filtroMes">
+        </label>
+
+        <label>
+          Ano
+          <input type="number" id="filtroAno" placeholder="2026" min="2000" max="2100">
+        </label>
+
+        <button id="btnLimparFiltro">Limpar</button>
+      </div>
+
+      <!-- CARDS -->
       <div class="cards">
         <div class="card receita">
           <span>Receitas</span>
@@ -78,6 +109,7 @@
         </div>
       </div>
 
+      <!-- GRÁFICOS -->
       <div class="graficos">
         <div class="grafico-box">
           <select id="tipoGrafico">
@@ -115,10 +147,14 @@
 
       <h3>Extrato</h3>
       <ul id="listaLancamentos"></ul>
+
+      <!-- PDF -->
+      <button id="btnExportarPdf">Exportar PDF</button>
     </section>
 
+    <!-- RODAPÉ -->
     <footer class="creditos-app">
-      Direitos reservados ao criador Torres Credit Solutions
+      © TCS Finance • Dados criptografados • Uso profissional
     </footer>
 
   </main>
