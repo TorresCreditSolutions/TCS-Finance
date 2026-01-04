@@ -2,6 +2,7 @@ console.log("SCRIPT CARREGADO");
 
 document.addEventListener("DOMContentLoaded", async () => {
 
+  /* ================= CHART GLOBAL ================= */
   Chart.defaults.devicePixelRatio = window.devicePixelRatio || 1;
 
   /* ================= SUPABASE ================= */
@@ -45,30 +46,33 @@ document.addEventListener("DOMContentLoaded", async () => {
   const lista = document.getElementById("listaLancamentos");
   const tipoGrafico = document.getElementById("tipoGrafico");
 
-  /* ================= RECOVERY MODE ================= */
+  /* ================= RECOVERY MODE (FIX DEFINITIVO) ================= */
   const params = new URLSearchParams(window.location.search);
   if (params.get("type") === "recovery") {
-    const novaSenha = prompt("Digite sua nova senha:");
+    const novaSenha = prompt("Crie sua nova senha (mínimo 6 caracteres):");
 
-    if (novaSenha && novaSenha.length >= 6) {
-      const { error } = await supabase.auth.updateUser({
-        password: novaSenha
-      });
-
-      if (error) {
-        alert(error.message);
-      } else {
-        alert("Senha redefinida com sucesso. Faça login novamente.");
-        window.location.href = window.location.origin + window.location.pathname;
-      }
-    } else {
+    if (!novaSenha || novaSenha.length < 6) {
       alert("Senha inválida. Mínimo 6 caracteres.");
+      return;
     }
+
+    const { error } = await supabase.auth.updateUser({
+      password: novaSenha
+    });
+
+    if (error) {
+      alert("Erro ao redefinir senha: " + error.message);
+      return;
+    }
+
+    alert("Senha redefinida com sucesso! Faça login novamente.");
+
+    window.location.href =
+      window.location.origin + window.location.pathname;
     return;
   }
 
   /* ================= AUTH ================= */
-
   btnLogin.onclick = async () => {
     const { error } = await supabase.auth.signInWithPassword({
       email: emailInput.value.trim(),
@@ -84,7 +88,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       email: emailInput.value.trim(),
       password: senhaInput.value.trim(),
       options: {
-        emailRedirectTo: "https://torrescreditsolutions.github.io/TCS-Finance/"
+        emailRedirectTo:
+          "https://torrescreditsolutions.github.io/TCS-Finance/"
       }
     });
 
@@ -94,12 +99,17 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   if (btnEsqueciSenha) {
     btnEsqueciSenha.onclick = async () => {
-      if (!emailInput.value) return alert("Informe seu email.");
+      if (!emailInput.value.trim())
+        return alert("Informe seu email.");
 
-      const { error } = await supabase.auth.resetPasswordForEmail(
-        emailInput.value.trim(),
-        { redirectTo: "https://torrescreditsolutions.github.io/TCS-Finance/" }
-      );
+      const { error } =
+        await supabase.auth.resetPasswordForEmail(
+          emailInput.value.trim(),
+          {
+            redirectTo:
+              "https://torrescreditsolutions.github.io/TCS-Finance/"
+          }
+        );
 
       if (error) return alert(error.message);
       alert("Email de redefinição enviado.");
@@ -113,7 +123,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   async function iniciarSessao() {
     loginContainer.style.display = "none";
-    loginContainer.style.pointerEvents = "none"; // 🔥 FIX DESKTOP
+    loginContainer.style.pointerEvents = "none"; // FIX DESKTOP
     app.style.display = "flex";
 
     await carregarDados();
@@ -130,6 +140,72 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (error) return alert(error.message);
     dados = data || [];
   }
+
+  btnSalvar.onclick = async () => {
+    if (!tipo.value || !categoria.value || !valor.value || !dataInput.value) {
+      return alert("Preencha todos os campos obrigatórios");
+    }
+
+    const { error } = await supabase.from("lancamentos").insert({
+      tipo: tipo.value,
+      categoria: categoria.value,
+      descricao: descricao.value,
+      valor: Number(valor.value),
+      data: dataInput.value
+    });
+
+    if (error) return alert(error.message);
+
+    await carregarDados();
+    atualizarDashboard();
+    renderizarLista();
+
+    tipo.value = "";
+    categoria.innerHTML = "<option value=''>Selecione a categoria</option>";
+    descricao.value = "";
+    valor.value = "";
+    dataInput.value = "";
+  };
+
+  /* ================= CATEGORIAS (RESTaurado) ================= */
+  tipo.addEventListener("change", () => {
+    categoria.innerHTML =
+      "<option value=''>Selecione a categoria</option>";
+
+    const opcoes = {
+      Receita: [
+        "Salário",
+        "Mesada",
+        "Renda Extra",
+        "Dividendos",
+        "Bônus"
+      ],
+      Despesa: [
+        "Moradia",
+        "Saúde",
+        "Alimentação",
+        "Compras Diversas",
+        "Cartão de Crédito",
+        "Transporte",
+        "Contas",
+        "Lazer"
+      ],
+      Investimento: [
+        "Renda Fixa",
+        "Poupança",
+        "Renda Variável"
+      ]
+    };
+
+    if (!opcoes[tipo.value]) return;
+
+    opcoes[tipo.value].forEach(item => {
+      const opt = document.createElement("option");
+      opt.value = item;
+      opt.textContent = item;
+      categoria.appendChild(opt);
+    });
+  });
 
   /* ================= UI ================= */
   btnDashboard.onclick = mostrarDashboard;
@@ -149,7 +225,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   /* ================= DASHBOARD ================= */
   function atualizarDashboard() {
-    let r = 0, d = 0, i = 0;
+    let r = 0,
+      d = 0,
+      i = 0;
+
     dados.forEach(l => {
       if (l.tipo === "Receita") r += l.valor;
       if (l.tipo === "Despesa") d += l.valor;
@@ -172,9 +251,21 @@ document.addEventListener("DOMContentLoaded", async () => {
       type: "pie",
       data: {
         labels: ["Receitas", "Despesas", "Investimentos"],
-        datasets: [{ data: [r, d, i], backgroundColor: ["#2ecc71","#e74c3c","#3498db"] }]
+        datasets: [
+          {
+            data: [r, d, i],
+            backgroundColor: [
+              "#2ecc71",
+              "#e74c3c",
+              "#3498db"
+            ]
+          }
+        ]
       },
-      options: { responsive: true, plugins: { legend: { position: "bottom" } } }
+      options: {
+        responsive: true,
+        plugins: { legend: { position: "bottom" } }
+      }
     });
   }
 
@@ -183,34 +274,48 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const resumo = {};
     dados.forEach(l => {
-      const mes = l.data.slice(0,7);
-      if (!resumo[mes]) resumo[mes] = { receita:0, despesa:0 };
-      if (l.tipo==="Receita") resumo[mes].receita += l.valor;
-      if (l.tipo==="Despesa") resumo[mes].despesa += l.valor;
+      const mes = l.data.slice(0, 7);
+      if (!resumo[mes]) resumo[mes] = { receita: 0, despesa: 0 };
+      if (l.tipo === "Receita") resumo[mes].receita += l.valor;
+      if (l.tipo === "Despesa") resumo[mes].despesa += l.valor;
     });
 
-    graficoMensal = new Chart(document.getElementById("graficoMensal"), {
-      type: "bar",
-      data: {
-        labels: Object.keys(resumo),
-        datasets: [
-          { label:"Receitas", data:Object.values(resumo).map(v=>v.receita), backgroundColor:"#2ecc71" },
-          { label:"Despesas", data:Object.values(resumo).map(v=>v.despesa), backgroundColor:"#e74c3c" }
-        ]
-      },
-      options:{ responsive:true, maintainAspectRatio:false }
-    });
+    graficoMensal = new Chart(
+      document.getElementById("graficoMensal"),
+      {
+        type: "bar",
+        data: {
+          labels: Object.keys(resumo),
+          datasets: [
+            {
+              label: "Receitas",
+              data: Object.values(resumo).map(v => v.receita),
+              backgroundColor: "#2ecc71"
+            },
+            {
+              label: "Despesas",
+              data: Object.values(resumo).map(v => v.despesa),
+              backgroundColor: "#e74c3c"
+            }
+          ]
+        },
+        options: { responsive: true, maintainAspectRatio: false }
+      }
+    );
   }
 
   function renderizarLista() {
-    lista.innerHTML="";
-    dados.forEach(l=>{
-      const li=document.createElement("li");
-      li.textContent=`${l.data} - ${l.tipo} - ${l.categoria} - R$ ${l.valor.toFixed(2)}`;
+    lista.innerHTML = "";
+    dados.forEach(l => {
+      const li = document.createElement("li");
+      li.textContent = `${l.data} - ${l.tipo} - ${l.categoria} - R$ ${l.valor.toFixed(
+        2
+      )}`;
       lista.appendChild(li);
     });
   }
 
+  /* ================= INIT ================= */
   const { data: session } = await supabase.auth.getSession();
   if (session.session) iniciarSessao();
 
