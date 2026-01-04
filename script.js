@@ -44,6 +44,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   /* ================= RECOVERY ================= */
   const params = new URLSearchParams(window.location.search);
+
   if (params.get("type") === "recovery") {
     const novaSenha = prompt("Crie sua nova senha (mínimo 6 caracteres):");
 
@@ -96,25 +97,21 @@ document.addEventListener("DOMContentLoaded", async () => {
     location.reload();
   };
 
+  /* ================= CORE ================= */
   async function iniciarSessao() {
-  // Esconde login
-  loginContainer.style.display = "none";
-  loginContainer.style.pointerEvents = "none";
+    loginContainer.style.display = "none";
+    loginContainer.style.pointerEvents = "none";
 
-  // Mostra app corretamente
-  app.style.display = "flex";
-  app.classList.remove("hidden");
+    app.style.display = "flex";
+    app.classList.remove("hidden");
 
-  // Estado inicial da UI
-  dashboard.classList.remove("hidden");
-  lancamentos.classList.add("hidden");
+    dashboard.classList.remove("hidden");
+    lancamentos.classList.add("hidden");
 
-  // Carrega dados
-  await carregarDados();
+    await carregarDados();
 
-  // Render inicial
-  atualizarDashboard();
-}
+    setTimeout(atualizarDashboard, 50);
+  }
 
   async function carregarDados() {
     const { data } = await supabase.from("lancamentos").select("*");
@@ -142,9 +139,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   tipo.addEventListener("change", () => {
     categoria.innerHTML = "";
     const map = {
-      Receita: ["Salário", "Mesada", "Bônus", "Renda Extra","Dividendos"],
-      Despesa: ["Moradia","Alimentação", "Saúde", "Cartão de Crédito", "Contas de Consumo", "Compras diversas", "Lazer"],
-      Investimento: ["Renda Fixa","Renda Variável", "Poupança"]
+      Receita: ["Salário","Mesada","Bônus","Renda Extra","Dividendos"],
+      Despesa: ["Moradia","Alimentação","Saúde","Cartão de Crédito","Contas de Consumo","Compras diversas","Lazer"],
+      Investimento: ["Renda Fixa","Renda Variável","Poupança"]
     };
     (map[tipo.value] || []).forEach(c => {
       const o = document.createElement("option");
@@ -221,23 +218,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
-  /* ================= INIT PROFISSIONAL (FIX DEFINITIVO) ================= */
-const hasAuthParams =
-  params.has("type") ||
-  params.has("access_token") ||
-  params.has("refresh_token");
-
-if (!hasAuthParams) {
+  /* ================= INIT ================= */
   const { data: session } = await supabase.auth.getSession();
-
-  if (session.session) {
-    iniciarSessao();
-  } else {
-    // garante estado limpo
-    app.classList.add("hidden");
-    loginContainer.style.display = "flex";
-  }
-}
-
-
+  if (session.session) iniciarSessao();
 });
