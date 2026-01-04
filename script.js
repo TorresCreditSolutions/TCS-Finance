@@ -27,6 +27,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   const btnCadastro = document.getElementById("btnCadastro");
   const btnLogout = document.getElementById("btnLogout");
 
+  const btnEsqueciSenha = document.getElementById("btnEsqueciSenha");
+
   const btnDashboard = document.getElementById("btnDashboard");
   const btnLancamentos = document.getElementById("btnLancamentos");
   const btnSalvar = document.getElementById("btnSalvar");
@@ -49,15 +51,23 @@ document.addEventListener("DOMContentLoaded", async () => {
   const tipoGrafico = document.getElementById("tipoGrafico");
 
   /* ================= AUTH ================= */
+
+  // LOGIN
   btnLogin.onclick = async () => {
     const { error } = await supabase.auth.signInWithPassword({
       email: emailInput.value.trim(),
       password: senhaInput.value.trim()
     });
-    if (error) return alert(error.message);
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
     iniciarSessao();
   };
 
+  // CADASTRO
   btnCadastro.onclick = async () => {
     const { error } = await supabase.auth.signUp({
       email: emailInput.value.trim(),
@@ -66,10 +76,44 @@ document.addEventListener("DOMContentLoaded", async () => {
         emailRedirectTo: "https://torrescreditsolutions.github.io/TCS-Finance/"
       }
     });
-    if (error) return alert(error.message);
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
     alert("Conta criada! Confirme no email.");
   };
 
+  // 🔐 ESQUECI SENHA (PASSO 3 – INCLUSÃO SEGURA)
+  if (btnEsqueciSenha) {
+    btnEsqueciSenha.onclick = async (e) => {
+      e.preventDefault();
+
+      const email = emailInput.value.trim();
+
+      if (!email) {
+        alert("Informe seu email para recuperar a senha.");
+        return;
+      }
+
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: "https://torrescreditsolutions.github.io/TCS-Finance/"
+      });
+
+      if (error) {
+        alert(error.message);
+        return;
+      }
+
+      alert(
+        "Enviamos um link de redefinição de senha para seu email.\n\n" +
+        "Verifique sua caixa de entrada."
+      );
+    };
+  }
+
+  // LOGOUT
   btnLogout.onclick = async () => {
     await supabase.auth.signOut();
     location.reload();
@@ -89,13 +133,18 @@ document.addEventListener("DOMContentLoaded", async () => {
       .select("*")
       .order("data", { ascending: true });
 
-    if (error) return alert(error.message);
+    if (error) {
+      alert(error.message);
+      return;
+    }
+
     dados = data || [];
   }
 
   btnSalvar.onclick = async () => {
     if (!tipo.value || !categoria.value || !valor.value || !dataInput.value) {
-      return alert("Preencha todos os campos obrigatórios");
+      alert("Preencha todos os campos obrigatórios");
+      return;
     }
 
     const { error } = await supabase.from("lancamentos").insert({
@@ -106,7 +155,10 @@ document.addEventListener("DOMContentLoaded", async () => {
       data: dataInput.value
     });
 
-    if (error) return alert(error.message);
+    if (error) {
+      alert(error.message);
+      return;
+    }
 
     await carregarDados();
     atualizarDashboard();
@@ -119,7 +171,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     dataInput.value = "";
   };
 
-  /* ================= CATEGORIAS (FIX DEFINITIVO) ================= */
+  /* ================= CATEGORIAS ================= */
   tipo.addEventListener("change", () => {
     categoria.innerHTML = "<option value=''>Selecione a categoria</option>";
 
@@ -174,7 +226,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     renderizarGraficoMensal();
   }
 
-  /* ================= GRÁFICO DE PIZZA ================= */
   function renderizarGrafico(r, d, i) {
     if (grafico) grafico.destroy();
 
@@ -211,7 +262,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     tipoGrafico.addEventListener("change", atualizarDashboard);
   }
 
-  /* ================= GRÁFICO DE BARRAS ================= */
   function renderizarGraficoMensal() {
     if (graficoMensal) graficoMensal.destroy();
 
@@ -241,7 +291,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
-  /* ================= LISTA ================= */
   function renderizarLista() {
     lista.innerHTML = "";
     dados.forEach(l => {

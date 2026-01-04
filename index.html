@@ -27,6 +27,16 @@
 
     <button id="btnLogin" type="button">Entrar</button>
     <button id="btnCadastro" type="button">Criar Conta</button>
+
+    <!-- 🔐 ESQUECI SENHA -->
+    <a href="#" id="btnEsqueciSenha" class="esqueci-senha">
+        Esqueci minha senha
+    </a>
+
+    <!-- © CRÉDITOS -->
+    <div class="creditos">
+        Direitos reservados ao criador Torres Credit Solutions
+    </div>
 </div>
 
 <!-- ================= APP ================= -->
@@ -51,7 +61,6 @@
 
             <h1>Dashboard Financeiro</h1>
 
-            <!-- FILTROS -->
             <div class="filtros">
                 <label>
                     Mês
@@ -66,51 +75,27 @@
                 <button id="btnLimparFiltro" type="button">Limpar</button>
             </div>
 
-            <!-- CARDS -->
             <div class="cards">
-                <div class="card receita">
-                    <span>Receitas</span>
-                    <strong id="totalReceitas">R$ 0,00</strong>
-                </div>
-
-                <div class="card despesa">
-                    <span>Despesas</span>
-                    <strong id="totalDespesas">R$ 0,00</strong>
-                </div>
-
-                <div class="card investimento">
-                    <span>Investimentos</span>
-                    <strong id="totalInvestimentos">R$ 0,00</strong>
-                </div>
-
-                <div class="card saldo">
-                    <span>Saldo</span>
-                    <strong id="saldo">R$ 0,00</strong>
-                </div>
+                <div class="card receita"><span>Receitas</span><strong id="totalReceitas">R$ 0,00</strong></div>
+                <div class="card despesa"><span>Despesas</span><strong id="totalDespesas">R$ 0,00</strong></div>
+                <div class="card investimento"><span>Investimentos</span><strong id="totalInvestimentos">R$ 0,00</strong></div>
+                <div class="card saldo"><span>Saldo</span><strong id="saldo">R$ 0,00</strong></div>
             </div>
 
-            <!-- GRÁFICOS -->
             <div class="graficos">
+                <div class="grafico-box">
+                    <select id="tipoGrafico">
+                        <option value="geral">Resumo Geral</option>
+                        <option value="categoria">Por Categoria</option>
+                    </select>
+                    <canvas id="grafico"></canvas>
+                </div>
 
-  <!-- GRÁFICO DE PIZZA -->
-  <div class="grafico-box">
-    <select id="tipoGrafico">
-      <option value="geral">Resumo Geral</option>
-      <option value="categoria">Por Categoria</option>
-    </select>
-    <canvas id="grafico"></canvas>
-  </div>
-
-  <!-- GRÁFICO DE BARRAS -->
-  <div class="grafico-box">
-    <h4>Comparativo Mensal</h4>
-    <canvas id="graficoMensal"></canvas>
-  </div>
-
-</div>
-
-
-
+                <div class="grafico-box">
+                    <h4>Comparativo Mensal</h4>
+                    <canvas id="graficoMensal"></canvas>
+                </div>
+            </div>
 
         </section>
 
@@ -119,7 +104,7 @@
 
             <h2>Novo Lançamento</h2>
 
-            <label for="tipo">Tipo</label>
+            <label>Tipo</label>
             <select id="tipo">
                 <option value="">Selecione</option>
                 <option value="Receita">Receita</option>
@@ -127,17 +112,16 @@
                 <option value="Investimento">Investimento</option>
             </select>
 
-            <label for="categoria">Categoria</label>
+            <label>Categoria</label>
             <select id="categoria"></select>
 
-            <label for="descricao">Descrição</label>
+            <label>Descrição</label>
             <input type="text" id="descricao">
 
-            <label for="valor">Valor</label>
+            <label>Valor</label>
             <input type="number" id="valor" step="0.01">
 
-            <!-- ✅ ÚNICO CAMPO DE DATA -->
-            <label for="data">Data do lançamento</label>
+            <label>Data do lançamento</label>
             <input type="date" id="data">
 
             <button id="btnSalvar" type="button">Salvar</button>
@@ -147,11 +131,14 @@
 
         </section>
 
+        <!-- © CRÉDITOS APP -->
+        <footer class="creditos-app">
+            Direitos reservados ao criador Torres Credit Solutions
+        </footer>
+
     </main>
 </div>
 
-<!-- SCRIPT PRINCIPAL -->
 <script src="script.js"></script>
-
 </body>
 </html>
