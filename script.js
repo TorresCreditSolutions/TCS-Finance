@@ -208,7 +208,23 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
+  /* ================= INIT PROFISSIONAL (FIX DEFINITIVO) ================= */
+const hasAuthParams =
+  params.has("type") ||
+  params.has("access_token") ||
+  params.has("refresh_token");
+
+if (!hasAuthParams) {
   const { data: session } = await supabase.auth.getSession();
-  if (session.session && !params.get("type")) iniciarSessao();
+
+  if (session.session) {
+    iniciarSessao();
+  } else {
+    // garante estado limpo
+    app.classList.add("hidden");
+    loginContainer.style.display = "flex";
+  }
+}
+
 
 });
