@@ -39,7 +39,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   const btnLogin = document.getElementById("btnLogin");
   const btnCadastro = document.getElementById("btnCadastro");
   const btnLogout = document.getElementById("btnLogout");
-  const btnEsqueciSenha = document.getElementById("btnEsqueciSenha");
 
   const btnDashboard = document.getElementById("btnDashboard");
   const btnLancamentos = document.getElementById("btnLancamentos");
@@ -62,27 +61,27 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   const lista = document.getElementById("listaLancamentos");
   const tipoGrafico = document.getElementById("tipoGrafico");
-  tipoGrafico.onchange = atualizarDashboard;
 
   const btnMenu = document.getElementById("btnMenu");
   const sidebar = document.querySelector(".sidebar");
 
-  /* ================= EVENT DELEGATION (BLINDADO) ================= */
+  /* ================= GRÁFICO – EVENTOS MOBILE SAFE ================= */
+  if (!tipoGrafico.value) tipoGrafico.value = "resumo";
+
+  ["change", "input"].forEach(evt => {
+    tipoGrafico.addEventListener(evt, () => {
+      atualizarDashboard();
+    });
+  });
+
+  /* ================= EVENT DELEGATION LISTA ================= */
   lista.addEventListener("click", (e) => {
-  const btnEditar = e.target.closest(".btn-acao.editar");
-  const btnExcluir = e.target.closest(".btn-acao.excluir");
+    const btnEditar = e.target.closest(".btn-acao.editar");
+    const btnExcluir = e.target.closest(".btn-acao.excluir");
 
-  if (btnEditar) {
-    const id = btnEditar.dataset.id; // UUID string
-    editar(id);
-  }
-
-  if (btnExcluir) {
-    const id = btnExcluir.dataset.id; // UUID string
-    excluir(id);
-  }
-});
-
+    if (btnEditar) editar(btnEditar.dataset.id);
+    if (btnExcluir) excluir(btnExcluir.dataset.id);
+  });
 
   /* ================= CATEGORIAS ================= */
   function popularCategorias(tipoSelecionado, categoriaSelecionada = "") {
@@ -126,15 +125,9 @@ document.addEventListener("DOMContentLoaded", async () => {
     alert("Conta criada! Confirme no email.");
   };
 
-  btnEsqueciSenha.onclick = async (e) => {
-    e.preventDefault();
-    if (!emailInput.value) return alert("Informe o email.");
-    await supabase.auth.resetPasswordForEmail(emailInput.value);
-    alert("Email enviado.");
-  };
-
   btnLogout.onclick = async () => {
     await supabase.auth.signOut();
+    sidebar.classList.remove("active");
     app.classList.add("hidden");
     app.style.display = "none";
     loginContainer.style.display = "flex";
@@ -143,6 +136,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   /* ================= CORE ================= */
   async function iniciarSessao(user) {
     console.log("USER LOGADO ID:", user.id);
+
     loginContainer.style.display = "none";
     app.style.display = "flex";
     app.classList.remove("hidden");
@@ -164,44 +158,40 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   /* ================= SALVAR / EDITAR ================= */
   btnSalvar.onclick = async () => {
-  if (!tipo.value || !categoria.value || !valor.value || !dataInput.value)
-    return alert("Preencha todos os campos.");
+    if (!tipo.value || !categoria.value || !valor.value || !dataInput.value)
+      return alert("Preencha todos os campos.");
 
-  if (planoUsuario === "FREE" && dados.length >= LIMITE_FREE && !idEmEdicao)
-    return alert("Limite do plano gratuito atingido.");
+    if (planoUsuario === "FREE" && dados.length >= LIMITE_FREE && !idEmEdicao)
+      return alert("Limite do plano gratuito atingido.");
 
-  const user = (await supabase.auth.getUser()).data.user;
+    const user = (await supabase.auth.getUser()).data.user;
 
-  if (idEmEdicao) {
-    await supabase
-      .from("lancamentos")
-      .update({
+    if (idEmEdicao) {
+      await supabase.from("lancamentos").update({
         tipo: tipo.value,
         categoria: categoria.value,
         descricao: descricao.value,
         valor: Number(valor.value),
         data: dataInput.value
-      })
-      .eq("id", idEmEdicao);
+      }).eq("id", idEmEdicao);
 
-    idEmEdicao = null;
-  } else {
-    await supabase.from("lancamentos").insert({
-      user_id: user.id, // 🔥 ESSENCIAL PARA RLS
-      tipo: tipo.value,
-      categoria: categoria.value,
-      descricao: descricao.value,
-      valor: Number(valor.value),
-      data: dataInput.value
-    });
-  }
+      idEmEdicao = null;
+    } else {
+      await supabase.from("lancamentos").insert({
+        user_id: user.id,
+        tipo: tipo.value,
+        categoria: categoria.value,
+        descricao: descricao.value,
+        valor: Number(valor.value),
+        data: dataInput.value
+      });
+    }
 
-  await carregarDados();
-  atualizarDashboard();
-  renderizarLista();
-  limparFormulario();
-};
-
+    await carregarDados();
+    atualizarDashboard();
+    renderizarLista();
+    limparFormulario();
+  };
 
   function limparFormulario() {
     tipo.value = "";
@@ -227,6 +217,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     if (filtroMes.value)
       filtrados = filtrados.filter(l => l.data.startsWith(filtroMes.value));
+
     if (filtroAno && filtroAno.value)
       filtrados = filtrados.filter(l => l.data.startsWith(filtroAno.value));
 
@@ -248,57 +239,62 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   function renderizarGrafico(r, d, i) {
     if (grafico) grafico.destroy();
+
+    let labels = [];
+    let valores = [];
+
+    if (tipoGrafico.value === "categoria") {
+      const categorias = {};
+      dados.forEach(l => {
+        categorias[l.categoria] = (categorias[l.categoria] || 0) + l.valor;
+      });
+      labels = Object.keys(categorias);
+      valores = Object.values(categorias);
+    } else {
+      labels = ["Receitas", "Despesas", "Investimentos"];
+      valores = [r, d, i];
+    }
+
     grafico = new Chart(document.getElementById("grafico"), {
       type: "pie",
       data: {
-        labels: ["Receitas", "Despesas", "Investimentos"],
-        datasets: [{ data: [r, d, i] }]
+        labels,
+        datasets: [{ data: valores }]
       },
-      options: { responsive: true }
-    });
-  }
-
-  function renderizarGrafico(r, d, i) {
-  if (grafico) grafico.destroy();
-
-  let labels = [];
-  let valores = [];
-
-  if (tipoGrafico.value === "categoria") {
-    const categorias = {};
-
-    dados.forEach(l => {
-      if (!categorias[l.categoria]) categorias[l.categoria] = 0;
-      categorias[l.categoria] += l.valor;
-    });
-
-    labels = Object.keys(categorias);
-    valores = Object.values(categorias);
-  } else {
-    labels = ["Receitas", "Despesas", "Investimentos"];
-    valores = [r, d, i];
-  }
-
-  grafico = new Chart(document.getElementById("grafico"), {
-    type: "pie",
-    data: {
-      labels,
-      datasets: [
-        {
-          data: valores
-        }
-      ]
-    },
-    options: {
-      responsive: true,
-      plugins: {
-        legend: {
-          position: "bottom"
-        }
+      options: {
+        responsive: true,
+        plugins: { legend: { position: "bottom" } }
       }
-    }
-  });
-}
+    });
+  }
+
+  function renderizarGraficoMensal() {
+    if (graficoMensal) graficoMensal.destroy();
+
+    const resumo = {};
+    dados.forEach(l => {
+      const m = l.data.slice(0, 7);
+      resumo[m] = resumo[m] || { r: 0, d: 0 };
+      if (l.tipo === "Receita") resumo[m].r += l.valor;
+      if (l.tipo === "Despesa") resumo[m].d += l.valor;
+    });
+
+    graficoMensal = new Chart(document.getElementById("graficoMensal"), {
+      type: "bar",
+      data: {
+        labels: Object.keys(resumo),
+        datasets: [
+          { label: "Receitas", data: Object.values(resumo).map(v => v.r) },
+          { label: "Despesas", data: Object.values(resumo).map(v => v.d) }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { position: "bottom" } }
+      }
+    });
+  }
 
   /* ================= LISTA ================= */
   function renderizarLista() {
@@ -318,8 +314,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
-  /* ================= EDITAR ================= */
-  window.editar = (id) => {
+  /* ================= EDITAR / EXCLUIR ================= */
+  function editar(id) {
     const l = dados.find(d => d.id === id);
     if (!l) return;
 
@@ -332,50 +328,35 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     dashboard.classList.add("hidden");
     lancamentos.classList.remove("hidden");
-  };
+  }
 
-  /* ================= EXCLUIR ================= */
-  window.excluir = async (id) => {
+  async function excluir(id) {
     if (!confirm("Excluir lançamento?")) return;
 
     const { error } = await supabase.from("lancamentos").delete().eq("id", id);
-    if (error) {
-      alert("Erro ao excluir lançamento.");
-      console.error(error);
-      return;
-    }
+    if (error) return alert("Erro ao excluir lançamento.");
 
     await carregarDados();
     atualizarDashboard();
     renderizarLista();
-  };
+  }
 
   /* ================= NAVEGAÇÃO ================= */
- btnDashboard.onclick = () => {
-  dashboard.classList.remove("hidden");
-  lancamentos.classList.add("hidden");
-  sidebar.classList.remove("active"); // 🔥 fecha menu
-};
+  btnDashboard.onclick = () => {
+    dashboard.classList.remove("hidden");
+    lancamentos.classList.add("hidden");
+    sidebar.classList.remove("active");
+  };
 
-btnLancamentos.onclick = () => {
-  dashboard.classList.add("hidden");
-  lancamentos.classList.remove("hidden");
-  sidebar.classList.remove("active"); // 🔥 fecha menu
-};
-
-btnLogout.onclick = async () => {
-  await supabase.auth.signOut();
-  sidebar.classList.remove("active"); // 🔥 fecha menu
-  app.classList.add("hidden");
-  app.style.display = "none";
-  loginContainer.style.display = "flex";
-};
+  btnLancamentos.onclick = () => {
+    dashboard.classList.add("hidden");
+    lancamentos.classList.remove("hidden");
+    sidebar.classList.remove("active");
+  };
 
   /* ================= MENU ================= */
   if (btnMenu && sidebar) {
-   btnMenu.onclick = () => 
-  sidebar.classList.toggle("active");
-};
-
+    btnMenu.onclick = () => sidebar.classList.toggle("active");
+  }
 
 });
