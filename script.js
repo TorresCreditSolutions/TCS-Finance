@@ -17,6 +17,13 @@ document.addEventListener("DOMContentLoaded", async () => {
   const LIMITE_FREE = 30;
   let planoUsuario = "FREE";
 
+  /* ================= CATEGORIAS ================= */
+  const categoriasPorTipo = {
+    Receita: ["Salário", "Renda Extra", "Mesada", "Freelance", "Vendas", "Outros"],
+    Despesa: ["Moradia", "Saúde", "Cartão de Crédito", "Alimentação", "Transporte", "Compras diversas", "Lazer", "Outros"],
+    Investimento: ["Renda Fixa", "Ações", "Criptomoedas", "Outros"]
+  };
+
   /* ================= ELEMENTOS ================= */
   const loginContainer = document.getElementById("login-container");
   const app = document.getElementById("app");
@@ -56,13 +63,37 @@ document.addEventListener("DOMContentLoaded", async () => {
   const lista = document.getElementById("listaLancamentos");
   const tipoGrafico = document.getElementById("tipoGrafico");
 
+  const btnMenu = document.getElementById("btnMenu");
+  const sidebar = document.querySelector(".sidebar");
+
+  /* ================= EVENT DELEGATION (CORRETO E PERMANENTE) ================= */
+  lista.addEventListener("click", (e) => {
+    const btnEditar = e.target.closest(".btn-acao.editar");
+    const btnExcluir = e.target.closest(".btn-acao.excluir");
+
+    if (btnEditar) editar(Number(btnEditar.dataset.id));
+    if (btnExcluir) excluir(Number(btnExcluir.dataset.id));
+  });
+
+  /* ================= CATEGORIAS ================= */
+  function popularCategorias(tipoSelecionado, categoriaSelecionada = "") {
+    categoria.innerHTML = "<option value=''>Categoria</option>";
+    if (!categoriasPorTipo[tipoSelecionado]) return;
+
+    categoriasPorTipo[tipoSelecionado].forEach(cat => {
+      const option = document.createElement("option");
+      option.value = cat;
+      option.textContent = cat;
+      if (cat === categoriaSelecionada) option.selected = true;
+      categoria.appendChild(option);
+    });
+  }
+
+  tipo.onchange = () => popularCategorias(tipo.value);
+
   /* ================= AUTH ================= */
   btnLogin.onclick = async () => {
-
-    if (!aceiteTermos.checked) {
-      alert("Você precisa aceitar os termos de uso.");
-      return;
-    }
+    if (!aceiteTermos.checked) return alert("Você precisa aceitar os termos.");
 
     const { data, error } = await supabase.auth.signInWithPassword({
       email: emailInput.value,
@@ -70,52 +101,38 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
 
     if (error) return alert(error.message);
-
     iniciarSessao(data.user);
   };
 
   btnCadastro.onclick = async () => {
-
-    if (!aceiteTermos.checked) {
-      alert("Você precisa aceitar os termos de uso.");
-      return;
-    }
+    if (!aceiteTermos.checked) return alert("Você precisa aceitar os termos.");
 
     const { error } = await supabase.auth.signUp({
       email: emailInput.value,
       password: senhaInput.value,
-      options: {
-        data: {
-          nome: emailInput.value.split("@")[0]
-        }
-      }
+      options: { data: { nome: emailInput.value.split("@")[0] } }
     });
 
     if (error) return alert(error.message);
     alert("Conta criada! Confirme no email.");
   };
 
-  btnEsqueciSenha.onclick = async () => {
+  btnEsqueciSenha.onclick = async (e) => {
+    e.preventDefault();
     if (!emailInput.value) return alert("Informe o email.");
     await supabase.auth.resetPasswordForEmail(emailInput.value);
-    alert("Email de redefinição enviado.");
+    alert("Email enviado.");
   };
 
   btnLogout.onclick = async () => {
     await supabase.auth.signOut();
-
-    app.style.display = "none";
     app.classList.add("hidden");
-
-    dashboard.classList.remove("hidden");
-    lancamentos.classList.add("hidden");
-
+    app.style.display = "none";
     loginContainer.style.display = "flex";
   };
 
   /* ================= CORE ================= */
   async function iniciarSessao(user) {
-
     loginContainer.style.display = "none";
     app.style.display = "flex";
     app.classList.remove("hidden");
@@ -123,16 +140,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     dashboard.classList.remove("hidden");
     lancamentos.classList.add("hidden");
 
-    const nome =
-      user.user_metadata?.nome ||
-      user.email.split("@")[0];
-
-    if (nomeCliente) {
-      nomeCliente.innerText = `Olá, ${nome}!`;
-    }
+    nomeCliente.innerText = `Olá, ${user.user_metadata?.nome || user.email.split("@")[0]}!`;
 
     await carregarDados();
     atualizarDashboard();
+    renderizarLista();
   }
 
   async function carregarDados() {
@@ -142,25 +154,20 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   /* ================= SALVAR / EDITAR ================= */
   btnSalvar.onclick = async () => {
-
-    if (!tipo.value || !categoria.value || !valor.value || !dataInput.value) {
+    if (!tipo.value || !categoria.value || !valor.value || !dataInput.value)
       return alert("Preencha todos os campos.");
-    }
 
-    if (planoUsuario === "FREE" && dados.length >= LIMITE_FREE && !idEmEdicao) {
+    if (planoUsuario === "FREE" && dados.length >= LIMITE_FREE && !idEmEdicao)
       return alert("Limite do plano gratuito atingido.");
-    }
 
     if (idEmEdicao) {
-      await supabase.from("lancamentos")
-        .update({
-          tipo: tipo.value,
-          categoria: categoria.value,
-          descricao: descricao.value,
-          valor: Number(valor.value),
-          data: dataInput.value
-        })
-        .eq("id", idEmEdicao);
+      await supabase.from("lancamentos").update({
+        tipo: tipo.value,
+        categoria: categoria.value,
+        descricao: descricao.value,
+        valor: Number(valor.value),
+        data: dataInput.value
+      }).eq("id", idEmEdicao);
 
       idEmEdicao = null;
     } else {
@@ -189,27 +196,24 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   /* ================= FILTROS ================= */
   filtroMes.onchange = atualizarDashboard;
-  filtroAno.onchange = atualizarDashboard;
+  if (filtroAno) filtroAno.onchange = atualizarDashboard;
 
   btnLimparFiltro.onclick = () => {
     filtroMes.value = "";
-    filtroAno.value = "";
+    if (filtroAno) filtroAno.value = "";
     atualizarDashboard();
   };
 
   /* ================= DASHBOARD ================= */
   function atualizarDashboard() {
-
     let filtrados = [...dados];
 
     if (filtroMes.value)
       filtrados = filtrados.filter(l => l.data.startsWith(filtroMes.value));
-
-    if (filtroAno.value)
+    if (filtroAno && filtroAno.value)
       filtrados = filtrados.filter(l => l.data.startsWith(filtroAno.value));
 
     let r = 0, d = 0, i = 0;
-
     filtrados.forEach(l => {
       if (l.tipo === "Receita") r += l.valor;
       if (l.tipo === "Despesa") d += l.valor;
@@ -238,7 +242,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   function renderizarGraficoMensal() {
-
     if (graficoMensal) graficoMensal.destroy();
 
     const resumo = {};
@@ -272,29 +275,26 @@ document.addEventListener("DOMContentLoaded", async () => {
     dados.forEach(l => {
       const li = document.createElement("li");
       li.innerHTML = `
-        ${l.data} - ${l.tipo} - ${l.categoria} - R$ ${l.valor}
-        <button onclick="editar(${l.id})">✏️</button>
-        <button onclick="excluir(${l.id})">🗑</button>
+        <div class="linha-info">
+          <strong>${l.data}</strong> – ${l.tipo} • ${l.categoria} • R$ ${l.valor}
+        </div>
+        <div class="linha-acoes">
+          <button type="button" class="btn-acao editar" data-id="${l.id}">✏️</button>
+          <button type="button" class="btn-acao excluir" data-id="${l.id}">🗑</button>
+        </div>
       `;
       lista.appendChild(li);
     });
   }
 
-  window.excluir = async (id) => {
-    if (!confirm("Excluir lançamento?")) return;
-    await supabase.from("lancamentos").delete().eq("id", id);
-    await carregarDados();
-    atualizarDashboard();
-    renderizarLista();
-  };
-
+  /* ================= EDITAR ================= */
   window.editar = (id) => {
     const l = dados.find(d => d.id === id);
     if (!l) return;
 
     idEmEdicao = id;
     tipo.value = l.tipo;
-    categoria.innerHTML = `<option>${l.categoria}</option>`;
+    popularCategorias(l.tipo, l.categoria);
     descricao.value = l.descricao;
     valor.value = l.valor;
     dataInput.value = l.data;
@@ -302,5 +302,37 @@ document.addEventListener("DOMContentLoaded", async () => {
     dashboard.classList.add("hidden");
     lancamentos.classList.remove("hidden");
   };
+
+  /* ================= EXCLUIR ================= */
+  window.excluir = async (id) => {
+    if (!confirm("Excluir lançamento?")) return;
+
+    const { error } = await supabase.from("lancamentos").delete().eq("id", id);
+    if (error) {
+      alert("Erro ao excluir lançamento.");
+      console.error(error);
+      return;
+    }
+
+    await carregarDados();
+    atualizarDashboard();
+    renderizarLista();
+  };
+
+  /* ================= NAVEGAÇÃO ================= */
+  btnDashboard.onclick = () => {
+    dashboard.classList.remove("hidden");
+    lancamentos.classList.add("hidden");
+  };
+
+  btnLancamentos.onclick = () => {
+    dashboard.classList.add("hidden");
+    lancamentos.classList.remove("hidden");
+  };
+
+  /* ================= MENU ================= */
+  if (btnMenu && sidebar) {
+    btnMenu.onclick = () => sidebar.classList.toggle("active");
+  }
 
 });

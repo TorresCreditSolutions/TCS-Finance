@@ -3,37 +3,29 @@
 <head>
   <meta charset="UTF-8">
   <title>TCS Finance | Controle Financeiro</title>
-
-  <!-- RESPONSIVO -->
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-  <!-- FAVICON -->
   <link rel="icon" href="favicon.ico" type="image/x-icon">
-
-  <!-- CSS -->
   <link rel="stylesheet" href="style.css">
 
-  <!-- LIBS -->
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
-<!-- ================= LOGIN ================= -->
 <div id="login-container">
   <h2>TCS Finance</h2>
 
   <input type="email" id="email" placeholder="Email">
   <input type="password" id="senha" placeholder="Senha">
 
-  <button id="btnLogin">Entrar</button>
-  <button id="btnCadastro">Criar Conta</button>
+  <button type="button" id="btnLogin">Entrar</button>
+  <button type="button" id="btnCadastro">Criar Conta</button>
 
-  <a href="#" id="btnEsqueciSenha" class="esqueci-senha">
+  <a href="javascript:void(0)" id="btnEsqueciSenha" class="esqueci-senha">
     Esqueci minha senha
   </a>
 
-  <!-- TERMOS DE USO -->
   <div class="termos-container">
     <label class="termos">
       <input type="checkbox" id="aceiteTermos">
@@ -46,34 +38,37 @@
   </div>
 </div>
 
-<!-- ================= APP ================= -->
 <div id="app" class="hidden">
 
-  <!-- SIDEBAR -->
   <aside class="sidebar">
     <span class="logo">TCS Finance</span>
     <nav>
-      <button id="btnDashboard">Dashboard</button>
-      <button id="btnLancamentos">Lançamentos</button>
-      <button id="btnLogout">Sair</button>
+      <button type="button" id="btnDashboard">Dashboard</button>
+      <button type="button" id="btnLancamentos">Lançamentos</button>
+      <button type="button" id="btnLogout">Sair</button>
     </nav>
   </aside>
 
-  <!-- CONTEÚDO -->
   <main class="content">
+    <button type="button" id="btnMenu" class="btn-menu">☰</button>
+
+    <!-- restante do HTML permanece IGUAL -->
+
+
+    <!-- MENU HAMBURGER (NOVO – NÃO SUBSTITUI NADA) -->
+    <button id="btnMenu" class="btn-menu">☰</button>
 
     <!-- ================= DASHBOARD ================= -->
     <section id="dashboard">
       <h1>Dashboard Financeiro</h1>
 
-      <!-- AVISOS PROFISSIONAIS -->
       <div class="avisos-sistema">
         <span id="nomeCliente">Olá!</span>
         <span class="badge">Sistema Profissional</span>
         <span id="planoUsuario">Plano Free</span>
       </div>
 
-      <!-- FILTROS -->
+      <!-- FILTROS (MANTIDOS) -->
       <div class="filtros">
         <label>
           Mês
@@ -82,13 +77,7 @@
 
         <label>
           Ano
-          <input
-            type="number"
-            id="filtroAno"
-            placeholder="2026"
-            min="2000"
-            max="2100"
-          >
+          <input type="number" id="filtroAno" placeholder="2026">
         </label>
 
         <button id="btnLimparFiltro">Limpar</button>
@@ -156,11 +145,9 @@
       <h3>Extrato</h3>
       <ul id="listaLancamentos"></ul>
 
-      <!-- EXPORTAÇÃO -->
       <button id="btnExportarPdf">Exportar PDF</button>
     </section>
 
-    <!-- RODAPÉ -->
     <footer class="creditos-app">
       © TCS Finance • Dados criptografados • Uso profissional
     </footer>
@@ -168,7 +155,6 @@
   </main>
 </div>
 
-<!-- SCRIPT -->
 <script src="script.js"></script>
 </body>
 </html>
