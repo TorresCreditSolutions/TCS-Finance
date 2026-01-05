@@ -284,15 +284,17 @@ body {
 }
 
 /* ================= MOBILE ================= */
+/* BOTÃO MENU – MOBILE */
 @media (max-width: 768px) {
-  .cards {
-    grid-template-columns: 1fr 1fr;
-  }
-
-  .graficos {
-    grid-template-columns: 1fr;
+  #btnMenu {
+    display: block !important;
+    position: fixed;
+    top: 12px;
+    right: 12px;
+    z-index: 1200;
   }
 }
+
 
 /* ================= DESKTOP ================= */
 @media (min-width: 769px) {

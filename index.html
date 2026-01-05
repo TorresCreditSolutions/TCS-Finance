@@ -10,8 +10,12 @@
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+  <!-- PDF -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
+
 <!-- OVERLAY MENU MOBILE -->
 <div id="menuOverlay" class="menu-overlay hidden"></div>
 
@@ -52,13 +56,9 @@
   </aside>
 
   <main class="content">
+
+    <!-- BOTÃO MENU (ÚNICO E FUNCIONAL) -->
     <button type="button" id="btnMenu" class="btn-menu">☰</button>
-
-    <!-- restante do HTML permanece IGUAL -->
-
-
-    <!-- MENU HAMBURGER (NOVO – NÃO SUBSTITUI NADA) -->
-    <button id="btnMenu" class="btn-menu">☰</button>
 
     <!-- ================= DASHBOARD ================= -->
     <section id="dashboard">
@@ -70,7 +70,6 @@
         <span id="planoUsuario">Plano Free</span>
       </div>
 
-      <!-- FILTROS (MANTIDOS) -->
       <div class="filtros">
         <label>
           Mês
@@ -85,7 +84,6 @@
         <button id="btnLimparFiltro">Limpar</button>
       </div>
 
-      <!-- CARDS -->
       <div class="cards">
         <div class="card receita">
           <span>Receitas</span>
@@ -108,7 +106,6 @@
         </div>
       </div>
 
-      <!-- GRÁFICOS -->
       <div class="graficos">
         <div class="grafico-box">
           <select id="tipoGrafico">
