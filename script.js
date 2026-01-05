@@ -142,6 +142,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   /* ================= CORE ================= */
   async function iniciarSessao(user) {
+    console.log("USER LOGADO ID:", user.id);
     loginContainer.style.display = "none";
     app.style.display = "flex";
     app.classList.remove("hidden");
@@ -170,6 +171,15 @@ document.addEventListener("DOMContentLoaded", async () => {
       return alert("Limite do plano gratuito atingido.");
 
     const user = (await supabase.auth.getUser()).data.user;
+
+await supabase.from("lancamentos").insert({
+  user_id: user.id,
+  tipo,
+  categoria,
+  descricao,
+  valor,
+  data
+});
 
     if (idEmEdicao) {
       await supabase.from("lancamentos").update({
