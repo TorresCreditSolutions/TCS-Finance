@@ -61,14 +61,17 @@ body {
 .termos {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 6px;           /* controla a distância real */
   font-size: 12px;
   color: #fff;
+  cursor: pointer;
 }
 
-.termos input {
-  margin: 0;
+.termos input[type="checkbox"] {
+  margin: 0;          /* remove margem padrão do browser */
+  transform: scale(1.05); /* opcional: melhora visual */
 }
+
 
 /* Créditos login */
 .creditos-app {
@@ -257,20 +260,28 @@ body {
 /* MOBILE E DESKTOP */
 @media (max-width: 1024px) {
   .sidebar {
-    display: none;
-    position: absolute;
-    z-index: 10;
+    position: fixed;
+    top: 0;
+    left: -240px; /* escondida */
     height: 100%;
+    width: 220px;
+    z-index: 1000;
+    transition: left 0.3s ease;
   }
 
   .sidebar.active {
-    display: flex;
+    left: 0; /* aparece */
   }
 
   .btn-menu {
     display: inline-block;
+    position: fixed;
+    top: 12px;
+    left: 12px;
+    z-index: 1100;
   }
 }
+
 /* ================= MELHORIAS VISUAIS ================= */
 
 #btnLimparFiltro {

@@ -62,6 +62,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   const lista = document.getElementById("listaLancamentos");
   const tipoGrafico = document.getElementById("tipoGrafico");
+  tipoGrafico.onchange = atualizarDashboard;
 
   const btnMenu = document.getElementById("btnMenu");
   const sidebar = document.querySelector(".sidebar");
@@ -257,33 +258,47 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
-  function renderizarGraficoMensal() {
-    if (graficoMensal) graficoMensal.destroy();
+  function renderizarGrafico(r, d, i) {
+  if (grafico) grafico.destroy();
 
-    const resumo = {};
+  let labels = [];
+  let valores = [];
+
+  if (tipoGrafico.value === "categoria") {
+    const categorias = {};
+
     dados.forEach(l => {
-      const m = l.data.slice(0, 7);
-      resumo[m] = resumo[m] || { r: 0, d: 0 };
-      if (l.tipo === "Receita") resumo[m].r += l.valor;
-      if (l.tipo === "Despesa") resumo[m].d += l.valor;
+      if (!categorias[l.categoria]) categorias[l.categoria] = 0;
+      categorias[l.categoria] += l.valor;
     });
 
-    graficoMensal = new Chart(document.getElementById("graficoMensal"), {
-      type: "bar",
-      data: {
-        labels: Object.keys(resumo),
-        datasets: [
-          { label: "Receitas", data: Object.values(resumo).map(v => v.r) },
-          { label: "Despesas", data: Object.values(resumo).map(v => v.d) }
-        ]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { position: "bottom" } }
-      }
-    });
+    labels = Object.keys(categorias);
+    valores = Object.values(categorias);
+  } else {
+    labels = ["Receitas", "Despesas", "Investimentos"];
+    valores = [r, d, i];
   }
+
+  grafico = new Chart(document.getElementById("grafico"), {
+    type: "pie",
+    data: {
+      labels,
+      datasets: [
+        {
+          data: valores
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      plugins: {
+        legend: {
+          position: "bottom"
+        }
+      }
+    }
+  });
+}
 
   /* ================= LISTA ================= */
   function renderizarLista() {
