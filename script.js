@@ -68,21 +68,20 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   /* ================= EVENT DELEGATION (BLINDADO) ================= */
   lista.addEventListener("click", (e) => {
-    const btnEditar = e.target.closest(".btn-acao.editar");
-    const btnExcluir = e.target.closest(".btn-acao.excluir");
+  const btnEditar = e.target.closest(".btn-acao.editar");
+  const btnExcluir = e.target.closest(".btn-acao.excluir");
 
-    if (btnEditar) {
-      const id = parseInt(btnEditar.getAttribute("data-id"), 10);
-      if (!id) return console.error("ID inválido para edição");
-      editar(id);
-    }
+  if (btnEditar) {
+    const id = btnEditar.dataset.id; // UUID string
+    editar(id);
+  }
 
-    if (btnExcluir) {
-      const id = parseInt(btnExcluir.getAttribute("data-id"), 10);
-      if (!id) return console.error("ID inválido para exclusão");
-      excluir(id);
-    }
-  });
+  if (btnExcluir) {
+    const id = btnExcluir.dataset.id; // UUID string
+    excluir(id);
+  }
+});
+
 
   /* ================= CATEGORIAS ================= */
   function popularCategorias(tipoSelecionado, categoriaSelecionada = "") {
@@ -164,49 +163,44 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   /* ================= SALVAR / EDITAR ================= */
   btnSalvar.onclick = async () => {
-    if (!tipo.value || !categoria.value || !valor.value || !dataInput.value)
-      return alert("Preencha todos os campos.");
+  if (!tipo.value || !categoria.value || !valor.value || !dataInput.value)
+    return alert("Preencha todos os campos.");
 
-    if (planoUsuario === "FREE" && dados.length >= LIMITE_FREE && !idEmEdicao)
-      return alert("Limite do plano gratuito atingido.");
+  if (planoUsuario === "FREE" && dados.length >= LIMITE_FREE && !idEmEdicao)
+    return alert("Limite do plano gratuito atingido.");
 
-    const user = (await supabase.auth.getUser()).data.user;
+  const user = (await supabase.auth.getUser()).data.user;
 
-await supabase.from("lancamentos").insert({
-  user_id: user.id,
-  tipo,
-  categoria,
-  descricao,
-  valor,
-  data
-});
-
-    if (idEmEdicao) {
-      await supabase.from("lancamentos").update({
+  if (idEmEdicao) {
+    await supabase
+      .from("lancamentos")
+      .update({
         tipo: tipo.value,
         categoria: categoria.value,
         descricao: descricao.value,
         valor: Number(valor.value),
         data: dataInput.value
-      }).eq("id", idEmEdicao);
+      })
+      .eq("id", idEmEdicao);
 
-      idEmEdicao = null;
-    } else {
-      await supabase.from("lancamentos").insert({
-        user_id: user.id, // 🔥 ADIÇÃO ESSENCIAL
-        tipo: tipo.value,
-        categoria: categoria.value,
-        descricao: descricao.value,
-        valor: Number(valor.value),
-        data: dataInput.value
-      });
-    }
+    idEmEdicao = null;
+  } else {
+    await supabase.from("lancamentos").insert({
+      user_id: user.id, // 🔥 ESSENCIAL PARA RLS
+      tipo: tipo.value,
+      categoria: categoria.value,
+      descricao: descricao.value,
+      valor: Number(valor.value),
+      data: dataInput.value
+    });
+  }
 
-    await carregarDados();
-    atualizarDashboard();
-    renderizarLista();
-    limparFormulario();
-  };
+  await carregarDados();
+  atualizarDashboard();
+  renderizarLista();
+  limparFormulario();
+};
+
 
   function limparFormulario() {
     tipo.value = "";
