@@ -314,3 +314,32 @@ body {
     padding-top: 20px;
   }
 }
+/* ================= FIX MENU MOBILE (PORTRAIT) ================= */
+@media (max-width: 768px) {
+
+  #btnMenu {
+    display: block !important;
+    position: fixed !important;
+    top: 14px !important;
+    right: 14px !important;
+    z-index: 9999 !important;
+    background: transparent;
+  }
+
+  /* garante que nada cubra o botão */
+  header,
+  .topbar,
+  .content,
+  main {
+    position: relative;
+    z-index: 1;
+  }
+
+  .sidebar {
+    z-index: 10000;
+  }
+
+  #menuOverlay {
+    z-index: 9998;
+  }
+}
