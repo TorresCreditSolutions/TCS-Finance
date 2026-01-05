@@ -46,7 +46,19 @@ if (sessionData?.session?.user) {
 
   const btnLogin = document.getElementById("btnLogin");
   const btnCadastro = document.getElementById("btnCadastro");
+  const btnLogoutTop = document.getElementById("btnLogoutTop");
   const btnLogout = document.getElementById("btnLogout");
+
+
+if (btnLogoutTop) {
+  btnLogoutTop.onclick = async () => {
+    await supabase.auth.signOut();
+    app.classList.add("hidden");
+    app.style.display = "none";
+    loginContainer.style.display = "flex";
+  };
+}
+
 
   const btnDashboard = document.getElementById("btnDashboard");
   const btnLancamentos = document.getElementById("btnLancamentos");
@@ -79,11 +91,17 @@ if (sessionData?.session?.user) {
   if (menuOverlay) menuOverlay.classList.add("hidden");
 
   /* ================= GRÁFICO – MOBILE SAFE ================= */
-  if (!tipoGrafico.value) tipoGrafico.value = "resumo";
+  if (!tipoGrafico.value) tipoGrafico.value = "geral";
 
   ["change", "input"].forEach(evt => {
     tipoGrafico.addEventListener(evt, () => atualizarDashboard());
-  });
+
+    ["change", "input"].forEach(evt => {
+  filtroMes.addEventListener(evt, atualizarDashboard);
+  filtroAno.addEventListener(evt, atualizarDashboard);
+    });
+
+    });
 
   /* ================= EVENT DELEGATION LISTA ================= */
   lista.addEventListener("click", (e) => {
@@ -138,6 +156,17 @@ if (sessionData?.session?.user) {
 
   /* ================= CORE ================= */
   async function iniciarSessao(user) {
+    const topbarUser = document.getElementById("topbarUser");
+const topbarPlano = document.getElementById("topbarPlano");
+
+if (topbarUser) {
+  topbarUser.innerText = user.user_metadata?.nome || user.email.split("@")[0];
+}
+
+if (topbarPlano) {
+  topbarPlano.innerText = planoUsuario;
+}
+
     loginContainer.style.display = "none";
     app.style.display = "flex";
     app.classList.remove("hidden");
@@ -218,11 +247,6 @@ if (sessionData?.session?.user) {
       if (l.tipo === "Despesa") d += l.valor;
       if (l.tipo === "Investimento") i += l.valor;
     });
-    ["change", "input"].forEach(evt => {
-  filtroMes.addEventListener(evt, atualizarDashboard);
-  filtroAno.addEventListener(evt, atualizarDashboard);
-});
-
 
     totalReceitas.innerText = `R$ ${r.toFixed(2)}`;
     totalDespesas.innerText = `R$ ${d.toFixed(2)}`;

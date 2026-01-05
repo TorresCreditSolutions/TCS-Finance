@@ -343,3 +343,73 @@ body {
     z-index: 9998;
   }
 }
+/* ================= TOPBAR PROFISSIONAL ================= */
+.topbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 56px;
+  background: #0a3d62;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  z-index: 1200;
+}
+
+.topbar-left .logo {
+  font-weight: bold;
+  font-size: 16px;
+}
+
+.topbar-center {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.plano-badge {
+  background: #1e90ff;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+}
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.btn-menu {
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-size: 22px;
+  cursor: pointer;
+}
+
+.btn-logout-top {
+  background: #e74c3c;
+  border: none;
+  color: #fff;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+/* Ajuste do conteúdo por causa do header */
+.content {
+  padding-top: 76px;
+}
+
+/* ================= MOBILE ================= */
+@media (max-width: 768px) {
+  .btn-logout-top {
+    display: none;
+  }
+}
