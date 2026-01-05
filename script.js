@@ -334,17 +334,23 @@ if (sessionData?.session?.user) {
 
   /* ================= MENU MOBILE ================= */
   if (btnMenu && sidebar && menuOverlay) {
-    btnMenu.onclick = () => {
-      const aberto = sidebar.classList.contains("active");
+   btnMenu.onclick = () => {
+  const aberto = sidebar.classList.contains("active");
 
-      if (aberto) {
-        sidebar.classList.remove("active");
-        menuOverlay.classList.add("hidden");
-      } else {
-        sidebar.classList.add("active");
-        menuOverlay.classList.remove("hidden");
-      }
-    };
+  if (aberto) {
+    sidebar.classList.remove("active");
+    menuOverlay.classList.add("hidden");
+  } else {
+    sidebar.classList.add("active");
+    menuOverlay.classList.remove("hidden");
+  }
+};
+
+menuOverlay.onclick = () => {
+  sidebar.classList.remove("active");
+  menuOverlay.classList.add("hidden");
+};
+
   }
 
   if (menuOverlay && sidebar) {
