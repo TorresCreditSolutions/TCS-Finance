@@ -336,19 +336,31 @@ document.addEventListener("DOMContentLoaded", async () => {
   };
 
   /* ================= NAVEGAÇÃO ================= */
-  btnDashboard.onclick = () => {
-    dashboard.classList.remove("hidden");
-    lancamentos.classList.add("hidden");
-  };
+ btnDashboard.onclick = () => {
+  dashboard.classList.remove("hidden");
+  lancamentos.classList.add("hidden");
+  sidebar.classList.remove("active"); // 🔥 fecha menu
+};
 
-  btnLancamentos.onclick = () => {
-    dashboard.classList.add("hidden");
-    lancamentos.classList.remove("hidden");
-  };
+btnLancamentos.onclick = () => {
+  dashboard.classList.add("hidden");
+  lancamentos.classList.remove("hidden");
+  sidebar.classList.remove("active"); // 🔥 fecha menu
+};
+
+btnLogout.onclick = async () => {
+  await supabase.auth.signOut();
+  sidebar.classList.remove("active"); // 🔥 fecha menu
+  app.classList.add("hidden");
+  app.style.display = "none";
+  loginContainer.style.display = "flex";
+};
 
   /* ================= MENU ================= */
   if (btnMenu && sidebar) {
-    btnMenu.onclick = () => sidebar.classList.toggle("active");
-  }
+   btnMenu.onclick = () => 
+  sidebar.classList.toggle("active");
+};
+
 
 });
