@@ -14,7 +14,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   let graficoMensal = null;
   let idEmEdicao = null;
 
-  const LIMITE_FREE = 30; // limite de lançamentos plano free
+  const LIMITE_FREE = 30;
   let planoUsuario = "FREE";
 
   /* ================= ELEMENTOS ================= */
@@ -23,8 +23,11 @@ document.addEventListener("DOMContentLoaded", async () => {
   const dashboard = document.getElementById("dashboard");
   const lancamentos = document.getElementById("lancamentos");
 
+  const nomeCliente = document.getElementById("nomeCliente");
+
   const emailInput = document.getElementById("email");
   const senhaInput = document.getElementById("senha");
+  const aceiteTermos = document.getElementById("aceiteTermos");
 
   const btnLogin = document.getElementById("btnLogin");
   const btnCadastro = document.getElementById("btnCadastro");
@@ -55,21 +58,41 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   /* ================= AUTH ================= */
   btnLogin.onclick = async () => {
-    const { error } = await supabase.auth.signInWithPassword({
+
+    if (!aceiteTermos.checked) {
+      alert("Você precisa aceitar os termos de uso.");
+      return;
+    }
+
+    const { data, error } = await supabase.auth.signInWithPassword({
       email: emailInput.value,
       password: senhaInput.value
     });
+
     if (error) return alert(error.message);
-    iniciarSessao();
+
+    iniciarSessao(data.user);
   };
 
   btnCadastro.onclick = async () => {
+
+    if (!aceiteTermos.checked) {
+      alert("Você precisa aceitar os termos de uso.");
+      return;
+    }
+
     const { error } = await supabase.auth.signUp({
       email: emailInput.value,
-      password: senhaInput.value
+      password: senhaInput.value,
+      options: {
+        data: {
+          nome: emailInput.value.split("@")[0]
+        }
+      }
     });
+
     if (error) return alert(error.message);
-    alert("Conta criada. Confirme no email.");
+    alert("Conta criada! Confirme no email.");
   };
 
   btnEsqueciSenha.onclick = async () => {
@@ -80,16 +103,33 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   btnLogout.onclick = async () => {
     await supabase.auth.signOut();
-    location.reload();
-  };
 
-  /* ================= CORE ================= */
-  async function iniciarSessao() {
-    loginContainer.style.display = "none";
-    app.style.display = "flex";
+    app.style.display = "none";
+    app.classList.add("hidden");
 
     dashboard.classList.remove("hidden");
     lancamentos.classList.add("hidden");
+
+    loginContainer.style.display = "flex";
+  };
+
+  /* ================= CORE ================= */
+  async function iniciarSessao(user) {
+
+    loginContainer.style.display = "none";
+    app.style.display = "flex";
+    app.classList.remove("hidden");
+
+    dashboard.classList.remove("hidden");
+    lancamentos.classList.add("hidden");
+
+    const nome =
+      user.user_metadata?.nome ||
+      user.email.split("@")[0];
+
+    if (nomeCliente) {
+      nomeCliente.innerText = `Olá, ${nome}!`;
+    }
 
     await carregarDados();
     atualizarDashboard();
@@ -121,6 +161,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           data: dataInput.value
         })
         .eq("id", idEmEdicao);
+
       idEmEdicao = null;
     } else {
       await supabase.from("lancamentos").insert({
@@ -149,6 +190,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   /* ================= FILTROS ================= */
   filtroMes.onchange = atualizarDashboard;
   filtroAno.onchange = atualizarDashboard;
+
   btnLimparFiltro.onclick = () => {
     filtroMes.value = "";
     filtroAno.value = "";
@@ -157,6 +199,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   /* ================= DASHBOARD ================= */
   function atualizarDashboard() {
+
     let filtrados = [...dados];
 
     if (filtroMes.value)
@@ -166,6 +209,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       filtrados = filtrados.filter(l => l.data.startsWith(filtroAno.value));
 
     let r = 0, d = 0, i = 0;
+
     filtrados.forEach(l => {
       if (l.tipo === "Receita") r += l.valor;
       if (l.tipo === "Despesa") d += l.valor;
@@ -194,6 +238,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   function renderizarGraficoMensal() {
+
     if (graficoMensal) graficoMensal.destroy();
 
     const resumo = {};
@@ -246,13 +291,16 @@ document.addEventListener("DOMContentLoaded", async () => {
   window.editar = (id) => {
     const l = dados.find(d => d.id === id);
     if (!l) return;
+
     idEmEdicao = id;
     tipo.value = l.tipo;
     categoria.innerHTML = `<option>${l.categoria}</option>`;
     descricao.value = l.descricao;
     valor.value = l.valor;
     dataInput.value = l.data;
-    mostrarLancamentos();
+
+    dashboard.classList.add("hidden");
+    lancamentos.classList.remove("hidden");
   };
 
 });

@@ -33,11 +33,13 @@
     Esqueci minha senha
   </a>
 
-  <!-- TERMOS -->
-  <label class="termos">
-    <input type="checkbox" id="aceiteTermos">
-    Li e aceito os termos de uso
-  </label>
+  <!-- TERMOS DE USO -->
+  <div class="termos-container">
+    <label class="termos">
+      <input type="checkbox" id="aceiteTermos">
+      Li e aceito os termos de uso
+    </label>
+  </div>
 
   <div class="creditos">
     © Torres Credit Solutions • Dados criptografados
@@ -60,7 +62,7 @@
   <!-- CONTEÚDO -->
   <main class="content">
 
-    <!-- DASHBOARD -->
+    <!-- ================= DASHBOARD ================= -->
     <section id="dashboard">
       <h1>Dashboard Financeiro</h1>
 
@@ -80,7 +82,13 @@
 
         <label>
           Ano
-          <input type="number" id="filtroAno" placeholder="2026" min="2000" max="2100">
+          <input
+            type="number"
+            id="filtroAno"
+            placeholder="2026"
+            min="2000"
+            max="2100"
+          >
         </label>
 
         <button id="btnLimparFiltro">Limpar</button>
@@ -126,7 +134,7 @@
       </div>
     </section>
 
-    <!-- LANÇAMENTOS -->
+    <!-- ================= LANÇAMENTOS ================= -->
     <section id="lancamentos" class="hidden">
       <h2>Novo Lançamento</h2>
 
@@ -148,7 +156,7 @@
       <h3>Extrato</h3>
       <ul id="listaLancamentos"></ul>
 
-      <!-- PDF -->
+      <!-- EXPORTAÇÃO -->
       <button id="btnExportarPdf">Exportar PDF</button>
     </section>
 
