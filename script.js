@@ -7,6 +7,14 @@ document.addEventListener("DOMContentLoaded", async () => {
     "https://figkamlmpangolnasaby.supabase.co",
     "sb_publishable_qkDLfEnWNNXyqQVdogQzBQ_Sre7CVBL"
   );
+  /* ================= AUTO LOGIN (RESTORE SESSION) ================= */
+  /* ================= AUTO LOGIN (RESTORE SESSION) ================= */
+const { data: sessionData } = await supabase.auth.getSession();
+
+if (sessionData?.session?.user) {
+  window.__USER_SESSION__ = sessionData.session.user;
+}
+
 
   /* ================= ESTADO ================= */
   let dados = [];
@@ -64,14 +72,17 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   const btnMenu = document.getElementById("btnMenu");
   const sidebar = document.querySelector(".sidebar");
+  const menuOverlay = document.getElementById("menuOverlay");
 
-  /* ================= GRÁFICO – EVENTOS MOBILE SAFE ================= */
+  /* ================= ESTADO INICIAL MENU ================= */
+  if (sidebar) sidebar.classList.remove("active");
+  if (menuOverlay) menuOverlay.classList.add("hidden");
+
+  /* ================= GRÁFICO – MOBILE SAFE ================= */
   if (!tipoGrafico.value) tipoGrafico.value = "resumo";
 
   ["change", "input"].forEach(evt => {
-    tipoGrafico.addEventListener(evt, () => {
-      atualizarDashboard();
-    });
+    tipoGrafico.addEventListener(evt, () => atualizarDashboard());
   });
 
   /* ================= EVENT DELEGATION LISTA ================= */
@@ -125,18 +136,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     alert("Conta criada! Confirme no email.");
   };
 
-  btnLogout.onclick = async () => {
-    await supabase.auth.signOut();
-    sidebar.classList.remove("active");
-    app.classList.add("hidden");
-    app.style.display = "none";
-    loginContainer.style.display = "flex";
-  };
-
   /* ================= CORE ================= */
   async function iniciarSessao(user) {
-    console.log("USER LOGADO ID:", user.id);
-
     loginContainer.style.display = "none";
     app.style.display = "flex";
     app.classList.remove("hidden");
@@ -200,16 +201,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     valor.value = "";
     dataInput.value = "";
   }
-
-  /* ================= FILTROS ================= */
-  filtroMes.onchange = atualizarDashboard;
-  if (filtroAno) filtroAno.onchange = atualizarDashboard;
-
-  btnLimparFiltro.onclick = () => {
-    filtroMes.value = "";
-    if (filtroAno) filtroAno.value = "";
-    atualizarDashboard();
-  };
 
   /* ================= DASHBOARD ================= */
   function atualizarDashboard() {
@@ -341,41 +332,54 @@ document.addEventListener("DOMContentLoaded", async () => {
     renderizarLista();
   }
 
-  /* ================= NAVEGAÇÃO ================= */
+  /* ================= MENU MOBILE ================= */
+  if (btnMenu && sidebar && menuOverlay) {
+    btnMenu.onclick = () => {
+      const aberto = sidebar.classList.contains("active");
+
+      if (aberto) {
+        sidebar.classList.remove("active");
+        menuOverlay.classList.add("hidden");
+      } else {
+        sidebar.classList.add("active");
+        menuOverlay.classList.remove("hidden");
+      }
+    };
+  }
+
+  if (menuOverlay && sidebar) {
+    menuOverlay.onclick = () => {
+      sidebar.classList.remove("active");
+      menuOverlay.classList.add("hidden");
+    };
+  }
+
+  function fecharMenuMobile() {
+    sidebar.classList.remove("active");
+    menuOverlay.classList.add("hidden");
+  }
+
   btnDashboard.onclick = () => {
-  dashboard.classList.remove("hidden");
-  lancamentos.classList.add("hidden");
-  sidebar.classList.remove("active");
-  menuOverlay.classList.add("hidden");
-};
-
-btnLancamentos.onclick = () => {
-  dashboard.classList.add("hidden");
-  lancamentos.classList.remove("hidden");
-  sidebar.classList.remove("active");
-  menuOverlay.classList.add("hidden");
-};
-
-btnLogout.onclick = async () => {
-  await supabase.auth.signOut();
-  sidebar.classList.remove("active");
-  menuOverlay.classList.add("hidden");
-  app.classList.add("hidden");
-  app.style.display = "none";
-  loginContainer.style.display = "flex";
-};
-
-  /* ================= MENU ================= */
- if (btnMenu && sidebar && menuOverlay) {
-  btnMenu.onclick = () => {
-    sidebar.classList.toggle("active");
-    menuOverlay.classList.toggle("hidden");
+    dashboard.classList.remove("hidden");
+    lancamentos.classList.add("hidden");
+    fecharMenuMobile();
   };
-}
-menuOverlay.onclick = () => {
-  sidebar.classList.remove("active");
-  menuOverlay.classList.add("hidden");
-};
 
+  btnLancamentos.onclick = () => {
+    dashboard.classList.add("hidden");
+    lancamentos.classList.remove("hidden");
+    fecharMenuMobile();
+  };
+
+  btnLogout.onclick = async () => {
+    await supabase.auth.signOut();
+    fecharMenuMobile();
+    app.classList.add("hidden");
+    app.style.display = "none";
+    loginContainer.style.display = "flex";
+  };
+if (window.__USER_SESSION__) {
+  iniciarSessao(window.__USER_SESSION__);
+}
 
 });
