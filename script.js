@@ -66,13 +66,22 @@ document.addEventListener("DOMContentLoaded", async () => {
   const btnMenu = document.getElementById("btnMenu");
   const sidebar = document.querySelector(".sidebar");
 
-  /* ================= EVENT DELEGATION (CORRETO E PERMANENTE) ================= */
+  /* ================= EVENT DELEGATION (BLINDADO) ================= */
   lista.addEventListener("click", (e) => {
     const btnEditar = e.target.closest(".btn-acao.editar");
     const btnExcluir = e.target.closest(".btn-acao.excluir");
 
-    if (btnEditar) editar(Number(btnEditar.dataset.id));
-    if (btnExcluir) excluir(Number(btnExcluir.dataset.id));
+    if (btnEditar) {
+      const id = parseInt(btnEditar.getAttribute("data-id"), 10);
+      if (!id) return console.error("ID inválido para edição");
+      editar(id);
+    }
+
+    if (btnExcluir) {
+      const id = parseInt(btnExcluir.getAttribute("data-id"), 10);
+      if (!id) return console.error("ID inválido para exclusão");
+      excluir(id);
+    }
   });
 
   /* ================= CATEGORIAS ================= */
@@ -160,6 +169,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (planoUsuario === "FREE" && dados.length >= LIMITE_FREE && !idEmEdicao)
       return alert("Limite do plano gratuito atingido.");
 
+    const user = (await supabase.auth.getUser()).data.user;
+
     if (idEmEdicao) {
       await supabase.from("lancamentos").update({
         tipo: tipo.value,
@@ -172,6 +183,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       idEmEdicao = null;
     } else {
       await supabase.from("lancamentos").insert({
+        user_id: user.id, // 🔥 ADIÇÃO ESSENCIAL
         tipo: tipo.value,
         categoria: categoria.value,
         descricao: descricao.value,
