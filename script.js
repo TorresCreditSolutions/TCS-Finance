@@ -343,20 +343,39 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   /* ================= NAVEGAÇÃO ================= */
   btnDashboard.onclick = () => {
-    dashboard.classList.remove("hidden");
-    lancamentos.classList.add("hidden");
-    sidebar.classList.remove("active");
-  };
+  dashboard.classList.remove("hidden");
+  lancamentos.classList.add("hidden");
+  sidebar.classList.remove("active");
+  menuOverlay.classList.add("hidden");
+};
 
-  btnLancamentos.onclick = () => {
-    dashboard.classList.add("hidden");
-    lancamentos.classList.remove("hidden");
-    sidebar.classList.remove("active");
-  };
+btnLancamentos.onclick = () => {
+  dashboard.classList.add("hidden");
+  lancamentos.classList.remove("hidden");
+  sidebar.classList.remove("active");
+  menuOverlay.classList.add("hidden");
+};
+
+btnLogout.onclick = async () => {
+  await supabase.auth.signOut();
+  sidebar.classList.remove("active");
+  menuOverlay.classList.add("hidden");
+  app.classList.add("hidden");
+  app.style.display = "none";
+  loginContainer.style.display = "flex";
+};
 
   /* ================= MENU ================= */
-  if (btnMenu && sidebar) {
-    btnMenu.onclick = () => sidebar.classList.toggle("active");
-  }
+ if (btnMenu && sidebar && menuOverlay) {
+  btnMenu.onclick = () => {
+    sidebar.classList.toggle("active");
+    menuOverlay.classList.toggle("hidden");
+  };
+}
+menuOverlay.onclick = () => {
+  sidebar.classList.remove("active");
+  menuOverlay.classList.add("hidden");
+};
+
 
 });
