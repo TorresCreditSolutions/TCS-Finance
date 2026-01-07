@@ -452,27 +452,51 @@ if (window.__USER_SESSION__) {
   iniciarSessao(window.__USER_SESSION__);
 }
 /* ================= TRADINGVIEW ================= */
-document.addEventListener("DOMContentLoaded", () => {
+/* ================= TRADINGVIEW ================= */
+function iniciarTradingView() {
 
   if (typeof TradingView === "undefined") return;
 
-  if (document.getElementById("tv-indices")) {
-    new TradingView.widget({
-      container_id: "tv-indices",
-      width: "100%",
-      height: "100%",
-      locale: "br",
-      colorTheme: "light",
-      showChart: false,
-      dateRange: "1D",
-      symbols: [
-        ["Ibovespa", "BMFBOVESPA:IBOV"],
-        ["S&P 500", "SP:SPX"],
-        ["Nasdaq", "NASDAQ:IXIC"],
-        ["USD/BRL", "FX_IDC:USDBRL"]
-      ]
-    });
-  }
+  const indices = document.getElementById("tv-indices");
+  const acoes = document.getElementById("tv-acoes");
+
+  if (!indices || !acoes) return;
+
+  indices.innerHTML = "";
+  acoes.innerHTML = "";
+
+  new TradingView.widget({
+    container_id: "tv-indices",
+    width: "100%",
+    height: "100%",
+    locale: "br",
+    colorTheme: "light",
+    showChart: false,
+    dateRange: "1D",
+    symbols: [
+      ["Ibovespa", "BMFBOVESPA:IBOV"],
+      ["S&P 500", "SP:SPX"],
+      ["Nasdaq", "NASDAQ:IXIC"],
+      ["USD/BRL", "FX_IDC:USDBRL"]
+    ]
+  });
+
+  new TradingView.widget({
+    container_id: "tv-acoes",
+    width: "100%",
+    height: "100%",
+    locale: "br",
+    colorTheme: "light",
+    symbols: [
+      ["PETR4", "BMFBOVESPA:PETR4"],
+      ["VALE3", "BMFBOVESPA:VALE3"],
+      ["ITUB4", "BMFBOVESPA:ITUB4"],
+      ["AAPL", "NASDAQ:AAPL"],
+      ["MSFT", "NASDAQ:MSFT"]
+    ]
+  });
+}
+
 
   if (document.getElementById("tv-acoes")) {
     new TradingView.widget({
@@ -493,5 +517,3 @@ document.addEventListener("DOMContentLoaded", () => {
 
 });
 
-
-});
