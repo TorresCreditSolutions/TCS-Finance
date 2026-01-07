@@ -454,6 +454,8 @@ if (window.__USER_SESSION__) {
 /* ================= TRADINGVIEW ================= */
 document.addEventListener("DOMContentLoaded", () => {
 
+  if (typeof TradingView === "undefined") return;
+
   if (document.getElementById("tv-indices")) {
     new TradingView.widget({
       container_id: "tv-indices",
@@ -461,7 +463,6 @@ document.addEventListener("DOMContentLoaded", () => {
       height: "100%",
       locale: "br",
       colorTheme: "light",
-      isTransparent: false,
       showChart: false,
       dateRange: "1D",
       symbols: [
@@ -491,5 +492,6 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
 });
+
 
 });
