@@ -451,5 +451,45 @@ if (btnExportarPdf) {
 if (window.__USER_SESSION__) {
   iniciarSessao(window.__USER_SESSION__);
 }
+/* ================= TRADINGVIEW ================= */
+document.addEventListener("DOMContentLoaded", () => {
+
+  if (document.getElementById("tv-indices")) {
+    new TradingView.widget({
+      container_id: "tv-indices",
+      width: "100%",
+      height: "100%",
+      locale: "br",
+      colorTheme: "light",
+      isTransparent: false,
+      showChart: false,
+      dateRange: "1D",
+      symbols: [
+        ["Ibovespa", "BMFBOVESPA:IBOV"],
+        ["S&P 500", "SP:SPX"],
+        ["Nasdaq", "NASDAQ:IXIC"],
+        ["USD/BRL", "FX_IDC:USDBRL"]
+      ]
+    });
+  }
+
+  if (document.getElementById("tv-acoes")) {
+    new TradingView.widget({
+      container_id: "tv-acoes",
+      width: "100%",
+      height: "100%",
+      locale: "br",
+      colorTheme: "light",
+      symbols: [
+        ["PETR4", "BMFBOVESPA:PETR4"],
+        ["VALE3", "BMFBOVESPA:VALE3"],
+        ["ITUB4", "BMFBOVESPA:ITUB4"],
+        ["AAPL", "NASDAQ:AAPL"],
+        ["MSFT", "NASDAQ:MSFT"]
+      ]
+    });
+  }
+
+});
 
 });

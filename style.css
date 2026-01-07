@@ -64,7 +64,6 @@ body {
   gap: 6px;
   font-size: 12px;
   color: #fff;
-  cursor: pointer;
 }
 
 .termos input {
@@ -77,7 +76,7 @@ body {
   min-height: 100vh;
 }
 
-/* ================= TOPBAR PROFISSIONAL ================= */
+/* ================= TOPBAR ================= */
 .topbar {
   position: fixed;
   top: 0;
@@ -93,11 +92,53 @@ body {
   z-index: 1200;
 }
 
+.topbar-left .logo {
+  font-weight: bold;
+  font-size: 16px;
+}
 
-/* ================= SIDEBAR (DRAWER) ================= */
+.topbar-center {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+
+.plano-badge {
+  background: #1e90ff;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 11px;
+}
+
+.topbar-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.btn-menu {
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-size: 22px;
+  cursor: pointer;
+}
+
+.btn-logout-top {
+  background: #e74c3c;
+  border: none;
+  color: #fff;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  cursor: pointer;
+}
+
+/* ================= SIDEBAR ================= */
 .sidebar {
   position: fixed;
-  top: 56px; /* 👈 abaixo do header */
+  top: 56px;
   left: -260px;
   width: 260px;
   height: calc(100vh - 56px);
@@ -108,7 +149,7 @@ body {
   flex-direction: column;
   gap: 12px;
   transition: left 0.3s ease;
-  z-index: 1002;
+  z-index: 1250;
 }
 
 .sidebar.active {
@@ -133,17 +174,13 @@ body {
   width: 100%;
   height: calc(100vh - 56px);
   background: rgba(0,0,0,.45);
-  z-index: 1001;
-}
-
-#menuOverlay.hidden {
-  display: none;
+  z-index: 1240;
 }
 
 /* ================= CONTENT ================= */
 .content {
   padding: 20px;
-  padding-top: 76px; /* 👈 espaço do header */
+  padding-top: 76px;
 }
 
 /* ================= DASHBOARD ================= */
@@ -205,6 +242,52 @@ body {
 .investimento { background: #3498db; }
 .saldo { background: #34495e; }
 
+/* ================= MERCADO HOJE ================= */
+.mercado-hoje {
+  margin-top: 28px;
+}
+
+.mercado-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.mercado-header h2 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.mercado-update {
+  font-size: 12px;
+  color: #666;
+}
+
+.mercado-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 16px;
+}
+
+.mercado-box {
+  background: #fff;
+  border-radius: 10px;
+  padding: 12px;
+  height: 260px;
+  display: flex;
+  flex-direction: column;
+}
+
+.mercado-box h3 {
+  margin: 0 0 8px;
+  font-size: 14px;
+}
+
+.tradingview-widget-container {
+  flex: 1;
+}
+
 /* ================= GRÁFICOS ================= */
 .graficos {
   display: grid;
@@ -248,7 +331,6 @@ body {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  gap: 12px;
 }
 
 .linha-acoes {
@@ -275,6 +357,30 @@ body {
 }
 
 /* ================= MOBILE ================= */
+@media (max-width: 768px) {
+
+  .btn-logout-top {
+    display: none;
+  }
+
+  .mercado-grid,
+  .graficos,
+  .cards {
+    grid-template-columns: 1fr;
+  }
+
+  .mercado-box {
+    height: 300px;
+  }
+
+  #btnMenu {
+    display: block;
+    position: fixed;
+    top: 14px;
+    right: 14px;
+    z-index: 1300;
+  }
+}
 
 /* ================= DESKTOP ================= */
 @media (min-width: 769px) {
@@ -292,101 +398,5 @@ body {
 
   .content {
     padding-top: 20px;
-  }
-}
-/* ================= FIX MENU MOBILE (PORTRAIT) ================= */
-@/* ================= FIX MENU MOBILE (PORTRAIT) ================= */
-@media (max-width: 768px) {
-
-  #btnMenu {
-    display: block;
-    position: fixed;
-    top: 14px;
-    right: 14px;
-    z-index: 1300;
-    background: transparent;
-  }
-
-  .btn-logout-top {
-    display: none;
-  }
-
-  .sidebar {
-    z-index: 1250;
-  }
-
-  #menuOverlay {
-    z-index: 1240;
-  }
-}
-
-/* ================= TOPBAR PROFISSIONAL ================= */
-.topbar {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 56px;
-  background: #0a3d62;
-  color: #fff;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 0 16px;
-  z-index: 1200;
-}
-
-.topbar-left .logo {
-  font-weight: bold;
-  font-size: 16px;
-}
-
-.topbar-center {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 13px;
-}
-
-.plano-badge {
-  background: #1e90ff;
-  padding: 2px 8px;
-  border-radius: 12px;
-  font-size: 11px;
-}
-
-.topbar-right {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-}
-
-.btn-menu {
-  background: transparent;
-  border: none;
-  color: #fff;
-  font-size: 22px;
-  cursor: pointer;
-}
-
-.btn-logout-top {
-  background: #e74c3c;
-  border: none;
-  color: #fff;
-  padding: 6px 10px;
-  border-radius: 6px;
-  font-size: 12px;
-  cursor: pointer;
-}
-
-/* Ajuste do conteúdo por causa do header */
-.content {
-  padding-top: 76px;
-}
-
-/* ================= MOBILE ================= */
-@media (max-width: 768px) {
-  .btn-logout-top {
-    display: none;
   }
 }
