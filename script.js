@@ -28,7 +28,7 @@ if (sessionData?.session?.user) {
   /* ================= CATEGORIAS ================= */
   const categoriasPorTipo = {
     Receita: ["Salário", "Renda Extra", "Mesada", "Freelance", "Vendas", "Outros"],
-    Despesa: ["Moradia", "Saúde", "Cartão de Crédito", "Alimentação", "Transporte", "Compras diversas", "Lazer", "Outros"],
+    Despesa: ["Moradia", "Saúde", "Cartão de Crédito", "Alimentação", "Transporte", "Educação", "Empréstimos", "Compras diversas", "Lazer", "Outros"],
     Investimento: ["Renda Fixa", "Ações", "Criptomoedas", "Outros"]
   };
 
@@ -179,11 +179,19 @@ if (topbarPlano) {
     await carregarDados();
     atualizarDashboard();
     renderizarLista();
+
   }
 
   async function carregarDados() {
     const { data } = await supabase.from("lancamentos").select("*");
     dados = data || [];
+
+    setTimeout(() => {
+  if (typeof carregarRadarB3 === "function") {
+    carregarRadarB3();
+  }
+}, 400);
+
   }
 
   /* ================= SALVAR / EDITAR ================= */
@@ -451,69 +459,6 @@ if (btnExportarPdf) {
 if (window.__USER_SESSION__) {
   iniciarSessao(window.__USER_SESSION__);
 }
-/* ================= TRADINGVIEW ================= */
-/* ================= TRADINGVIEW ================= */
-function iniciarTradingView() {
-
-  if (typeof TradingView === "undefined") return;
-
-  const indices = document.getElementById("tv-indices");
-  const acoes = document.getElementById("tv-acoes");
-
-  if (!indices || !acoes) return;
-
-  indices.innerHTML = "";
-  acoes.innerHTML = "";
-
-  new TradingView.widget({
-    container_id: "tv-indices",
-    width: "100%",
-    height: "100%",
-    locale: "br",
-    colorTheme: "light",
-    showChart: false,
-    dateRange: "1D",
-    symbols: [
-      ["Ibovespa", "BMFBOVESPA:IBOV"],
-      ["S&P 500", "SP:SPX"],
-      ["Nasdaq", "NASDAQ:IXIC"],
-      ["USD/BRL", "FX_IDC:USDBRL"]
-    ]
-  });
-
-  new TradingView.widget({
-    container_id: "tv-acoes",
-    width: "100%",
-    height: "100%",
-    locale: "br",
-    colorTheme: "light",
-    symbols: [
-      ["PETR4", "BMFBOVESPA:PETR4"],
-      ["VALE3", "BMFBOVESPA:VALE3"],
-      ["ITUB4", "BMFBOVESPA:ITUB4"],
-      ["AAPL", "NASDAQ:AAPL"],
-      ["MSFT", "NASDAQ:MSFT"]
-    ]
-  });
-}
-
-
-  if (document.getElementById("tv-acoes")) {
-    new TradingView.widget({
-      container_id: "tv-acoes",
-      width: "100%",
-      height: "100%",
-      locale: "br",
-      colorTheme: "light",
-      symbols: [
-        ["PETR4", "BMFBOVESPA:PETR4"],
-        ["VALE3", "BMFBOVESPA:VALE3"],
-        ["ITUB4", "BMFBOVESPA:ITUB4"],
-        ["AAPL", "NASDAQ:AAPL"],
-        ["MSFT", "NASDAQ:MSFT"]
-      ]
-    });
-  }
 
 });
 

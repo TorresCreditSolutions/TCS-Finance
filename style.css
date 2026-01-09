@@ -400,3 +400,8 @@ body {
     padding-top: 20px;
   }
 }
+/* ===== FIX RADAR TÍTULO ===== */
+#radar-b3 h3 {
+  color: #274877; /* cinza escuro profissional */
+  font-weight: 600;
+}
