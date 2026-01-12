@@ -193,41 +193,53 @@ if (planoLabel) {
      🔒 BLOCO PROTEGIDO – NÃO MEXER
      CORE DA APLICAÇÃO
   ====================================================== */
-  async function iniciarSessao(user) {
-    
-    const topbarUser = document.getElementById("topbarUser");
-    const topbarPlano = document.getElementById("topbarPlano");
-    const role = user.user_metadata?.role || "user";
-const plano = user.user_metadata?.plano || "FREE";
+async function iniciarSessao(user) {
 
-const isAdmin = role === "admin";
-window.__IS_ADMIN__ = isAdmin;
+  /* ================= DEFINIÇÕES ÚNICAS ================= */
+  const role = user.user_metadata?.role || "user";
+  const plano = user.user_metadata?.plano || "FREE";
+  const isAdmin = role === "admin";
 
-planoUsuario = plano;
+  window.__IS_ADMIN__ = isAdmin;
+  planoUsuario = plano;
 
-    if (topbarUser) {
-      topbarUser.innerText = user.user_metadata?.nome || user.email.split("@")[0];
-    }
+  /* ================= ELEMENTOS ================= */
+  const topbarUser = document.getElementById("topbarUser");
+  const topbarPlano = document.getElementById("topbarPlano");
+  const planoSpan = document.getElementById("planoUsuario");
 
-    if (topbarPlano) {
-      topbarPlano.innerText = planoUsuario;
-    }
-
-    loginContainer.style.display = "none";
-    app.style.display = "flex";
-    app.classList.remove("hidden");
-
-    dashboard.classList.remove("hidden");
-    lancamentos.classList.add("hidden");
-
-    nomeCliente.innerText = `Olá, ${user.user_metadata?.nome || user.email.split("@")[0]}!`;
-
-    await carregarDados();
-    atualizarDashboard();
-    renderizarLista();
-
-    aplicarModoAdmin(isAdmin);
+  /* ================= UI ================= */
+  if (topbarUser) {
+    topbarUser.innerText =
+      user.user_metadata?.nome || user.email.split("@")[0];
   }
+
+  if (topbarPlano) {
+    topbarPlano.innerText = plano;
+  }
+
+  if (planoSpan) {
+    planoSpan.innerText = `Plano ${plano}`;
+  }
+
+  /* ================= APP ================= */
+  loginContainer.style.display = "none";
+  app.style.display = "flex";
+  app.classList.remove("hidden");
+
+  dashboard.classList.remove("hidden");
+  lancamentos.classList.add("hidden");
+
+  nomeCliente.innerText =
+    `Olá, ${user.user_metadata?.nome || user.email.split("@")[0]}!`;
+
+  await carregarDados();
+  atualizarDashboard();
+  renderizarLista();
+
+  aplicarModoAdmin(isAdmin);
+}
+
 
   async function carregarDados() {
     const { data } = await supabase.from("lancamentos").select("*");
