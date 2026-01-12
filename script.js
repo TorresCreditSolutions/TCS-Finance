@@ -197,8 +197,13 @@ if (planoLabel) {
     
     const topbarUser = document.getElementById("topbarUser");
     const topbarPlano = document.getElementById("topbarPlano");
-    const isAdmin = user.user_metadata?.role === "admin";
-    window.__IS_ADMIN__ = isAdmin;
+    const role = user.user_metadata?.role || "user";
+const plano = user.user_metadata?.plano || "FREE";
+
+const isAdmin = role === "admin";
+window.__IS_ADMIN__ = isAdmin;
+
+planoUsuario = plano;
 
     if (topbarUser) {
       topbarUser.innerText = user.user_metadata?.nome || user.email.split("@")[0];
@@ -571,6 +576,9 @@ async function alterarPlano(userId, plano) {
   
 function aplicarModoAdmin(isAdmin) {
   document.body.classList.toggle("modo-admin", isAdmin);
+  if (isAdmin) {
+  carregarUsuariosAdmin();
+}
 
   const adminOnlyElements = document.querySelectorAll("[data-admin-only]");
   adminOnlyElements.forEach(el => {
