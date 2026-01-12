@@ -32,6 +32,11 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   const LIMITE_FREE = 15;
   let planoUsuario = "FREE";
+  const planoLabel = document.getElementById("planoUsuario");
+if (planoLabel) {
+  planoLabel.innerText = `Plano ${planoUsuario}`;
+}
+
 
   /* ======================================================
      🔒 BLOCO PROTEGIDO – NÃO MEXER
@@ -189,8 +194,11 @@ document.addEventListener("DOMContentLoaded", async () => {
      CORE DA APLICAÇÃO
   ====================================================== */
   async function iniciarSessao(user) {
+    
     const topbarUser = document.getElementById("topbarUser");
     const topbarPlano = document.getElementById("topbarPlano");
+    const isAdmin = user.user_metadata?.role === "admin";
+    window.__IS_ADMIN__ = isAdmin;
 
     if (topbarUser) {
       topbarUser.innerText = user.user_metadata?.nome || user.email.split("@")[0];
@@ -212,6 +220,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     await carregarDados();
     atualizarDashboard();
     renderizarLista();
+
+    aplicarModoAdmin(isAdmin);
   }
 
   async function carregarDados() {
@@ -499,8 +509,74 @@ document.addEventListener("DOMContentLoaded", async () => {
      🔒 BLOCO PROTEGIDO – NÃO MEXER
      AUTO LOGIN FINAL
   ====================================================== */
+  /* ======================================================
+   🛡️ BLOCO ADMIN – PAINEL ADMINISTRATIVO
+   (ACRÉSCIMO – NÃO REMOVE NADA EXISTENTE)
+====================================================== */
+
+async function carregarUsuariosAdmin() {
+  if (!window.__IS_ADMIN__) return;
+
+  const { data, error } = await supabase
+    .from("user_plans")
+    .select("user_id, plano");
+
+  if (error) {
+    console.error(error);
+    alert("Erro ao carregar usuários");
+    return;
+  }
+
+  const tbody = document.getElementById("listaUsuariosAdmin");
+  if (!tbody) return;
+
+  tbody.innerHTML = "";
+
+  data.forEach(u => {
+    const tr = document.createElement("tr");
+    tr.innerHTML = `
+      <td>${u.user_id}</td>
+      <td>${u.plano}</td>
+      <td>
+        <button onclick="alterarPlano('${u.user_id}', 'PRO')">PRO</button>
+        <button onclick="alterarPlano('${u.user_id}', 'FREE')">FREE</button>
+      </td>
+    `;
+    tbody.appendChild(tr);
+  });
+}
+
+async function alterarPlano(userId, plano) {
+  const { error } = await supabase
+    .from("user_plans")
+    .upsert({
+      user_id: userId,
+      plano: plano,
+      updated_at: new Date()
+    });
+
+  if (error) {
+    console.error(error);
+    alert("Erro ao alterar plano");
+    return;
+  }
+
+  alert("Plano atualizado com sucesso");
+  carregarUsuariosAdmin();
+}
+
   if (window.__USER_SESSION__) {
     iniciarSessao(window.__USER_SESSION__);
   }
+  
+function aplicarModoAdmin(isAdmin) {
+  document.body.classList.toggle("modo-admin", isAdmin);
+
+  const adminOnlyElements = document.querySelectorAll("[data-admin-only]");
+  adminOnlyElements.forEach(el => {
+    el.style.display = isAdmin ? "block" : "none";
+  });
+}
+
 
 });
