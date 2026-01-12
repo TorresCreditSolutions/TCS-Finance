@@ -30,7 +30,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   let graficoMensal = null;
   let idEmEdicao = null;
 
-  const LIMITE_FREE = 30;
+  const LIMITE_FREE = 15;
   let planoUsuario = "FREE";
 
   /* ======================================================

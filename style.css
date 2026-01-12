@@ -444,3 +444,7 @@ body {
     padding-top: 20px;
   }
 }
+body.modo-admin .plano-badge {
+  background: linear-gradient(135deg, #7c3aed, #4f46e5);
+  font-weight: 700;
+}
