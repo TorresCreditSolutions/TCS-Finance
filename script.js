@@ -251,6 +251,28 @@ async function iniciarSessao(user) {
       }
     }, 400);
   }
+  const { data: profile, error } = await supabase
+  .from("profiles")
+  .select("role, plano")
+  .eq("id", user.id)
+  .single();
+
+if (error) {
+  alert("Erro ao carregar perfil");
+  return;
+}
+
+planoUsuario = profile.plano;
+const isAdmin = profile.role === "admin";
+
+window.__IS_ADMIN__ = isAdmin;
+
+if (topbarPlano) {
+  topbarPlano.innerText = profile.plano;
+}
+
+aplicarModoAdmin(isAdmin);
+
 
   /* ======================================================
      🧩 BLOCO EXTENSÍVEL (NÃO QUEBRAR)
