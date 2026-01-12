@@ -1,6 +1,10 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+  <!-- ======================================================
+       🔒 BLOCO PROTEGIDO – NÃO MEXER
+       HEAD / METADADOS / LIBS GLOBAIS
+  ====================================================== -->
   <meta charset="UTF-8">
   <title>TCS Finance | Controle Financeiro</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -13,13 +17,21 @@
 
   <!-- PDF -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <!-- 🔒 FIM BLOCO PROTEGIDO -->
 </head>
 <body>
 
-<!-- OVERLAY MENU MOBILE -->
+<!-- ======================================================
+     🔒 BLOCO PROTEGIDO – NÃO MEXER
+     OVERLAY MENU MOBILE
+====================================================== -->
 <div id="menuOverlay" class="menu-overlay hidden"></div>
+<!-- 🔒 FIM BLOCO PROTEGIDO -->
 
-<!-- ================= LOGIN ================= -->
+<!-- ======================================================
+     🔒 BLOCO PROTEGIDO – NÃO MEXER
+     LOGIN / AUTENTICAÇÃO
+====================================================== -->
 <div id="login-container">
   <h2>TCS Finance</h2>
 
@@ -44,11 +56,18 @@
     © Torres Credit Solutions • Dados criptografados
   </div>
 </div>
+<!-- 🔒 FIM BLOCO PROTEGIDO -->
 
-<!-- ================= APP ================= -->
+<!-- ======================================================
+     🔒 BLOCO PROTEGIDO – NÃO MEXER
+     APP ROOT (CONTAINER PRINCIPAL)
+====================================================== -->
 <div id="app" class="hidden">
 
-  <!-- ================= SIDEBAR ================= -->
+  <!-- ======================================================
+       🔒 BLOCO PROTEGIDO – NÃO MEXER
+       SIDEBAR / NAVEGAÇÃO
+  ====================================================== -->
   <aside class="sidebar">
     <span class="logo">TCS Finance</span>
     <nav>
@@ -57,8 +76,12 @@
       <button type="button" id="btnLogout">Sair</button>
     </nav>
   </aside>
+  <!-- 🔒 FIM BLOCO PROTEGIDO -->
 
-  <!-- ================= TOPBAR ================= -->
+  <!-- ======================================================
+       🔒 BLOCO PROTEGIDO – NÃO MEXER
+       TOPBAR / USUÁRIO / LOGOUT
+  ====================================================== -->
   <header class="topbar">
     <div class="topbar-left">
       <span class="logo">TCS Finance</span>
@@ -74,13 +97,19 @@
       <button type="button" id="btnLogoutTop" class="btn-logout-top">Sair</button>
     </div>
   </header>
+  <!-- 🔒 FIM BLOCO PROTEGIDO -->
 
-  <!-- ================= CONTEÚDO ================= -->
+  <!-- ======================================================
+       🔒 BLOCO PROTEGIDO – NÃO MEXER
+       CONTEÚDO PRINCIPAL
+  ====================================================== -->
   <main class="content">
 
-    <!-- ================= DASHBOARD ================= -->
+    <!-- ======================================================
+         🔒 BLOCO PROTEGIDO – NÃO MEXER
+         DASHBOARD (CARDS, FILTROS, GRÁFICOS)
+    ====================================================== -->
     <section id="dashboard">
-
       <h1>Dashboard Financeiro</h1>
 
       <div class="avisos-sistema">
@@ -116,30 +145,13 @@
           <canvas id="graficoMensal"></canvas>
         </div>
       </div>
-
-      <!-- RADAR – ÚLTIMO ITEM DO DASHBOARD -->
-      <div class="card radar-acoes">
-        <h3>Radar – Melhores Ações da Bolsa Brasileira</h3>
-
-        <script
-          src="https://s3.tradingview.com/external-embedding/embed-widget-hotlists.js"
-          async>
-        {
-          "colorTheme": "light",
-          "dateRange": "12M",
-          "exchange": "BMFBOVESPA",
-          "showChart": false,
-          "locale": "br",
-          "width": "100%",
-          "height": 420
-        }
-        </script>
-      </div>
-
     </section>
-    <!-- 🔴 DASHBOARD FECHADO CORRETAMENTE -->
+    <!-- 🔒 FIM BLOCO PROTEGIDO -->
 
-    <!-- ================= LANÇAMENTOS ================= -->
+    <!-- ======================================================
+         🧩 BLOCO EXTENSÍVEL (NÃO QUEBRAR)
+         LANÇAMENTOS / FORMULÁRIO / EXTRATO
+    ====================================================== -->
     <section id="lancamentos" class="hidden">
 
       <h2>Novo Lançamento</h2>
@@ -152,7 +164,6 @@
       </select>
 
       <select id="categoria"></select>
-
       <input type="text" id="descricao" placeholder="Descrição">
       <input type="number" id="valor" placeholder="Valor">
       <input type="date" id="data">
@@ -163,16 +174,24 @@
       <ul id="listaLancamentos"></ul>
 
       <button id="btnExportarPdf">Exportar PDF</button>
-
     </section>
+    <!-- 🧩 FIM BLOCO EXTENSÍVEL -->
 
     <footer class="creditos-app">
       © TCS Finance • Dados criptografados • Uso profissional
     </footer>
 
   </main>
+  <!-- 🔒 FIM BLOCO PROTEGIDO -->
 </div>
+<!-- 🔒 FIM APP ROOT -->
 
+<!-- ======================================================
+     🔒 BLOCO PROTEGIDO – NÃO MEXER
+     SCRIPTS FINAIS
+====================================================== -->
 <script src="script.js"></script>
+<!-- 🔒 FIM BLOCO PROTEGIDO -->
+
 </body>
 </html>

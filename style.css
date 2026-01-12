@@ -1,4 +1,7 @@
-/* ================= RESET ================= */
+/* ======================================================
+   🔒 BLOCO PROTEGIDO – NÃO MEXER
+   RESET GLOBAL / BASE DO SISTEMA
+====================================================== */
 * {
   box-sizing: border-box;
   font-family: "Segoe UI", sans-serif;
@@ -14,7 +17,10 @@ body {
   display: none;
 }
 
-/* ================= LOGIN ================= */
+/* ======================================================
+   🔒 BLOCO PROTEGIDO – NÃO MEXER
+   LOGIN / AUTENTICAÇÃO
+====================================================== */
 #login-container {
   position: fixed;
   inset: 0;
@@ -53,7 +59,10 @@ body {
   margin-top: 4px;
 }
 
-/* ================= TERMOS ================= */
+/* ======================================================
+   🔒 BLOCO PROTEGIDO – NÃO MEXER
+   TERMOS DE USO
+====================================================== */
 .termos-container {
   margin-top: 6px;
 }
@@ -70,13 +79,19 @@ body {
   margin: 0;
 }
 
-/* ================= APP ================= */
+/* ======================================================
+   🔒 BLOCO PROTEGIDO – NÃO MEXER
+   CONTAINER PRINCIPAL DO APP
+====================================================== */
 #app {
   display: none;
   min-height: 100vh;
 }
 
-/* ================= TOPBAR ================= */
+/* ======================================================
+   🔒 BLOCO PROTEGIDO – NÃO MEXER
+   TOPBAR
+====================================================== */
 .topbar {
   position: fixed;
   top: 0;
@@ -106,7 +121,7 @@ body {
 
 .plano-badge {
   background: #1e90ff;
-  padding: 2px 8px;
+  padding: 2px 10px;
   border-radius: 12px;
   font-size: 11px;
 }
@@ -135,7 +150,10 @@ body {
   cursor: pointer;
 }
 
-/* ================= SIDEBAR ================= */
+/* ======================================================
+   🔒 BLOCO PROTEGIDO – NÃO MEXER
+   SIDEBAR / MENU LATERAL
+====================================================== */
 .sidebar {
   position: fixed;
   top: 56px;
@@ -162,11 +180,14 @@ body {
   background: transparent;
   border: 1px solid #1e90ff;
   color: #fff;
-  border-radius: 6px;
+  border-radius: 8px;
   cursor: pointer;
 }
 
-/* ================= OVERLAY ================= */
+/* ======================================================
+   🔒 BLOCO PROTEGIDO – NÃO MEXER
+   OVERLAY MENU MOBILE
+====================================================== */
 #menuOverlay {
   position: fixed;
   top: 56px;
@@ -177,34 +198,54 @@ body {
   z-index: 1240;
 }
 
-/* ================= CONTENT ================= */
+/* ======================================================
+   🔒 BLOCO PROTEGIDO – NÃO MEXER
+   CONTEÚDO PRINCIPAL
+====================================================== */
 .content {
   padding: 20px;
   padding-top: 76px;
+  padding-bottom: 40px;
 }
 
-/* ================= DASHBOARD ================= */
+/* ======================================================
+   🔒 BLOCO PROTEGIDO – NÃO MEXER
+   DASHBOARD
+====================================================== */
+#dashboard h1 {
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 16px;
+}
+
 .avisos-sistema {
   display: flex;
   gap: 10px;
   align-items: center;
-  margin-bottom: 14px;
+  margin-bottom: 16px;
   font-size: 14px;
 }
 
 .badge {
   background: #1e90ff;
   color: #fff;
-  padding: 4px 8px;
+  padding: 4px 10px;
   border-radius: 12px;
   font-size: 12px;
 }
 
-/* ================= FILTROS ================= */
+/* ======================================================
+   🔒 BLOCO PROTEGIDO – NÃO MEXER
+   FILTROS
+====================================================== */
 .filtros {
   display: flex;
   gap: 12px;
-  margin-bottom: 26px;
+  margin-bottom: 24px;
+  background: #f8fafc;
+  padding: 12px;
+  border-radius: 12px;
 }
 
 .filtros label {
@@ -212,6 +253,7 @@ body {
   flex-direction: column;
   font-size: 13px;
   gap: 4px;
+  color: #475569;
 }
 
 #btnLimparFiltro {
@@ -223,96 +265,93 @@ body {
   cursor: pointer;
 }
 
-/* ================= CARDS ================= */
+/* ======================================================
+   🔒 BLOCO PROTEGIDO – NÃO MEXER
+   CARDS
+====================================================== */
 .cards {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 14px;
-}
-
-.card {
-  padding: 16px;
-  border-radius: 10px;
-  color: #fff;
-  text-align: center;
-}
-
-.receita { background: #2ecc71; }
-.despesa { background: #e74c3c; }
-.investimento { background: #3498db; }
-.saldo { background: #34495e; }
-
-/* ================= MERCADO HOJE ================= */
-.mercado-hoje {
-  margin-top: 28px;
-}
-
-.mercado-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 14px;
-}
-
-.mercado-header h2 {
-  margin: 0;
-  font-size: 18px;
-}
-
-.mercado-update {
-  font-size: 12px;
-  color: #666;
-}
-
-.mercado-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
   gap: 16px;
 }
 
-.mercado-box {
+.card {
+  padding: 18px;
+  border-radius: 14px;
   background: #fff;
-  border-radius: 10px;
-  padding: 12px;
-  height: 260px;
-  display: flex;
-  flex-direction: column;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+  text-align: center;
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-.mercado-box h3 {
-  margin: 0 0 8px;
-  font-size: 14px;
+.card:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 24px rgba(0,0,0,0.08);
 }
 
-.tradingview-widget-container {
-  flex: 1;
+.card span {
+  font-size: 0.85rem;
+  color: #64748b;
 }
 
-/* ================= GRÁFICOS ================= */
+.card strong {
+  font-size: 1.3rem;
+  font-weight: 700;
+  color: #0f172a;
+}
+
+.card.receita strong { color: #16a34a; }
+.card.despesa strong { color: #dc2626; }
+.card.investimento strong { color: #2563eb; }
+
+.card.saldo {
+  background: linear-gradient(135deg, #0f172a, #1e293b);
+}
+
+.card.saldo span {
+  color: #cbd5f5;
+}
+
+.card.saldo strong {
+  color: #ffffff;
+}
+
+/* ======================================================
+   🔒 BLOCO PROTEGIDO – NÃO MEXER
+   GRÁFICOS
+====================================================== */
 .graficos {
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 18px;
-  margin-top: 24px;
+  margin-top: 26px;
 }
 
 .grafico-box {
   background: #fff;
-  border-radius: 10px;
-  padding: 14px;
+  border-radius: 14px;
+  padding: 16px;
   height: 360px;
-  display: flex;
-  flex-direction: column;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.06);
 }
 
-/* ================= LANÇAMENTOS ================= */
+.grafico-box h4 {
+  margin-bottom: 12px;
+  font-size: 0.95rem;
+  color: #334155;
+}
+
+/* ======================================================
+   🧩 BLOCO EXTENSÍVEL (NÃO QUEBRAR)
+   LANÇAMENTOS
+====================================================== */
 #lancamentos input,
 #lancamentos select,
 #lancamentos button {
   width: 100%;
   padding: 12px;
   margin-bottom: 10px;
-  border-radius: 6px;
+  border-radius: 8px;
   border: 1px solid #ccc;
 }
 
@@ -320,13 +359,17 @@ body {
   background: #1e90ff;
   color: #fff;
   border: none;
+  font-weight: 600;
 }
 
-/* ================= EXTRATO ================= */
+/* ======================================================
+   🔒 BLOCO PROTEGIDO – NÃO MEXER
+   EXTRATO
+====================================================== */
 #listaLancamentos li {
   background: #fff;
-  padding: 8px;
-  border-radius: 6px;
+  padding: 10px;
+  border-radius: 8px;
   margin-top: 6px;
   display: flex;
   justify-content: space-between;
@@ -356,21 +399,19 @@ body {
   color: #fff;
 }
 
-/* ================= MOBILE ================= */
+/* ======================================================
+   🔒 BLOCO PROTEGIDO – NÃO MEXER
+   MOBILE
+====================================================== */
 @media (max-width: 768px) {
 
   .btn-logout-top {
     display: none;
   }
 
-  .mercado-grid,
   .graficos,
   .cards {
     grid-template-columns: 1fr;
-  }
-
-  .mercado-box {
-    height: 300px;
   }
 
   #btnMenu {
@@ -382,7 +423,10 @@ body {
   }
 }
 
-/* ================= DESKTOP ================= */
+/* ======================================================
+   🔒 BLOCO PROTEGIDO – NÃO MEXER
+   DESKTOP
+====================================================== */
 @media (min-width: 769px) {
   #btnMenu,
   #menuOverlay {
@@ -399,9 +443,4 @@ body {
   .content {
     padding-top: 20px;
   }
-}
-/* ===== FIX RADAR TÍTULO ===== */
-#radar-b3 h3 {
-  color: #274877; /* cinza escuro profissional */
-  font-weight: 600;
 }

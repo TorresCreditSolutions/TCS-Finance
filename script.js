@@ -1,22 +1,30 @@
+/* ======================================================
+   🔒 BLOCO PROTEGIDO – NÃO MEXER
+   BOOTSTRAP / INICIALIZAÇÃO DO SCRIPT
+====================================================== */
 console.log("SCRIPT CARREGADO");
 
 document.addEventListener("DOMContentLoaded", async () => {
 
-  /* ================= SUPABASE ================= */
+  /* ======================================================
+     🔒 BLOCO PROTEGIDO – NÃO MEXER
+     SUPABASE / CLIENTE / SESSÃO
+  ====================================================== */
   const supabase = window.supabase.createClient(
     "https://figkamlmpangolnasaby.supabase.co",
     "sb_publishable_qkDLfEnWNNXyqQVdogQzBQ_Sre7CVBL"
   );
-  /* ================= AUTO LOGIN (RESTORE SESSION) ================= */
 
-const { data: sessionData } = await supabase.auth.getSession();
+  const { data: sessionData } = await supabase.auth.getSession();
 
-if (sessionData?.session?.user) {
-  window.__USER_SESSION__ = sessionData.session.user;
-}
+  if (sessionData?.session?.user) {
+    window.__USER_SESSION__ = sessionData.session.user;
+  }
 
-
-  /* ================= ESTADO ================= */
+  /* ======================================================
+     🔒 BLOCO PROTEGIDO – NÃO MEXER
+     ESTADO GLOBAL DO SISTEMA
+  ====================================================== */
   let dados = [];
   let grafico = null;
   let graficoMensal = null;
@@ -25,14 +33,20 @@ if (sessionData?.session?.user) {
   const LIMITE_FREE = 30;
   let planoUsuario = "FREE";
 
-  /* ================= CATEGORIAS ================= */
+  /* ======================================================
+     🔒 BLOCO PROTEGIDO – NÃO MEXER
+     CATEGORIAS POR TIPO
+  ====================================================== */
   const categoriasPorTipo = {
     Receita: ["Salário", "Renda Extra", "Mesada", "Freelance", "Vendas", "Outros"],
     Despesa: ["Moradia", "Saúde", "Cartão de Crédito", "Alimentação", "Transporte", "Educação", "Empréstimos", "Compras diversas", "Lazer", "Outros"],
     Investimento: ["Renda Fixa", "Ações", "Criptomoedas", "Outros"]
   };
 
-  /* ================= ELEMENTOS ================= */
+  /* ======================================================
+     🔒 BLOCO PROTEGIDO – NÃO MEXER
+     REFERÊNCIAS DE ELEMENTOS DO DOM
+  ====================================================== */
   const loginContainer = document.getElementById("login-container");
   const app = document.getElementById("app");
   const dashboard = document.getElementById("dashboard");
@@ -49,16 +63,18 @@ if (sessionData?.session?.user) {
   const btnLogoutTop = document.getElementById("btnLogoutTop");
   const btnLogout = document.getElementById("btnLogout");
 
-
-if (btnLogoutTop) {
-  btnLogoutTop.onclick = async () => {
-    await supabase.auth.signOut();
-    app.classList.add("hidden");
-    app.style.display = "none";
-    loginContainer.style.display = "flex";
-  };
-}
-
+  /* ======================================================
+     🔒 BLOCO PROTEGIDO – NÃO MEXER
+     LOGOUT TOPBAR
+  ====================================================== */
+  if (btnLogoutTop) {
+    btnLogoutTop.onclick = async () => {
+      await supabase.auth.signOut();
+      app.classList.add("hidden");
+      app.style.display = "none";
+      loginContainer.style.display = "flex";
+    };
+  }
 
   const btnDashboard = document.getElementById("btnDashboard");
   const btnLancamentos = document.getElementById("btnLancamentos");
@@ -86,24 +102,32 @@ if (btnLogoutTop) {
   const sidebar = document.querySelector(".sidebar");
   const menuOverlay = document.getElementById("menuOverlay");
 
-  /* ================= ESTADO INICIAL MENU ================= */
+  /* ======================================================
+     🔒 BLOCO PROTEGIDO – NÃO MEXER
+     ESTADO INICIAL MENU MOBILE
+  ====================================================== */
   if (sidebar) sidebar.classList.remove("active");
   if (menuOverlay) menuOverlay.classList.add("hidden");
 
-  /* ================= GRÁFICO – MOBILE SAFE ================= */
+  /* ======================================================
+     🔒 BLOCO PROTEGIDO – NÃO MEXER
+     GRÁFICOS / FILTROS
+  ====================================================== */
   if (!tipoGrafico.value) tipoGrafico.value = "geral";
 
   ["change", "input"].forEach(evt => {
-    tipoGrafico.addEventListener(evt, () => atualizarDashboard());
+    tipoGrafico.addEventListener(evt, atualizarDashboard);
 
     ["change", "input"].forEach(evt => {
-  filtroMes.addEventListener(evt, atualizarDashboard);
-  filtroAno.addEventListener(evt, atualizarDashboard);
+      filtroMes.addEventListener(evt, atualizarDashboard);
+      filtroAno.addEventListener(evt, atualizarDashboard);
     });
+  });
 
-    });
-
-  /* ================= EVENT DELEGATION LISTA ================= */
+  /* ======================================================
+     🔒 BLOCO PROTEGIDO – NÃO MEXER
+     EVENT DELEGATION LISTA
+  ====================================================== */
   lista.addEventListener("click", (e) => {
     const btnEditar = e.target.closest(".btn-acao.editar");
     const btnExcluir = e.target.closest(".btn-acao.excluir");
@@ -112,7 +136,10 @@ if (btnLogoutTop) {
     if (btnExcluir) excluir(btnExcluir.dataset.id);
   });
 
-  /* ================= CATEGORIAS ================= */
+  /* ======================================================
+     🔒 BLOCO PROTEGIDO – NÃO MEXER
+     CATEGORIAS
+  ====================================================== */
   function popularCategorias(tipoSelecionado, categoriaSelecionada = "") {
     categoria.innerHTML = "<option value=''>Categoria</option>";
     if (!categoriasPorTipo[tipoSelecionado]) return;
@@ -128,7 +155,10 @@ if (btnLogoutTop) {
 
   tipo.onchange = () => popularCategorias(tipo.value);
 
-  /* ================= AUTH ================= */
+  /* ======================================================
+     🔒 BLOCO PROTEGIDO – NÃO MEXER
+     AUTH / LOGIN / CADASTRO
+  ====================================================== */
   btnLogin.onclick = async () => {
     if (!aceiteTermos.checked) return alert("Você precisa aceitar os termos.");
 
@@ -154,18 +184,21 @@ if (btnLogoutTop) {
     alert("Conta criada! Confirme no email.");
   };
 
-  /* ================= CORE ================= */
+  /* ======================================================
+     🔒 BLOCO PROTEGIDO – NÃO MEXER
+     CORE DA APLICAÇÃO
+  ====================================================== */
   async function iniciarSessao(user) {
     const topbarUser = document.getElementById("topbarUser");
-const topbarPlano = document.getElementById("topbarPlano");
+    const topbarPlano = document.getElementById("topbarPlano");
 
-if (topbarUser) {
-  topbarUser.innerText = user.user_metadata?.nome || user.email.split("@")[0];
-}
+    if (topbarUser) {
+      topbarUser.innerText = user.user_metadata?.nome || user.email.split("@")[0];
+    }
 
-if (topbarPlano) {
-  topbarPlano.innerText = planoUsuario;
-}
+    if (topbarPlano) {
+      topbarPlano.innerText = planoUsuario;
+    }
 
     loginContainer.style.display = "none";
     app.style.display = "flex";
@@ -179,7 +212,6 @@ if (topbarPlano) {
     await carregarDados();
     atualizarDashboard();
     renderizarLista();
-
   }
 
   async function carregarDados() {
@@ -187,14 +219,16 @@ if (topbarPlano) {
     dados = data || [];
 
     setTimeout(() => {
-  if (typeof carregarRadarB3 === "function") {
-    carregarRadarB3();
+      if (typeof carregarRadarB3 === "function") {
+        carregarRadarB3();
+      }
+    }, 400);
   }
-}, 400);
 
-  }
-
-  /* ================= SALVAR / EDITAR ================= */
+  /* ======================================================
+     🧩 BLOCO EXTENSÍVEL (NÃO QUEBRAR)
+     LANÇAMENTOS / SALVAR / EDITAR
+  ====================================================== */
   btnSalvar.onclick = async () => {
     if (!tipo.value || !categoria.value || !valor.value || !dataInput.value)
       return alert("Preencha todos os campos.");
@@ -239,7 +273,10 @@ if (topbarPlano) {
     dataInput.value = "";
   }
 
-  /* ================= DASHBOARD ================= */
+  /* ======================================================
+     🔒 BLOCO PROTEGIDO – NÃO MEXER
+     DASHBOARD / GRÁFICOS
+  ====================================================== */
   function atualizarDashboard() {
     let filtrados = [...dados];
 
@@ -324,7 +361,10 @@ if (topbarPlano) {
     });
   }
 
-  /* ================= LISTA ================= */
+  /* ======================================================
+     🔒 BLOCO PROTEGIDO – NÃO MEXER
+     LISTA / EDITAR / EXCLUIR
+  ====================================================== */
   function renderizarLista() {
     lista.innerHTML = "";
     dados.forEach(l => {
@@ -342,7 +382,6 @@ if (topbarPlano) {
     });
   }
 
-  /* ================= EDITAR / EXCLUIR ================= */
   function editar(id) {
     const l = dados.find(d => d.id === id);
     if (!l) return;
@@ -369,28 +408,23 @@ if (topbarPlano) {
     renderizarLista();
   }
 
-  /* ================= MENU MOBILE ================= */
+  /* ======================================================
+     🔒 BLOCO PROTEGIDO – NÃO MEXER
+     MENU MOBILE / NAVEGAÇÃO
+  ====================================================== */
   if (btnMenu && sidebar && menuOverlay) {
-   btnMenu.onclick = () => {
-  const aberto = sidebar.classList.contains("active");
+    btnMenu.onclick = () => {
+      const aberto = sidebar.classList.contains("active");
 
-  if (aberto) {
-    sidebar.classList.remove("active");
-    menuOverlay.classList.add("hidden");
-  } else {
-    sidebar.classList.add("active");
-    menuOverlay.classList.remove("hidden");
-  }
-};
+      if (aberto) {
+        sidebar.classList.remove("active");
+        menuOverlay.classList.add("hidden");
+      } else {
+        sidebar.classList.add("active");
+        menuOverlay.classList.remove("hidden");
+      }
+    };
 
-menuOverlay.onclick = () => {
-  sidebar.classList.remove("active");
-  menuOverlay.classList.add("hidden");
-};
-
-  }
-
-  if (menuOverlay && sidebar) {
     menuOverlay.onclick = () => {
       sidebar.classList.remove("active");
       menuOverlay.classList.add("hidden");
@@ -421,44 +455,52 @@ menuOverlay.onclick = () => {
     app.style.display = "none";
     loginContainer.style.display = "flex";
   };
+
+  /* ======================================================
+     🔒 BLOCO PROTEGIDO – NÃO MEXER
+     EXPORTAÇÃO PDF
+  ====================================================== */
   const btnExportarPdf = document.getElementById("btnExportarPdf");
 
-if (btnExportarPdf) {
-  btnExportarPdf.onclick = () => {
-    if (!window.jspdf || !window.jspdf.jsPDF) {
-      alert("Biblioteca de PDF não carregada.");
-      return;
-    }
-
-    const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF();
-
-    pdf.setFontSize(14);
-    pdf.text("TCS Finance – Extrato Financeiro", 10, 10);
-
-    let y = 20;
-    dados.forEach(l => {
-      pdf.setFontSize(10);
-      pdf.text(
-        `${l.data} | ${l.tipo} | ${l.categoria} | R$ ${Number(l.valor).toFixed(2)}`,
-        10,
-        y
-      );
-      y += 6;
-
-      if (y > 280) {
-        pdf.addPage();
-        y = 20;
+  if (btnExportarPdf) {
+    btnExportarPdf.onclick = () => {
+      if (!window.jspdf || !window.jspdf.jsPDF) {
+        alert("Biblioteca de PDF não carregada.");
+        return;
       }
-    });
 
-    pdf.save("extrato-financeiro.pdf");
-  };
-}
+      const { jsPDF } = window.jspdf;
+      const pdf = new jsPDF();
 
-if (window.__USER_SESSION__) {
-  iniciarSessao(window.__USER_SESSION__);
-}
+      pdf.setFontSize(14);
+      pdf.text("TCS Finance – Extrato Financeiro", 10, 10);
+
+      let y = 20;
+      dados.forEach(l => {
+        pdf.setFontSize(10);
+        pdf.text(
+          `${l.data} | ${l.tipo} | ${l.categoria} | R$ ${Number(l.valor).toFixed(2)}`,
+          10,
+          y
+        );
+        y += 6;
+
+        if (y > 280) {
+          pdf.addPage();
+          y = 20;
+        }
+      });
+
+      pdf.save("extrato-financeiro.pdf");
+    };
+  }
+
+  /* ======================================================
+     🔒 BLOCO PROTEGIDO – NÃO MEXER
+     AUTO LOGIN FINAL
+  ====================================================== */
+  if (window.__USER_SESSION__) {
+    iniciarSessao(window.__USER_SESSION__);
+  }
 
 });
-
