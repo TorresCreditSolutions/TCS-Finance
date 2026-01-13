@@ -195,6 +195,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   ====================================================== */
 async function iniciarSessao(user) {
 
+  if (!user || !user.id) {
+    console.warn("Sessão inválida. iniciarSessao abortada.");
+    return;
+  }
+
+
   const topbarUser = document.getElementById("topbarUser");
   const topbarPlano = document.getElementById("topbarPlano");
   const planoSpan = document.getElementById("planoUsuario");
@@ -585,10 +591,6 @@ async function iniciarSessao(user) {
   alert("Plano atualizado com sucesso");
   carregarUsuariosAdmin();
  }
-
-  if (window.__USER_SESSION__) {
-    iniciarSessao(window.__USER_SESSION__);
-  }
   
  function aplicarModoAdmin(isAdmin) {
   document.body.classList.toggle("modo-admin", isAdmin);
