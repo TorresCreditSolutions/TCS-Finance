@@ -2,7 +2,7 @@
    🔒 BLOCO PROTEGIDO – NÃO MEXER
    BOOTSTRAP / INICIALIZAÇÃO DO SCRIPT
 ====================================================== */
-console.log("SCRIPT CARREGADO");
+ console.log("SCRIPT CARREGADO");
 
 document.addEventListener("DOMContentLoaded", async () => {
 
@@ -33,9 +33,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   const LIMITE_FREE = 15;
   let planoUsuario = "FREE";
   const planoLabel = document.getElementById("planoUsuario");
-if (planoLabel) {
+ if (planoLabel) {
   planoLabel.innerText = `Plano ${planoUsuario}`;
-}
+ }
 
 
   /* ======================================================
@@ -193,30 +193,37 @@ if (planoLabel) {
      🔒 BLOCO PROTEGIDO – NÃO MEXER
      CORE DA APLICAÇÃO
   ====================================================== */
-async function iniciarSessao(user) {
+ async function iniciarSessao(user) {
 
-   const topbarUser = document.getElementById("topbarUser");
-   const topbarPlano = document.getElementById("topbarPlano");
-   const planoSpan = document.getElementById("planoUsuario");
-  
+  // 🔹 ELEMENTOS DO TOPO
+  const topbarUser = document.getElementById("topbarUser");
+  const topbarPlano = document.getElementById("topbarPlano");
+  const planoSpan = document.getElementById("planoUsuario");
 
-    // 🔹 BUSCA PERFIL NO BANCO
-   const { data: profile, error } = await supabase
+  // 🔹 BUSCA PERFIL NO BANCO
+  const { data: profile, error } = await supabase
     .from("profiles")
     .select("role, plano")
     .eq("id", user.id)
     .single();
 
-   if (error) {
+  if (error) {
     alert("Erro ao carregar perfil");
     return;
-   }
+  }
 
+  // 🔹 ESTADO GLOBAL
   planoUsuario = profile.plano;
   const isAdmin = profile.role === "admin";
   window.__IS_ADMIN__ = isAdmin;
 
-    if (topbarPlano) {
+  // 🔹 UI TOPO
+  if (topbarUser) {
+    topbarUser.innerText =
+      user.user_metadata?.nome || user.email.split("@")[0];
+  }
+
+  if (topbarPlano) {
     topbarPlano.innerText = profile.plano;
   }
 
@@ -224,10 +231,27 @@ async function iniciarSessao(user) {
     planoSpan.innerText = `Plano ${profile.plano}`;
   }
 
-  if (topbarUser) {
-    topbarUser.innerText =
-      user.user_metadata?.nome || user.email.split("@")[0];
-  }
+  // 🔹 APP
+  loginContainer.style.display = "none";
+  app.style.display = "flex";
+  app.classList.remove("hidden");
+
+  dashboard.classList.remove("hidden");
+  lancamentos.classList.add("hidden");
+
+  nomeCliente.innerText =
+    `Olá, ${user.user_metadata?.nome || user.email.split("@")[0]}!`;
+
+  await carregarDados();
+  atualizarDashboard();
+  renderizarLista();
+
+  aplicarModoAdmin(isAdmin);
+ }
+
+
+    // 🔹 BUSCA PERFIL NO BANCO
+   
 
   /* ================= APP ================= */
   loginContainer.style.display = "none";
@@ -245,7 +269,7 @@ async function iniciarSessao(user) {
   renderizarLista();
 
   aplicarModoAdmin(isAdmin);
-}
+ }
 
 
   async function carregarDados() {
@@ -536,9 +560,9 @@ async function iniciarSessao(user) {
   /* ======================================================
    🛡️ BLOCO ADMIN – PAINEL ADMINISTRATIVO
    (ACRÉSCIMO – NÃO REMOVE NADA EXISTENTE)
-====================================================== */
+ ====================================================== */
 
-async function carregarUsuariosAdmin() {
+ async function carregarUsuariosAdmin() {
   if (!window.__IS_ADMIN__) return;
 
   const { data, error } = await supabase
@@ -568,9 +592,9 @@ async function carregarUsuariosAdmin() {
     `;
     tbody.appendChild(tr);
   });
-}
+ }
 
-async function alterarPlano(userId, plano) {
+ async function alterarPlano(userId, plano) {
   const { error } = await supabase
     .from("user_plans")
     .upsert({
@@ -587,23 +611,23 @@ async function alterarPlano(userId, plano) {
 
   alert("Plano atualizado com sucesso");
   carregarUsuariosAdmin();
-}
+ }
 
   if (window.__USER_SESSION__) {
     iniciarSessao(window.__USER_SESSION__);
   }
   
-function aplicarModoAdmin(isAdmin) {
+ function aplicarModoAdmin(isAdmin) {
   document.body.classList.toggle("modo-admin", isAdmin);
   if (isAdmin) {
   carregarUsuariosAdmin();
-}
+ }
 
   const adminOnlyElements = document.querySelectorAll("[data-admin-only]");
   adminOnlyElements.forEach(el => {
     el.style.display = isAdmin ? "block" : "none";
   });
-}
+ }
 
 
-});
+ });
