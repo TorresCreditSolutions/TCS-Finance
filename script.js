@@ -193,14 +193,12 @@ document.addEventListener("DOMContentLoaded", async () => {
      🔒 BLOCO PROTEGIDO – NÃO MEXER
      CORE DA APLICAÇÃO
   ====================================================== */
- async function iniciarSessao(user) {
+async function iniciarSessao(user) {
 
-  // 🔹 ELEMENTOS DO TOPO
   const topbarUser = document.getElementById("topbarUser");
   const topbarPlano = document.getElementById("topbarPlano");
   const planoSpan = document.getElementById("planoUsuario");
 
-  // 🔹 BUSCA PERFIL NO BANCO
   const { data: profile, error } = await supabase
     .from("profiles")
     .select("role, plano")
@@ -212,12 +210,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     return;
   }
 
-  // 🔹 ESTADO GLOBAL
   planoUsuario = profile.plano;
   const isAdmin = profile.role === "admin";
   window.__IS_ADMIN__ = isAdmin;
 
-  // 🔹 UI TOPO
   if (topbarUser) {
     topbarUser.innerText =
       user.user_metadata?.nome || user.email.split("@")[0];
@@ -231,7 +227,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     planoSpan.innerText = `Plano ${profile.plano}`;
   }
 
-  // 🔹 APP
   loginContainer.style.display = "none";
   app.style.display = "flex";
   app.classList.remove("hidden");
@@ -247,29 +242,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   renderizarLista();
 
   aplicarModoAdmin(isAdmin);
- }
-
-
-    // 🔹 BUSCA PERFIL NO BANCO
-   
-
-  /* ================= APP ================= */
-  loginContainer.style.display = "none";
-  app.style.display = "flex";
-  app.classList.remove("hidden");
-
-  dashboard.classList.remove("hidden");
-  lancamentos.classList.add("hidden");
-
-  nomeCliente.innerText =
-    `Olá, ${user.user_metadata?.nome || user.email.split("@")[0]}!`;
-
-  await carregarDados();
-  atualizarDashboard();
-  renderizarLista();
-
-  aplicarModoAdmin(isAdmin);
- }
+}
 
 
   async function carregarDados() {
