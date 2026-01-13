@@ -194,48 +194,39 @@ if (planoLabel) {
      CORE DA APLICAÇÃO
   ====================================================== */
 async function iniciarSessao(user) {
-  const { data: profile, error } = await supabase 
-  .from("profiles")
-  .select("role, plano")
-  .eq("id", user.id)
-  .single();
 
- if (error) {
-  alert("Erro ao carregar perfil");
-  return;
- }
+   const topbarUser = document.getElementById("topbarUser");
+   const topbarPlano = document.getElementById("topbarPlano");
+   const planoSpan = document.getElementById("planoUsuario");
+  
 
- planoUsuario = profile.plano;
- const isAdmin = profile.role === "admin";
+    // 🔹 BUSCA PERFIL NO BANCO
+   const { data: profile, error } = await supabase
+    .from("profiles")
+    .select("role, plano")
+    .eq("id", user.id)
+    .single();
 
- window.__IS_ADMIN__ = isAdmin;
+   if (error) {
+    alert("Erro ao carregar perfil");
+    return;
+   }
 
- if (topbarPlano) {
-  topbarPlano.innerText = profile.plano;
- }
+  planoUsuario = profile.plano;
+  const isAdmin = profile.role === "admin";
+  window.__IS_ADMIN__ = isAdmin;
 
- aplicarModoAdmin(isAdmin);
-
-
-    /* ================= ELEMENTOS ================= */
-  const topbarUser = document.getElementById("topbarUser");
-  const topbarPlano = document.getElementById("topbarPlano");
-  const planoSpan = document.getElementById("planoUsuario");
-
-  /* ================= UI ================= */
-  if (topbarUser) {
-    topbarUser.innerText =
-      user.user_metadata?.nome || user.email.split("@")[0];
-  }
-
-  if (topbarPlano) {
+    if (topbarPlano) {
     topbarPlano.innerText = profile.plano;
-
   }
 
   if (planoSpan) {
     planoSpan.innerText = `Plano ${profile.plano}`;
+  }
 
+  if (topbarUser) {
+    topbarUser.innerText =
+      user.user_metadata?.nome || user.email.split("@")[0];
   }
 
   /* ================= APP ================= */
