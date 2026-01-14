@@ -193,74 +193,8 @@ document.addEventListener("DOMContentLoaded", async () => {
      🔒 BLOCO PROTEGIDO – NÃO MEXER
      CORE DA APLICAÇÃO
   ====================================================== */
-async function iniciarSessao(user) {
 
-  if (!user || !user.id) {
-    console.warn("Sessão inválida. iniciarSessao abortada.");
-    return;
-  }
-
-
-  const topbarUser = document.getElementById("topbarUser");
-  const topbarPlano = document.getElementById("topbarPlano");
-  const planoSpan = document.getElementById("planoUsuario");
-
-  const { data: profile, error } = await supabase
-    .from("profiles")
-    .select("role, plano")
-    .eq("id", user.id)
-    .single();
-
-  if (error) {
-    alert("Erro ao carregar perfil");
-    return;
-  }
-
-  planoUsuario = profile.plano;
-  const isAdmin = profile.role === "admin";
-  window.__IS_ADMIN__ = isAdmin;
-
-  if (topbarUser) {
-    topbarUser.innerText =
-      user.user_metadata?.nome || user.email.split("@")[0];
-  }
-
-  if (topbarPlano) {
-    topbarPlano.innerText = profile.plano;
-  }
-
-  if (planoSpan) {
-    planoSpan.innerText = `Plano ${profile.plano}`;
-  }
-
-  loginContainer.style.display = "none";
-  app.style.display = "flex";
-  app.classList.remove("hidden");
-
-  dashboard.classList.remove("hidden");
-  lancamentos.classList.add("hidden");
-
-  nomeCliente.innerText =
-    `Olá, ${user.user_metadata?.nome || user.email.split("@")[0]}!`;
-
-  await carregarDados();
-  atualizarDashboard();
-  renderizarLista();
-
-  aplicarModoAdmin(isAdmin);
-}
-
-
-  async function carregarDados() {
-    const { data } = await supabase.from("lancamentos").select("*");
-    dados = data || [];
-
-    setTimeout(() => {
-      if (typeof carregarRadarB3 === "function") {
-        carregarRadarB3();
-      }
-    }, 400);
-  }
+  
 
   /* ======================================================
      🧩 BLOCO EXTENSÍVEL (NÃO QUEBRAR)
