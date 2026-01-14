@@ -278,24 +278,25 @@ document.addEventListener("DOMContentLoaded", async () => {
      🔒 BLOCO PROTEGIDO – NÃO MEXER
      DASHBOARD / GRÁFICOS
   ====================================================== */
-  function atualizarDashboard() {
+   function atualizarDashboard() {
+    
     function calcularIndicadores(dadosFiltrados) {
-  let receita = 0;
-  let despesa = 0;
-  let investimento = 0;
+   let receita = 0;
+   let despesa = 0;
+   let investimento = 0;
 
-  dadosFiltrados.forEach(l => {
+   dadosFiltrados.forEach(l => {
     if (l.tipo === "Receita") receita += l.valor;
     if (l.tipo === "Despesa") despesa += l.valor;
     if (l.tipo === "Investimento") investimento += l.valor;
-  });
+   });
 
-  const saldo = receita - despesa;
-  const percentualDespesa = receita > 0
+   const saldo = receita - despesa;
+   const percentualDespesa = receita > 0
     ? Math.round((despesa / receita) * 100)
     : 0;
 
-  return {
+   return {
     receita,
     despesa,
     investimento,
@@ -307,12 +308,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     let filtrados = [...dados];
     renderizarAlertasFinanceiros(filtrados);
 
-
     if (filtroMes.value)
       filtrados = filtrados.filter(l => l.data.startsWith(filtroMes.value));
 
     if (filtroAno && filtroAno.value)
       filtrados = filtrados.filter(l => l.data.startsWith(filtroAno.value));
+    /* 🔔 CHAMADA SEGURA DE ALERTAS (ACRÉSCIMO) */
+executarAlertas(filtrados);
 
     let r = 0, d = 0, i = 0;
     filtrados.forEach(l => {
@@ -320,6 +322,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (l.tipo === "Despesa") d += l.valor;
       if (l.tipo === "Investimento") i += l.valor;
     });
+
 
     totalReceitas.innerText = `R$ ${r.toFixed(2)}`;
     totalDespesas.innerText = `R$ ${d.toFixed(2)}`;
@@ -355,7 +358,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 }
 ;
   }
-function renderizarAlertasFinanceiros(dadosFiltrados) {
+
+ function renderizarAlertasFinanceiros(dadosFiltrados) {
   let container = document.getElementById("alertasInteligentes");
 
   if (!container) {
@@ -454,11 +458,32 @@ function renderizarAlertasFinanceiros(dadosFiltrados) {
       "Parabéns! Sua saúde financeira está equilibrada e sob controle neste período.",
       "sucesso"
     );
+   }
+   }
+/* ======================================================
+   🧠 ORQUESTRADOR DE ALERTAS (ACRÉSCIMO SEGURO)
+   NÃO REMOVE NENHUMA FUNÇÃO EXISTENTE
+====================================================== */
+function executarAlertas(dadosFiltrados) {
+  try {
+    if (typeof renderizarAlertasFinanceiros === "function") {
+      renderizarAlertasFinanceiros(dadosFiltrados);
+    }
+  } catch (e) {
+    console.warn("Erro em renderizarAlertasFinanceiros:", e);
+  }
+
+  try {
+    if (typeof renderizarAlertasInteligentes === "function") {
+      renderizarAlertasInteligentes(dadosFiltrados);
+    }
+  } catch (e) {
+    console.warn("Erro em renderizarAlertasInteligentes:", e);
   }
 }
 
 
-  function renderizarGrafico(r, d, i) {
+   function renderizarGrafico(r, d, i) {
     if (grafico) grafico.destroy();
 
     let labels = [];
@@ -487,9 +512,9 @@ function renderizarAlertasFinanceiros(dadosFiltrados) {
         plugins: { legend: { position: "bottom" } }
       }
     });
-  }
+    }
 
-  function renderizarGraficoMensal() {
+   function renderizarGraficoMensal() {
     if (graficoMensal) graficoMensal.destroy();
 
     const resumo = {};
@@ -498,9 +523,9 @@ function renderizarAlertasFinanceiros(dadosFiltrados) {
       resumo[m] = resumo[m] || { r: 0, d: 0 };
       if (l.tipo === "Receita") resumo[m].r += l.valor;
       if (l.tipo === "Despesa") resumo[m].d += l.valor;
-    });
+     });
 
-    graficoMensal = new Chart(document.getElementById("graficoMensal"), {
+     graficoMensal = new Chart(document.getElementById("graficoMensal"), {
       type: "bar",
       data: {
         labels: Object.keys(resumo),
@@ -515,20 +540,20 @@ function renderizarAlertasFinanceiros(dadosFiltrados) {
         plugins: { legend: { position: "bottom" } }
       }
     });
-  }
- function renderizarGraficoComparativo() {
-  const canvas = document.getElementById("graficoComparativo");
-  if (!canvas) return;
+   }
+   function renderizarGraficoComparativo() {
+    const canvas = document.getElementById("graficoComparativo");
+   if (!canvas) return;
 
-  // 🔥 GARANTIA ABSOLUTA: destrói antes de criar
-  if (graficoComparativo) {
+   // 🔥 GARANTIA ABSOLUTA: destrói antes de criar
+   if (graficoComparativo) {
     graficoComparativo.destroy();
     graficoComparativo = null;
-  }
+   }
 
-  const dadosPorMes = {};
+   const dadosPorMes = {};
 
-  dados.forEach(l => {
+   dados.forEach(l => {
     if (!l.data) return;
 
     const mes = l.data.slice(0, 7);
@@ -539,16 +564,16 @@ function renderizarAlertasFinanceiros(dadosFiltrados) {
 
     if (l.tipo === "Receita") dadosPorMes[mes].receita += Number(l.valor);
     if (l.tipo === "Despesa") dadosPorMes[mes].despesa += Number(l.valor);
-  });
+   });
 
-  const labels = Object.keys(dadosPorMes).sort();
+   const labels = Object.keys(dadosPorMes).sort();
 
-  if (labels.length === 0) return;
+   if (labels.length === 0) return;
 
-  const receitas = labels.map(m => dadosPorMes[m].receita);
-  const despesas = labels.map(m => dadosPorMes[m].despesa);
+   const receitas = labels.map(m => dadosPorMes[m].receita);
+   const despesas = labels.map(m => dadosPorMes[m].despesa);
 
-  graficoComparativo = new Chart(canvas, {
+   graficoComparativo = new Chart(canvas, {
     type: "line",
     data: {
       labels,
@@ -580,6 +605,81 @@ function renderizarAlertasFinanceiros(dadosFiltrados) {
   });
 }
 
+ function renderizarAlertasInteligentes(dadosFiltrados) {
+  const container = document.getElementById("alertasInteligentes");
+  if (!container) return;
+
+  container.innerHTML = "";
+
+  let receita = 0;
+  let despesa = 0;
+  let investimento = 0;
+
+  dadosFiltrados.forEach(l => {
+    if (l.tipo === "Receita") receita += l.valor;
+    if (l.tipo === "Despesa") despesa += l.valor;
+    if (l.tipo === "Investimento") investimento += l.valor;
+  });
+
+  const saldo = receita - despesa;
+  const percentualDespesa = receita > 0 ? (despesa / receita) * 100 : 0;
+
+  // 🔴 SALDO NEGATIVO
+  if (saldo < 0) {
+    container.innerHTML += `
+      <div class="alerta vermelho">
+        🔴 Seu saldo está negativo. Atenção imediata ao controle de despesas.
+      </div>
+    `;
+  }
+
+  // ⚠️ DESPESA MAIOR QUE RECEITA
+  if (despesa > receita) {
+    container.innerHTML += `
+      <div class="alerta amarelo">
+        ⚠️ Suas despesas estão maiores que suas receitas neste período.
+      </div>
+    `;
+  }
+
+  // 🟡 GASTO ACIMA DO IDEAL
+  if (percentualDespesa > 70 && percentualDespesa <= 90) {
+    container.innerHTML += `
+      <div class="alerta amarelo">
+        🟡 Você está gastando ${percentualDespesa.toFixed(0)}% da sua renda.
+        O ideal é manter abaixo de 70%.
+      </div>
+    `;
+  }
+
+  // 🔴 GASTO CRÍTICO
+  if (percentualDespesa > 90) {
+    container.innerHTML += `
+      <div class="alerta vermelho">
+        🔥 Alerta crítico: mais de ${percentualDespesa.toFixed(0)}% da sua renda está comprometida.
+      </div>
+    `;
+  }
+
+  // 💡 SEM INVESTIMENTOS
+  if (investimento === 0 && receita > 0) {
+    container.innerHTML += `
+      <div class="alerta azul">
+        💡 Nenhum investimento identificado neste período.
+        Considere investir parte da sua renda.
+      </div>
+    `;
+  }
+
+  // ✅ SITUAÇÃO SAUDÁVEL
+  if (container.innerHTML === "") {
+    container.innerHTML = `
+      <div class="alerta verde">
+        ✅ Sua saúde financeira está equilibrada neste período.
+      </div>
+    `;
+  }
+}
 
   /* ======================================================
      🔒 BLOCO PROTEGIDO – NÃO MEXER
