@@ -17,20 +17,16 @@
 
   <!-- PDF -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-  <!-- 🔒 FIM BLOCO PROTEGIDO -->
 </head>
 <body>
 
 <!-- ======================================================
-     🔒 BLOCO PROTEGIDO – NÃO MEXER
-     OVERLAY MENU MOBILE
+     🔒 OVERLAY MENU MOBILE
 ====================================================== -->
 <div id="menuOverlay" class="menu-overlay hidden"></div>
-<!-- 🔒 FIM BLOCO PROTEGIDO -->
 
 <!-- ======================================================
-     🔒 BLOCO PROTEGIDO – NÃO MEXER
-     LOGIN / AUTENTICAÇÃO
+     🔒 LOGIN
 ====================================================== -->
 <div id="login-container">
   <h2>TCS Finance</h2>
@@ -56,17 +52,14 @@
     © Torres Credit Solutions • Dados criptografados
   </div>
 </div>
-<!-- 🔒 FIM BLOCO PROTEGIDO -->
 
 <!-- ======================================================
-     🔒 BLOCO PROTEGIDO – NÃO MEXER
-     APP ROOT (CONTAINER PRINCIPAL)
+     🔒 APP ROOT
 ====================================================== -->
 <div id="app" class="hidden">
 
   <!-- ======================================================
-       🔒 BLOCO PROTEGIDO – NÃO MEXER
-       SIDEBAR / NAVEGAÇÃO
+       🔒 SIDEBAR
   ====================================================== -->
   <aside class="sidebar">
     <span class="logo">TCS Finance</span>
@@ -76,11 +69,9 @@
       <button type="button" id="btnLogout">Sair</button>
     </nav>
   </aside>
-  <!-- 🔒 FIM BLOCO PROTEGIDO -->
 
   <!-- ======================================================
-       🔒 BLOCO PROTEGIDO – NÃO MEXER
-       TOPBAR / USUÁRIO / LOGOUT
+       🔒 TOPBAR
   ====================================================== -->
   <header class="topbar">
     <div class="topbar-left">
@@ -97,17 +88,14 @@
       <button type="button" id="btnLogoutTop" class="btn-logout-top">Sair</button>
     </div>
   </header>
-  <!-- 🔒 FIM BLOCO PROTEGIDO -->
 
   <!-- ======================================================
-       🔒 BLOCO PROTEGIDO – NÃO MEXER
-       CONTEÚDO PRINCIPAL
+       🔒 CONTEÚDO PRINCIPAL
   ====================================================== -->
   <main class="content">
 
     <!-- ======================================================
-         🔒 BLOCO PROTEGIDO – NÃO MEXER
-         DASHBOARD (CARDS, FILTROS, GRÁFICOS)
+         🔒 DASHBOARD
     ====================================================== -->
     <section id="dashboard">
       <h1>Dashboard Financeiro</h1>
@@ -141,43 +129,44 @@
         </div>
 
         <div class="grafico-box">
-          <h4>Comparativo Mensal</h4>
+          <h4>Resumo Mensal</h4>
           <canvas id="graficoMensal"></canvas>
         </div>
       </div>
 
-      <section id="adminPanel" class="hidden" data-admin-only>
-  <h2>Painel Administrativo</h2>
-
-  <table>
-    <thead>
-      <tr>
-        <th>Email</th>
-        <th>Plano</th>
-        <th>Ação</th>
-      </tr>
-    </thead>
-    <tbody id="listaUsuariosAdmin"></tbody>
-  </table>
-</section>
-<div data-admin-only style="display:none; margin-top: 30px;">
-  <h2>Painel Administrativo</h2>
-  <p>Gerenciamento de usuários e planos</p>
-
-  <button type="button">
-    Gerenciar Usuários
-  </button>
+      <!-- 🔹 NOVO GRÁFICO (JÁ SUPORTADO PELO JS) -->
+      <div class="grafico-box">
+    <h4>Evolução Receita x Despesa</h4>
+  <canvas id="graficoComparativo"></canvas>
 </div>
 
+      <!-- ADMIN (mantido intacto) -->
+      <section id="adminPanel" class="hidden" data-admin-only>
+        <h2>Painel Administrativo</h2>
+        <table>
+          <thead>
+            <tr>
+              <th>Email</th>
+              <th>Plano</th>
+              <th>Ação</th>
+            </tr>
+          </thead>
+          <tbody id="listaUsuariosAdmin"></tbody>
+        </table>
+      </section>
+
+      <div data-admin-only style="display:none; margin-top: 30px;">
+        <h2>Painel Administrativo</h2>
+        <p>Gerenciamento de usuários e planos</p>
+        <button type="button">Gerenciar Usuários</button>
+      </div>
+
     </section>
-    <!-- 🔒 FIM BLOCO PROTEGIDO -->
 
     <!-- ======================================================
-         🧩 BLOCO EXTENSÍVEL (NÃO QUEBRAR)
-         LANÇAMENTOS / FORMULÁRIO / EXTRATO
+         🧩 LANÇAMENTOS
     ====================================================== -->
     <section id="lancamentos" class="hidden">
-
       <h2>Novo Lançamento</h2>
 
       <select id="tipo">
@@ -199,23 +188,18 @@
 
       <button id="btnExportarPdf">Exportar PDF</button>
     </section>
-    <!-- 🧩 FIM BLOCO EXTENSÍVEL -->
 
     <footer class="creditos-app">
       © TCS Finance • Dados criptografados • Uso profissional
     </footer>
 
   </main>
-  <!-- 🔒 FIM BLOCO PROTEGIDO -->
 </div>
-<!-- 🔒 FIM APP ROOT -->
 
 <!-- ======================================================
-     🔒 BLOCO PROTEGIDO – NÃO MEXER
-     SCRIPTS FINAIS
+     🔒 SCRIPT FINAL
 ====================================================== -->
 <script src="script.js"></script>
-<!-- 🔒 FIM BLOCO PROTEGIDO -->
 
 </body>
 </html>

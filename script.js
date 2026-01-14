@@ -2,7 +2,7 @@
    🔒 BLOCO PROTEGIDO – NÃO MEXER
    BOOTSTRAP / INICIALIZAÇÃO DO SCRIPT
 ====================================================== */
- console.log("SCRIPT CARREGADO");
+console.log("SCRIPT CARREGADO");
 
 document.addEventListener("DOMContentLoaded", async () => {
 
@@ -28,15 +28,11 @@ document.addEventListener("DOMContentLoaded", async () => {
   let dados = [];
   let grafico = null;
   let graficoMensal = null;
+  let graficoComparativo = null;
   let idEmEdicao = null;
 
-  const LIMITE_FREE = 15;
+  const LIMITE_FREE = 30;
   let planoUsuario = "FREE";
-  const planoLabel = document.getElementById("planoUsuario");
- if (planoLabel) {
-  planoLabel.innerText = `Plano ${planoUsuario}`;
- }
-
 
   /* ======================================================
      🔒 BLOCO PROTEGIDO – NÃO MEXER
@@ -193,8 +189,42 @@ document.addEventListener("DOMContentLoaded", async () => {
      🔒 BLOCO PROTEGIDO – NÃO MEXER
      CORE DA APLICAÇÃO
   ====================================================== */
+  async function iniciarSessao(user) {
+    const topbarUser = document.getElementById("topbarUser");
+    const topbarPlano = document.getElementById("topbarPlano");
 
-  
+    if (topbarUser) {
+      topbarUser.innerText = user.user_metadata?.nome || user.email.split("@")[0];
+    }
+
+    if (topbarPlano) {
+      topbarPlano.innerText = planoUsuario;
+    }
+
+    loginContainer.style.display = "none";
+    app.style.display = "flex";
+    app.classList.remove("hidden");
+
+    dashboard.classList.remove("hidden");
+    lancamentos.classList.add("hidden");
+
+    nomeCliente.innerText = `Olá, ${user.user_metadata?.nome || user.email.split("@")[0]}!`;
+
+    await carregarDados();
+    atualizarDashboard();
+    renderizarLista();
+  }
+
+  async function carregarDados() {
+    const { data } = await supabase.from("lancamentos").select("*");
+    dados = data || [];
+
+    setTimeout(() => {
+      if (typeof carregarRadarB3 === "function") {
+        carregarRadarB3();
+      }
+    }, 400);
+  }
 
   /* ======================================================
      🧩 BLOCO EXTENSÍVEL (NÃO QUEBRAR)
@@ -249,7 +279,34 @@ document.addEventListener("DOMContentLoaded", async () => {
      DASHBOARD / GRÁFICOS
   ====================================================== */
   function atualizarDashboard() {
+    function calcularIndicadores(dadosFiltrados) {
+  let receita = 0;
+  let despesa = 0;
+  let investimento = 0;
+
+  dadosFiltrados.forEach(l => {
+    if (l.tipo === "Receita") receita += l.valor;
+    if (l.tipo === "Despesa") despesa += l.valor;
+    if (l.tipo === "Investimento") investimento += l.valor;
+  });
+
+  const saldo = receita - despesa;
+  const percentualDespesa = receita > 0
+    ? Math.round((despesa / receita) * 100)
+    : 0;
+
+  return {
+    receita,
+    despesa,
+    investimento,
+    saldo,
+    percentualDespesa
+  };
+}
+
     let filtrados = [...dados];
+    renderizarAlertasFinanceiros(filtrados);
+
 
     if (filtroMes.value)
       filtrados = filtrados.filter(l => l.data.startsWith(filtroMes.value));
@@ -270,8 +327,136 @@ document.addEventListener("DOMContentLoaded", async () => {
     saldo.innerText = `R$ ${(r - d).toFixed(2)}`;
 
     renderizarGrafico(r, d, i);
-    renderizarGraficoMensal();
+    renderizarGraficoMensal()
+    renderizarGraficoComparativo();
+    
+    function agruparPorMes(dados) {
+  const mapa = {};
+
+  dados.forEach(l => {
+    const mes = l.data.slice(0, 7); // YYYY-MM
+
+    if (!mapa[mes]) {
+      mapa[mes] = { receita: 0, despesa: 0 };
+    }
+
+    if (l.tipo === "Receita") mapa[mes].receita += l.valor;
+    if (l.tipo === "Despesa") mapa[mes].despesa += l.valor;
+  });
+
+  return Object.keys(mapa)
+    .sort()
+    .map(mes => ({
+      mes,
+      receita: mapa[mes].receita,
+      despesa: mapa[mes].despesa,
+      saldo: mapa[mes].receita - mapa[mes].despesa
+    }));
+}
+;
   }
+function renderizarAlertasFinanceiros(dadosFiltrados) {
+  let container = document.getElementById("alertasInteligentes");
+
+  if (!container) {
+    container = document.createElement("div");
+    container.id = "alertasInteligentes";
+    container.style.marginTop = "20px";
+    container.style.display = "flex";
+    container.style.flexDirection = "column";
+    container.style.gap = "10px";
+
+    // 👉 INSERE LOGO APÓS OS CARDS
+    const cards = document.querySelector(".cards");
+    if (cards && cards.parentNode) {
+      cards.parentNode.insertBefore(container, cards.nextSibling);
+    }
+  }
+
+  container.innerHTML = "";
+
+  let receita = 0;
+  let despesa = 0;
+  let investimento = 0;
+
+  dadosFiltrados.forEach(l => {
+    if (l.tipo === "Receita") receita += l.valor;
+    if (l.tipo === "Despesa") despesa += l.valor;
+    if (l.tipo === "Investimento") investimento += l.valor;
+  });
+
+  const saldo = receita - despesa;
+
+  function alerta(texto, tipo) {
+    const div = document.createElement("div");
+    div.innerText = texto;
+    div.style.padding = "12px 16px";
+    div.style.borderRadius = "12px";
+    div.style.fontSize = "14px";
+    div.style.fontWeight = "500";
+
+    if (tipo === "erro") {
+      div.style.background = "#fee2e2";
+      div.style.color = "#991b1b";
+      div.style.borderLeft = "6px solid #dc2626";
+    }
+
+    if (tipo === "alerta") {
+      div.style.background = "#fef3c7";
+      div.style.color = "#92400e";
+      div.style.borderLeft = "6px solid #f59e0b";
+    }
+
+    if (tipo === "sucesso") {
+      div.style.background = "#dcfce7";
+      div.style.color = "#166534";
+      div.style.borderLeft = "6px solid #16a34a";
+    }
+
+    container.appendChild(div);
+  }
+
+  /* 🔴 Despesa maior que receita */
+  if (despesa > receita) {
+    alerta(
+      "Suas despesas estão maiores que suas receitas neste período. Atenção ao risco de endividamento.",
+      "erro"
+    );
+  }
+
+  /* ⚠️ Despesa acima de 70% */
+  if (receita > 0 && despesa / receita >= 0.7 && despesa <= receita) {
+    alerta(
+      "Suas despesas já consomem mais de 70% da receita. Avalie ajustes antes que o saldo fique negativo.",
+      "alerta"
+    );
+  }
+
+  /* 🟡 Saldo negativo */
+  if (saldo < 0) {
+    alerta(
+      "Seu saldo está negativo. O ideal é reduzir despesas ou aumentar receitas imediatamente.",
+      "erro"
+    );
+  }
+
+  /* 📉 Nenhuma receita */
+  if (receita === 0 && despesa > 0) {
+    alerta(
+      "Não há receitas registradas neste período, mas existem despesas. Isso compromete totalmente o caixa.",
+      "erro"
+    );
+  }
+
+  /* 🟢 Situação saudável */
+  if (saldo > 0 && receita > 0 && despesa / receita < 0.6) {
+    alerta(
+      "Parabéns! Sua saúde financeira está equilibrada e sob controle neste período.",
+      "sucesso"
+    );
+  }
+}
+
 
   function renderizarGrafico(r, d, i) {
     if (grafico) grafico.destroy();
@@ -331,6 +516,70 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
     });
   }
+ function renderizarGraficoComparativo() {
+  const canvas = document.getElementById("graficoComparativo");
+  if (!canvas) return;
+
+  // 🔥 GARANTIA ABSOLUTA: destrói antes de criar
+  if (graficoComparativo) {
+    graficoComparativo.destroy();
+    graficoComparativo = null;
+  }
+
+  const dadosPorMes = {};
+
+  dados.forEach(l => {
+    if (!l.data) return;
+
+    const mes = l.data.slice(0, 7);
+
+    if (!dadosPorMes[mes]) {
+      dadosPorMes[mes] = { receita: 0, despesa: 0 };
+    }
+
+    if (l.tipo === "Receita") dadosPorMes[mes].receita += Number(l.valor);
+    if (l.tipo === "Despesa") dadosPorMes[mes].despesa += Number(l.valor);
+  });
+
+  const labels = Object.keys(dadosPorMes).sort();
+
+  if (labels.length === 0) return;
+
+  const receitas = labels.map(m => dadosPorMes[m].receita);
+  const despesas = labels.map(m => dadosPorMes[m].despesa);
+
+  graficoComparativo = new Chart(canvas, {
+    type: "line",
+    data: {
+      labels,
+      datasets: [
+        {
+          label: "Receitas",
+          data: receitas,
+          borderWidth: 3,
+          tension: 0.3
+        },
+        {
+          label: "Despesas",
+          data: despesas,
+          borderWidth: 3,
+          tension: 0.3
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { position: "bottom" }
+      },
+      scales: {
+        y: { beginAtZero: true }
+      }
+    }
+  });
+}
+
 
   /* ======================================================
      🔒 BLOCO PROTEGIDO – NÃO MEXER
@@ -470,73 +719,8 @@ document.addEventListener("DOMContentLoaded", async () => {
      🔒 BLOCO PROTEGIDO – NÃO MEXER
      AUTO LOGIN FINAL
   ====================================================== */
-  /* ======================================================
-   🛡️ BLOCO ADMIN – PAINEL ADMINISTRATIVO
-   (ACRÉSCIMO – NÃO REMOVE NADA EXISTENTE)
- ====================================================== */
-
- async function carregarUsuariosAdmin() {
-  if (!window.__IS_ADMIN__) return;
-
-  const { data, error } = await supabase
-    .from("user_plans")
-    .select("user_id, plano");
-
-  if (error) {
-    console.error(error);
-    alert("Erro ao carregar usuários");
-    return;
+  if (window.__USER_SESSION__) {
+    iniciarSessao(window.__USER_SESSION__);
   }
 
-  const tbody = document.getElementById("listaUsuariosAdmin");
-  if (!tbody) return;
-
-  tbody.innerHTML = "";
-
-  data.forEach(u => {
-    const tr = document.createElement("tr");
-    tr.innerHTML = `
-      <td>${u.user_id}</td>
-      <td>${u.plano}</td>
-      <td>
-        <button onclick="alterarPlano('${u.user_id}', 'PRO')">PRO</button>
-        <button onclick="alterarPlano('${u.user_id}', 'FREE')">FREE</button>
-      </td>
-    `;
-    tbody.appendChild(tr);
-  });
- }
-
- async function alterarPlano(userId, plano) {
-  const { error } = await supabase
-    .from("user_plans")
-    .upsert({
-      user_id: userId,
-      plano: plano,
-      updated_at: new Date()
-    });
-
-  if (error) {
-    console.error(error);
-    alert("Erro ao alterar plano");
-    return;
-  }
-
-  alert("Plano atualizado com sucesso");
-  carregarUsuariosAdmin();
- }
-  
- function aplicarModoAdmin(isAdmin) {
-  document.body.classList.toggle("modo-admin", isAdmin);
-  if (isAdmin) {
-  carregarUsuariosAdmin();
- }
-
-  const adminOnlyElements = document.querySelectorAll("[data-admin-only]");
-  adminOnlyElements.forEach(el => {
-    el.style.display = isAdmin ? "block" : "none";
-  });
- }
-
-
- });
+});

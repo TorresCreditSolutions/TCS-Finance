@@ -448,3 +448,42 @@ body.modo-admin .plano-badge {
   background: linear-gradient(135deg, #7c3aed, #4f46e5);
   font-weight: 700;
 }
+.saldo .positivo {
+  color: #00c853;
+}
+
+.saldo .negativo {
+  color: #d50000;
+}
+/* ======================================================
+   🧩 PATCH VISUAL – GRÁFICO COMPARATIVO
+   (ACRÉSCIMO – NÃO REMOVE NADA EXISTENTE)
+====================================================== */
+
+#graficoComparativo {
+  width: 100%;
+  max-width: 100%;
+}
+
+/* container visual compatível com os outros gráficos */
+.grafico-box-comparativo {
+  background: #ffffff;
+  border-radius: 14px;
+  padding: 16px;
+  margin-top: 24px;
+  box-shadow: 0 6px 18px rgba(0,0,0,0.06);
+}
+
+/* título opcional caso use */
+.grafico-box-comparativo h4 {
+  margin-bottom: 12px;
+  font-size: 0.95rem;
+  color: #334155;
+}
+
+/* mobile */
+@media (max-width: 768px) {
+  .grafico-box-comparativo {
+    margin-top: 16px;
+  }
+}
