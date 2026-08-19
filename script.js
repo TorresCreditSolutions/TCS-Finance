@@ -1426,120 +1426,128 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   }
 
-  /* ======================================================
-     GRÁFICO COMPARATIVO
-  ====================================================== */
+ /* ======================================================
+   GRÁFICO COMPARATIVO
+====================================================== */
 
-  function renderizarGraficoComparativo(
-    dadosFiltrados
-  ) {
+function renderizarGraficoComparativo(dadosFiltrados) {
 
-    const canvas =
-      document.getElementById(
-        "graficoComparativo"
-      );
+  const canvas = document.getElementById("graficoComparativo");
 
-    if (!canvas) return;
+  if (!canvas) return;
 
-    if (graficoComparativo) {
+  /* Destrói o gráfico anterior antes de criar outro */
+  if (graficoComparativo) {
+    graficoComparativo.destroy();
+    graficoComparativo = null;
+  }
 
-      graficoComparativo.destroy();
+  const dadosPorMes = {};
 
-      graficoComparativo = null;
+  dadosFiltrados.forEach(l => {
 
+    if (!l.data) return;
+
+    const mes = l.data.slice(0, 7);
+
+    if (!dadosPorMes[mes]) {
+      dadosPorMes[mes] = {
+        receita: 0,
+        despesa: 0
+      };
     }
 
-    const dadosPorMes = {};
+    const valorLancamento = Number(l.valor) || 0;
 
-    dadosFiltrados.forEach(l => {
-
-      if (!l.data) return;
-
-      const mes =
-        l.data.slice(0, 7);
-
-      if (!dadosPorMes[mes]) {
-
-        dadosPorMes[mes] = {
-
-          receita: 0,
-
-          despesa: 0
-
-        };
-
-      }
-
-      const valorLancamento =
-        Number(l.valor) || 0;
-
-      if (
-        l.tipo === "Receita"
-      ) {
-
-        dadosPorMes[mes].receita +=
-          valorLancamento;
-
-      }
-
-      if (
-        l.tipo === "Despesa"
-      ) {
-
-        dadosPorMes[mes].despesa +=
-          valorLancamento;
-
-      }
-
-    });
-
-    const labels =
-      Object.keys(
-        dadosPorMes
-      ).sort();
-
-    if (labels.length === 0) {
-
-      return;
-
+    if (l.tipo === "Receita") {
+      dadosPorMes[mes].receita += valorLancamento;
     }
 
-    const receitas =
-      labels.map(
-        mes =>
-          dadosPorMes[mes].receita
-      );
+    if (l.tipo === "Despesa") {
+      dadosPorMes[mes].despesa += valorLancamento;
+    }
 
-    const despesas =
-      labels.map(
-        mes =>
-          dadosPorMes[mes].despesa
-      );
+  });
 
-    graficoComparativo = new Chart(ctx, {
+  const labels = Object.keys(dadosPorMes).sort();
+
+  /* Se não houver dados, não cria gráfico */
+  if (labels.length === 0) {
+    return;
+  }
+
+  const receitas = labels.map(
+    mes => dadosPorMes[mes].receita
+  );
+
+  const despesas = labels.map(
+    mes => dadosPorMes[mes].despesa
+  );
+
+  /* Contexto correto do canvas */
+  const ctx = canvas.getContext("2d");
+
+  if (!ctx) return;
+
+  graficoComparativo = new Chart(ctx, {
+
     type: "line",
+
     data: {
-        labels: labels,
-        datasets: [
-            {
-                label: "Receitas",
-                data: receitas,
-                borderWidth: 2,
-                tension: 0.3
-            },
-            {
-                label: "Despesas",
-                data: despesas,
-                borderWidth: 2,
-                tension: 0.3
-            }
-        ]
+
+      labels: labels,
+
+      datasets: [
+
+        {
+          label: "Receitas",
+          data: receitas,
+          borderWidth: 3,
+          tension: 0.3,
+          fill: false
+        },
+
+        {
+          label: "Despesas",
+          data: despesas,
+          borderWidth: 3,
+          tension: 0.3,
+          fill: false
+        }
+
+      ]
+
     },
+
     options: {
-        responsive: true,
-        maintainAspectRatio: false
+
+      responsive: true,
+
+      maintainAspectRatio: false,
+
+      animation: false,
+
+      plugins: {
+
+        legend: {
+          position: "bottom"
+        }
+
+      },
+
+      scales: {
+
+        y: {
+          beginAtZero: true
+        }
+
+      }
+
     }
-});
+
+  });
+
+}
 
   /* ======================================================
      MUDANÇA DO TIPO DE GRÁFICO
