@@ -1,0 +1,440 @@
+
+/* =========================================================
+   TCS FINANCE — DASHBOARD PRO
+   Camada visual sobre o style.css existente.
+   Não altera a lógica do sistema.
+========================================================= */
+
+:root{
+  --tcs-bg:#f5f7fb;
+  --tcs-surface:#ffffff;
+  --tcs-text:#101828;
+  --tcs-muted:#667085;
+  --tcs-line:#e6eaf0;
+  --tcs-blue:#1677ff;
+  --tcs-blue-soft:#eef5ff;
+  --tcs-green:#12a66a;
+  --tcs-green-soft:#eafaf3;
+  --tcs-red:#e5484d;
+  --tcs-red-soft:#fff0f1;
+  --tcs-purple:#6956d8;
+  --tcs-purple-soft:#f3f0ff;
+  --tcs-shadow:0 10px 30px rgba(16,24,40,.07);
+  --tcs-radius:18px;
+}
+
+body{
+  background:var(--tcs-bg) !important;
+  color:var(--tcs-text);
+}
+
+.content{
+  max-width:1500px;
+  margin:0 auto;
+  padding:30px 34px 45px !important;
+}
+
+.dashboard-heading{
+  display:flex;
+  align-items:flex-end;
+  justify-content:space-between;
+  gap:20px;
+  margin-bottom:22px;
+}
+
+.dashboard-heading h1{
+  margin:4px 0 6px !important;
+  font-size:30px !important;
+  font-weight:800 !important;
+  letter-spacing:-.7px;
+  color:var(--tcs-text) !important;
+}
+
+.dashboard-heading p{
+  margin:0;
+  color:var(--tcs-muted);
+  font-size:14px;
+}
+
+.eyebrow{
+  display:block;
+  color:var(--tcs-blue);
+  font-size:10px;
+  font-weight:800;
+  letter-spacing:1.5px;
+}
+
+.dashboard-date{
+  background:var(--tcs-surface);
+  border:1px solid var(--tcs-line);
+  color:var(--tcs-muted);
+  border-radius:12px;
+  padding:10px 14px;
+  font-size:12px;
+  font-weight:700;
+  white-space:nowrap;
+}
+
+.avisos-sistema{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  flex-wrap:wrap;
+  margin-bottom:18px;
+  color:var(--tcs-muted);
+  font-size:13px;
+}
+
+.avisos-sistema .badge{
+  background:var(--tcs-blue-soft);
+  color:var(--tcs-blue);
+  border:1px solid #d8e7ff;
+  border-radius:999px;
+  padding:6px 10px;
+  font-weight:700;
+}
+
+.filtros{
+  display:flex !important;
+  align-items:flex-end;
+  justify-content:flex-start;
+  gap:12px;
+  padding:15px 16px !important;
+  margin-bottom:20px;
+  background:var(--tcs-surface) !important;
+  border:1px solid var(--tcs-line);
+  border-radius:16px !important;
+  box-shadow:0 4px 16px rgba(16,24,40,.035);
+}
+
+.filtros label{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  color:var(--tcs-muted);
+  font-size:11px;
+  font-weight:700;
+}
+
+.filtros input{
+  min-width:170px;
+  height:42px;
+  border:1px solid var(--tcs-line) !important;
+  background:#fbfcfe !important;
+  border-radius:11px !important;
+  padding:0 12px !important;
+  color:var(--tcs-text);
+  outline:none;
+}
+
+.filtros input:focus{
+  border-color:var(--tcs-blue) !important;
+  box-shadow:0 0 0 3px rgba(22,119,255,.10);
+}
+
+#btnLimparFiltro{
+  height:42px;
+  padding:0 16px !important;
+  border:1px solid var(--tcs-line) !important;
+  border-radius:11px !important;
+  background:#fff !important;
+  color:var(--tcs-text) !important;
+  font-weight:700;
+}
+
+#btnLimparFiltro:hover{
+  background:var(--tcs-blue-soft) !important;
+  border-color:#cfe0ff !important;
+  color:var(--tcs-blue) !important;
+}
+
+.cards{
+  display:grid !important;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:16px !important;
+  margin-bottom:22px;
+}
+
+.cards .card{
+  position:relative;
+  min-height:142px;
+  padding:20px !important;
+  border:1px solid var(--tcs-line);
+  border-radius:var(--tcs-radius) !important;
+  background:var(--tcs-surface) !important;
+  box-shadow:var(--tcs-shadow) !important;
+  overflow:hidden;
+}
+
+.cards .card::after{
+  content:"";
+  position:absolute;
+  right:-25px;
+  bottom:-35px;
+  width:100px;
+  height:100px;
+  border-radius:50%;
+  opacity:.08;
+}
+
+.cards .card.receita::after{background:var(--tcs-green);}
+.cards .card.despesa::after{background:var(--tcs-red);}
+.cards .card.investimento::after{background:var(--tcs-purple);}
+.cards .card.saldo::after{background:var(--tcs-blue);}
+
+.card-label{
+  color:var(--tcs-muted) !important;
+  font-size:12px !important;
+  font-weight:700 !important;
+  margin-bottom:9px;
+}
+
+.cards .card strong{
+  display:block;
+  font-size:25px !important;
+  line-height:1.15;
+  font-weight:800 !important;
+  letter-spacing:-.6px;
+}
+
+.cards .card small{
+  display:block;
+  margin-top:9px;
+  color:var(--tcs-muted);
+  font-size:11px;
+}
+
+.cards .receita strong{color:var(--tcs-green) !important;}
+.cards .despesa strong{color:var(--tcs-red) !important;}
+.cards .investimento strong{color:var(--tcs-purple) !important;}
+.cards .saldo strong{color:var(--tcs-blue) !important;}
+
+.alertas{
+  grid-column:1/-1;
+  display:flex;
+  flex-direction:column;
+  gap:8px;
+  margin-top:0 !important;
+}
+
+.alerta{
+  border-radius:13px !important;
+  border:1px solid transparent;
+  padding:12px 15px !important;
+  font-size:12px !important;
+  font-weight:650 !important;
+}
+
+.alerta.verde{
+  background:var(--tcs-green-soft) !important;
+  color:#087443 !important;
+  border-color:#c8f0dc;
+}
+
+.alerta.vermelho{
+  background:var(--tcs-red-soft) !important;
+  color:#b4232a !important;
+  border-color:#ffd0d3;
+}
+
+.alerta.amarelo{
+  background:#fff8e7 !important;
+  color:#9a6700 !important;
+  border-color:#f7df9f;
+}
+
+.alerta.azul{
+  background:var(--tcs-blue-soft) !important;
+  color:#1757b5 !important;
+  border-color:#d7e6ff;
+}
+
+.dashboard-section-title{
+  display:flex;
+  justify-content:space-between;
+  align-items:flex-end;
+  margin:30px 0 14px;
+}
+
+.dashboard-section-title h2{
+  margin:4px 0 0;
+  font-size:18px;
+  letter-spacing:-.2px;
+}
+
+.graficos{
+  display:grid !important;
+  grid-template-columns:minmax(0,1fr) minmax(0,1fr);
+  gap:18px !important;
+}
+
+.grafico-box{
+  min-width:0;
+  background:var(--tcs-surface) !important;
+  border:1px solid var(--tcs-line);
+  border-radius:var(--tcs-radius) !important;
+  box-shadow:var(--tcs-shadow) !important;
+  padding:20px !important;
+}
+
+.grafico-header{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:15px;
+  margin-bottom:14px;
+}
+
+.grafico-header h3{
+  margin:0 0 4px;
+  font-size:15px;
+  color:var(--tcs-text);
+}
+
+.grafico-header p{
+  margin:0;
+  color:var(--tcs-muted);
+  font-size:11px;
+}
+
+.grafico-header select{
+  height:36px;
+  border:1px solid var(--tcs-line);
+  border-radius:9px;
+  background:#fff;
+  padding:0 9px;
+  color:var(--tcs-text);
+  font-size:11px;
+}
+
+.chart-wrap{
+  position:relative;
+  height:300px;
+}
+
+.chart-pie{
+  height:320px;
+}
+
+.grafico-comparativo{
+  margin-top:18px;
+}
+
+.chart-line{
+  height:320px;
+}
+
+.creditos-app{
+  margin-top:30px;
+  padding:18px 0;
+  color:#98a2b3;
+  font-size:11px;
+  text-align:center;
+}
+
+/* Ajuste do topbar sem mudar a navegação existente */
+.topbar{
+  box-shadow:0 1px 0 rgba(16,24,40,.06) !important;
+}
+
+/* Evita gráficos gigantes */
+.graficos canvas,
+.grafico-box canvas{
+  max-height:100%;
+}
+
+/* =========================================================
+   MOBILE
+========================================================= */
+
+@media (max-width:900px){
+  .content{
+    padding:22px 18px 35px !important;
+  }
+
+  .cards{
+    grid-template-columns:repeat(2,minmax(0,1fr));
+  }
+
+  .graficos{
+    grid-template-columns:1fr;
+  }
+}
+
+@media (max-width:600px){
+  .content{
+    padding:18px 12px 28px !important;
+  }
+
+  .dashboard-heading{
+    align-items:flex-start;
+    flex-direction:column;
+    gap:10px;
+  }
+
+  .dashboard-heading h1{
+    font-size:24px !important;
+  }
+
+  .dashboard-date{
+    width:100%;
+    text-align:center;
+  }
+
+  .filtros{
+    flex-direction:column !important;
+    align-items:stretch !important;
+  }
+
+  .filtros input,
+  #btnLimparFiltro{
+    width:100%;
+  }
+
+  .cards{
+    grid-template-columns:1fr 1fr;
+    gap:10px !important;
+  }
+
+  .cards .card{
+    min-height:126px;
+    padding:15px !important;
+  }
+
+  .cards .card strong{
+    font-size:18px !important;
+    word-break:break-word;
+  }
+
+  .cards .card small{
+    font-size:9px;
+  }
+
+  .grafico-box{
+    padding:15px !important;
+  }
+
+  .grafico-header{
+    flex-direction:column;
+  }
+
+  .grafico-header select{
+    width:100%;
+  }
+
+  .chart-wrap,
+  .chart-pie,
+  .chart-line{
+    height:260px;
+  }
+}
+
+@media (max-width:420px){
+  .cards{
+    grid-template-columns:1fr;
+  }
+
+  .cards .card{
+    min-height:115px;
+  }
+}

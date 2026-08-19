@@ -1,55 +1,81 @@
 /* ======================================================
-   🔒 BLOCO PROTEGIDO – NÃO MEXER
-   BOOTSTRAP / INICIALIZAÇÃO DO SCRIPT
+   TCS FINANCE
+   SCRIPT PRINCIPAL
+   VERSÃO DASHBOARD PRO
 ====================================================== */
+
 console.log("SCRIPT CARREGADO");
 
 document.addEventListener("DOMContentLoaded", async () => {
 
   /* ======================================================
-     🔒 BLOCO PROTEGIDO – NÃO MEXER
-     SUPABASE / CLIENTE / SESSÃO
+     SUPABASE
   ====================================================== */
+
   const supabase = window.supabase.createClient(
     "https://figkamlmpangolnasaby.supabase.co",
     "sb_publishable_qkDLfEnWNNXyqQVdogQzBQ_Sre7CVBL"
   );
 
-  const { data: sessionData } = await supabase.auth.getSession();
-
-  if (sessionData?.session?.user) {
-    window.__USER_SESSION__ = sessionData.session.user;
-  }
-
   /* ======================================================
-     🔒 BLOCO PROTEGIDO – NÃO MEXER
-     ESTADO GLOBAL DO SISTEMA
+     ESTADO GLOBAL
   ====================================================== */
+
   let dados = [];
+
   let grafico = null;
   let graficoMensal = null;
   let graficoComparativo = null;
+
   let idEmEdicao = null;
 
   const LIMITE_FREE = 30;
   let planoUsuario = "FREE";
 
   /* ======================================================
-     🔒 BLOCO PROTEGIDO – NÃO MEXER
-     CATEGORIAS POR TIPO
+     CATEGORIAS
   ====================================================== */
+
   const categoriasPorTipo = {
-    Receita: ["Salário", "Renda Extra", "Mesada", "Freelance", "Vendas", "Outros"],
-    Despesa: ["Moradia", "Saúde", "Cartão de Crédito", "Alimentação", "Transporte", "Educação", "Empréstimos", "Compras diversas", "Lazer", "Outros"],
-    Investimento: ["Renda Fixa", "Ações", "Criptomoedas", "Outros"]
+
+    Receita: [
+      "Salário",
+      "Renda Extra",
+      "Mesada",
+      "Freelance",
+      "Vendas",
+      "Outros"
+    ],
+
+    Despesa: [
+      "Moradia",
+      "Saúde",
+      "Cartão de Crédito",
+      "Alimentação",
+      "Transporte",
+      "Educação",
+      "Empréstimos",
+      "Compras diversas",
+      "Lazer",
+      "Outros"
+    ],
+
+    Investimento: [
+      "Renda Fixa",
+      "Ações",
+      "Criptomoedas",
+      "Outros"
+    ]
+
   };
 
   /* ======================================================
-     🔒 BLOCO PROTEGIDO – NÃO MEXER
-     REFERÊNCIAS DE ELEMENTOS DO DOM
+     ELEMENTOS DO DOM
   ====================================================== */
+
   const loginContainer = document.getElementById("login-container");
   const app = document.getElementById("app");
+
   const dashboard = document.getElementById("dashboard");
   const lancamentos = document.getElementById("lancamentos");
 
@@ -61,24 +87,13 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   const btnLogin = document.getElementById("btnLogin");
   const btnCadastro = document.getElementById("btnCadastro");
+
   const btnLogoutTop = document.getElementById("btnLogoutTop");
   const btnLogout = document.getElementById("btnLogout");
 
-  /* ======================================================
-     🔒 BLOCO PROTEGIDO – NÃO MEXER
-     LOGOUT TOPBAR
-  ====================================================== */
-  if (btnLogoutTop) {
-    btnLogoutTop.onclick = async () => {
-      await supabase.auth.signOut();
-      app.classList.add("hidden");
-      app.style.display = "none";
-      loginContainer.style.display = "flex";
-    };
-  }
-
   const btnDashboard = document.getElementById("btnDashboard");
   const btnLancamentos = document.getElementById("btnLancamentos");
+
   const btnSalvar = document.getElementById("btnSalvar");
 
   const tipo = document.getElementById("tipo");
@@ -88,7 +103,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   const dataInput = document.getElementById("data");
 
   const filtroMes = document.getElementById("filtroMes");
-  const filtroAno = document.getElementById("filtroAno");
   const btnLimparFiltro = document.getElementById("btnLimparFiltro");
 
   const totalReceitas = document.getElementById("totalReceitas");
@@ -97,730 +111,1916 @@ document.addEventListener("DOMContentLoaded", async () => {
   const saldo = document.getElementById("saldo");
 
   const lista = document.getElementById("listaLancamentos");
+
   const tipoGrafico = document.getElementById("tipoGrafico");
 
   const btnMenu = document.getElementById("btnMenu");
   const sidebar = document.querySelector(".sidebar");
   const menuOverlay = document.getElementById("menuOverlay");
 
-  /* ======================================================
-     🔒 BLOCO PROTEGIDO – NÃO MEXER
-     ESTADO INICIAL MENU MOBILE
-  ====================================================== */
-  if (sidebar) sidebar.classList.remove("active");
-  if (menuOverlay) menuOverlay.classList.add("hidden");
+  const dashboardPeriodo = document.getElementById("dashboardPeriodo");
 
   /* ======================================================
-     🔒 BLOCO PROTEGIDO – NÃO MEXER
-     GRÁFICOS / FILTROS
+     FORMATAÇÃO
   ====================================================== */
-  if (!tipoGrafico.value) tipoGrafico.value = "geral";
 
-  ["change", "input"].forEach(evt => {
-    tipoGrafico.addEventListener(evt, atualizarDashboard);
+  function formatarMoeda(valorNumerico) {
 
-    ["change", "input"].forEach(evt => {
-      filtroMes.addEventListener(evt, atualizarDashboard);
-      filtroAno.addEventListener(evt, atualizarDashboard);
+    const numero = Number(valorNumerico) || 0;
+
+    return numero.toLocaleString("pt-BR", {
+      style: "currency",
+      currency: "BRL"
     });
-  });
 
-  /* ======================================================
-     🔒 BLOCO PROTEGIDO – NÃO MEXER
-     EVENT DELEGATION LISTA
-  ====================================================== */
-  lista.addEventListener("click", (e) => {
-    const btnEditar = e.target.closest(".btn-acao.editar");
-    const btnExcluir = e.target.closest(".btn-acao.excluir");
-
-    if (btnEditar) editar(btnEditar.dataset.id);
-    if (btnExcluir) excluir(btnExcluir.dataset.id);
-  });
-
-  /* ======================================================
-     🔒 BLOCO PROTEGIDO – NÃO MEXER
-     CATEGORIAS
-  ====================================================== */
-  function popularCategorias(tipoSelecionado, categoriaSelecionada = "") {
-    categoria.innerHTML = "<option value=''>Categoria</option>";
-    if (!categoriasPorTipo[tipoSelecionado]) return;
-
-    categoriasPorTipo[tipoSelecionado].forEach(cat => {
-      const option = document.createElement("option");
-      option.value = cat;
-      option.textContent = cat;
-      if (cat === categoriaSelecionada) option.selected = true;
-      categoria.appendChild(option);
-    });
   }
 
-  tipo.onchange = () => popularCategorias(tipo.value);
+  function formatarNumero(valorNumerico) {
 
-  /* ======================================================
-     🔒 BLOCO PROTEGIDO – NÃO MEXER
-     AUTH / LOGIN / CADASTRO
-  ====================================================== */
-  btnLogin.onclick = async () => {
-    if (!aceiteTermos.checked) return alert("Você precisa aceitar os termos.");
+    const numero = Number(valorNumerico) || 0;
 
-    const { data, error } = await supabase.auth.signInWithPassword({
-      email: emailInput.value,
-      password: senhaInput.value
+    return numero.toLocaleString("pt-BR", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
     });
 
-    if (error) return alert(error.message);
-    iniciarSessao(data.user);
-  };
+  }
 
-  btnCadastro.onclick = async () => {
-    if (!aceiteTermos.checked) return alert("Você precisa aceitar os termos.");
+  function formatarData(data) {
 
-    const { error } = await supabase.auth.signUp({
-      email: emailInput.value,
-      password: senhaInput.value,
-      options: { data: { nome: emailInput.value.split("@")[0] } }
+    if (!data) return "";
+
+    const partes = data.split("-");
+
+    if (partes.length !== 3) return data;
+
+    return `${partes[2]}/${partes[1]}/${partes[0]}`;
+
+  }
+
+  function obterMesAtual() {
+
+    const agora = new Date();
+
+    const ano = agora.getFullYear();
+
+    const mes = String(agora.getMonth() + 1).padStart(2, "0");
+
+    return `${ano}-${mes}`;
+
+  }
+
+  function formatarPeriodo(mes) {
+
+    if (!mes) return "Todos os períodos";
+
+    const partes = mes.split("-");
+
+    if (partes.length !== 2) return mes;
+
+    const ano = Number(partes[0]);
+
+    const numeroMes = Number(partes[1]);
+
+    const data = new Date(ano, numeroMes - 1, 1);
+
+    return data.toLocaleDateString("pt-BR", {
+      month: "long",
+      year: "numeric"
     });
 
-    if (error) return alert(error.message);
-    alert("Conta criada! Confirme no email.");
-  };
+  }
 
   /* ======================================================
-     🔒 BLOCO PROTEGIDO – NÃO MEXER
-     CORE DA APLICAÇÃO
+     MENU MOBILE
   ====================================================== */
+
+  if (sidebar) {
+    sidebar.classList.remove("active");
+  }
+
+  if (menuOverlay) {
+    menuOverlay.classList.add("hidden");
+  }
+
+  function fecharMenuMobile() {
+
+    if (sidebar) {
+      sidebar.classList.remove("active");
+    }
+
+    if (menuOverlay) {
+      menuOverlay.classList.add("hidden");
+    }
+
+  }
+
+  if (btnMenu && sidebar && menuOverlay) {
+
+    btnMenu.onclick = () => {
+
+      const aberto = sidebar.classList.contains("active");
+
+      if (aberto) {
+
+        sidebar.classList.remove("active");
+        menuOverlay.classList.add("hidden");
+
+      } else {
+
+        sidebar.classList.add("active");
+        menuOverlay.classList.remove("hidden");
+
+      }
+
+    };
+
+    menuOverlay.onclick = () => {
+
+      fecharMenuMobile();
+
+    };
+
+  }
+
+  /* ======================================================
+     NAVEGAÇÃO
+  ====================================================== */
+
+  if (btnDashboard) {
+
+    btnDashboard.onclick = () => {
+
+      dashboard.classList.remove("hidden");
+
+      lancamentos.classList.add("hidden");
+
+      fecharMenuMobile();
+
+      atualizarDashboard();
+
+    };
+
+  }
+
+  if (btnLancamentos) {
+
+    btnLancamentos.onclick = () => {
+
+      dashboard.classList.add("hidden");
+
+      lancamentos.classList.remove("hidden");
+
+      fecharMenuMobile();
+
+      renderizarLista();
+
+    };
+
+  }
+
+  /* ======================================================
+     LOGOUT
+  ====================================================== */
+
+  async function fazerLogout() {
+
+    await supabase.auth.signOut();
+
+    if (app) {
+
+      app.classList.add("hidden");
+
+      app.style.display = "none";
+
+    }
+
+    if (loginContainer) {
+
+      loginContainer.style.display = "flex";
+
+    }
+
+  }
+
+  if (btnLogoutTop) {
+
+    btnLogoutTop.onclick = async () => {
+
+      await fazerLogout();
+
+    };
+
+  }
+
+  if (btnLogout) {
+
+    btnLogout.onclick = async () => {
+
+      fecharMenuMobile();
+
+      await fazerLogout();
+
+    };
+
+  }
+
+  /* ======================================================
+     CATEGORIAS
+  ====================================================== */
+
+  function popularCategorias(
+    tipoSelecionado,
+    categoriaSelecionada = ""
+  ) {
+
+    if (!categoria) return;
+
+    categoria.innerHTML =
+      "<option value=''>Categoria</option>";
+
+    if (!categoriasPorTipo[tipoSelecionado]) {
+
+      return;
+
+    }
+
+    categoriasPorTipo[tipoSelecionado].forEach(cat => {
+
+      const option = document.createElement("option");
+
+      option.value = cat;
+
+      option.textContent = cat;
+
+      if (cat === categoriaSelecionada) {
+
+        option.selected = true;
+
+      }
+
+      categoria.appendChild(option);
+
+    });
+
+  }
+
+  if (tipo) {
+
+    tipo.onchange = () => {
+
+      popularCategorias(tipo.value);
+
+    };
+
+  }
+
+  /* ======================================================
+     LOGIN
+  ====================================================== */
+
+  if (btnLogin) {
+
+    btnLogin.onclick = async () => {
+
+      if (!aceiteTermos.checked) {
+
+        alert("Você precisa aceitar os termos.");
+
+        return;
+
+      }
+
+      if (!emailInput.value || !senhaInput.value) {
+
+        alert("Informe seu email e senha.");
+
+        return;
+
+      }
+
+      const { data, error } =
+        await supabase.auth.signInWithPassword({
+
+          email: emailInput.value.trim(),
+
+          password: senhaInput.value
+
+        });
+
+      if (error) {
+
+        alert(error.message);
+
+        return;
+
+      }
+
+      await iniciarSessao(data.user);
+
+    };
+
+  }
+
+  /* ======================================================
+     CADASTRO
+  ====================================================== */
+
+  if (btnCadastro) {
+
+    btnCadastro.onclick = async () => {
+
+      if (!aceiteTermos.checked) {
+
+        alert("Você precisa aceitar os termos.");
+
+        return;
+
+      }
+
+      if (!emailInput.value || !senhaInput.value) {
+
+        alert("Informe email e senha.");
+
+        return;
+
+      }
+
+      if (senhaInput.value.length < 6) {
+
+        alert("A senha deve possuir pelo menos 6 caracteres.");
+
+        return;
+
+      }
+
+      const { error } =
+        await supabase.auth.signUp({
+
+          email: emailInput.value.trim(),
+
+          password: senhaInput.value,
+
+          options: {
+
+            data: {
+
+              nome:
+                emailInput.value
+                  .split("@")[0]
+
+            }
+
+          }
+
+        });
+
+      if (error) {
+
+        alert(error.message);
+
+        return;
+
+      }
+
+      alert(
+        "Conta criada com sucesso! Confirme seu email para continuar."
+      );
+
+    };
+
+  }
+
+  /* ======================================================
+     INICIAR SESSÃO
+  ====================================================== */
+
   async function iniciarSessao(user) {
-    const topbarUser = document.getElementById("topbarUser");
-    const topbarPlano = document.getElementById("topbarPlano");
+
+    if (!user) return;
+
+    const topbarUser =
+      document.getElementById("topbarUser");
+
+    const topbarPlano =
+      document.getElementById("topbarPlano");
+
+    const nomeUsuario =
+      user.user_metadata?.nome ||
+      user.email?.split("@")[0] ||
+      "Usuário";
 
     if (topbarUser) {
-      topbarUser.innerText = user.user_metadata?.nome || user.email.split("@")[0];
+
+      topbarUser.innerText = nomeUsuario;
+
     }
 
     if (topbarPlano) {
+
       topbarPlano.innerText = planoUsuario;
+
     }
 
-    loginContainer.style.display = "none";
-    app.style.display = "flex";
-    app.classList.remove("hidden");
+    if (loginContainer) {
 
-    dashboard.classList.remove("hidden");
-    lancamentos.classList.add("hidden");
+      loginContainer.style.display = "none";
 
-    nomeCliente.innerText = `Olá, ${user.user_metadata?.nome || user.email.split("@")[0]}!`;
+    }
+
+    if (app) {
+
+      app.style.display = "flex";
+
+      app.classList.remove("hidden");
+
+    }
+
+    if (dashboard) {
+
+      dashboard.classList.remove("hidden");
+
+    }
+
+    if (lancamentos) {
+
+      lancamentos.classList.add("hidden");
+
+    }
+
+    if (nomeCliente) {
+
+      nomeCliente.innerText =
+        `Olá, ${nomeUsuario}!`;
+
+    }
+
+    /* Define mês atual somente se não houver filtro */
+
+    if (filtroMes && !filtroMes.value) {
+
+      filtroMes.value = obterMesAtual();
+
+    }
+
+    atualizarPeriodoDashboard();
 
     await carregarDados();
+
     atualizarDashboard();
+
     renderizarLista();
+
   }
+
+  /* ======================================================
+     CARREGAR DADOS
+  ====================================================== */
 
   async function carregarDados() {
-    const { data } = await supabase.from("lancamentos").select("*");
-    dados = data || [];
 
-    setTimeout(() => {
-      if (typeof carregarRadarB3 === "function") {
-        carregarRadarB3();
+    try {
+
+      const {
+        data,
+        error
+      } = await supabase
+        .from("lancamentos")
+        .select("*")
+        .order("data", {
+          ascending: false
+        });
+
+      if (error) {
+
+        console.error(
+          "Erro ao carregar lançamentos:",
+          error
+        );
+
+        alert(
+          "Não foi possível carregar seus lançamentos."
+        );
+
+        dados = [];
+
+        return;
+
       }
-    }, 400);
+
+      dados = data || [];
+
+    } catch (erro) {
+
+      console.error(
+        "Erro inesperado ao carregar dados:",
+        erro
+      );
+
+      dados = [];
+
+    }
+
   }
 
   /* ======================================================
-     🧩 BLOCO EXTENSÍVEL (NÃO QUEBRAR)
-     LANÇAMENTOS / SALVAR / EDITAR
+     SALVAR LANÇAMENTO
   ====================================================== */
-  btnSalvar.onclick = async () => {
-    if (!tipo.value || !categoria.value || !valor.value || !dataInput.value)
-      return alert("Preencha todos os campos.");
 
-    if (planoUsuario === "FREE" && dados.length >= LIMITE_FREE && !idEmEdicao)
-      return alert("Limite do plano gratuito atingido.");
+  if (btnSalvar) {
 
-    const user = (await supabase.auth.getUser()).data.user;
+    btnSalvar.onclick = async () => {
 
-    if (idEmEdicao) {
-      await supabase.from("lancamentos").update({
-        tipo: tipo.value,
-        categoria: categoria.value,
-        descricao: descricao.value,
-        valor: Number(valor.value),
-        data: dataInput.value
-      }).eq("id", idEmEdicao);
+      if (
+        !tipo.value ||
+        !categoria.value ||
+        !valor.value ||
+        !dataInput.value
+      ) {
 
-      idEmEdicao = null;
-    } else {
-      await supabase.from("lancamentos").insert({
-        user_id: user.id,
-        tipo: tipo.value,
-        categoria: categoria.value,
-        descricao: descricao.value,
-        valor: Number(valor.value),
-        data: dataInput.value
-      });
-    }
+        alert(
+          "Preencha tipo, categoria, valor e data."
+        );
 
-    await carregarDados();
-    atualizarDashboard();
-    renderizarLista();
-    limparFormulario();
-  };
+        return;
+
+      }
+
+      const valorNumerico =
+        Number(
+          String(valor.value)
+            .replace(",", ".")
+        );
+
+      if (
+        !Number.isFinite(valorNumerico) ||
+        valorNumerico <= 0
+      ) {
+
+        alert("Informe um valor válido.");
+
+        return;
+
+      }
+
+      if (
+        planoUsuario === "FREE" &&
+        dados.length >= LIMITE_FREE &&
+        !idEmEdicao
+      ) {
+
+        alert(
+          "Limite do plano gratuito atingido."
+        );
+
+        return;
+
+      }
+
+      try {
+
+        const {
+          data: userData,
+          error: userError
+        } = await supabase.auth.getUser();
+
+        if (userError || !userData?.user) {
+
+          alert(
+            "Sua sessão expirou. Faça login novamente."
+          );
+
+          return;
+
+        }
+
+        let erroOperacao = null;
+
+        if (idEmEdicao) {
+
+          const resultado =
+            await supabase
+              .from("lancamentos")
+              .update({
+
+                tipo: tipo.value,
+
+                categoria: categoria.value,
+
+                descricao:
+                  descricao.value.trim(),
+
+                valor: valorNumerico,
+
+                data: dataInput.value
+
+              })
+              .eq("id", idEmEdicao);
+
+          erroOperacao = resultado.error;
+
+        } else {
+
+          const resultado =
+            await supabase
+              .from("lancamentos")
+              .insert({
+
+                user_id:
+                  userData.user.id,
+
+                tipo: tipo.value,
+
+                categoria: categoria.value,
+
+                descricao:
+                  descricao.value.trim(),
+
+                valor: valorNumerico,
+
+                data: dataInput.value
+
+              });
+
+          erroOperacao = resultado.error;
+
+        }
+
+        if (erroOperacao) {
+
+          console.error(
+            "Erro ao salvar:",
+            erroOperacao
+          );
+
+          alert(
+            "Não foi possível salvar o lançamento."
+          );
+
+          return;
+
+        }
+
+        idEmEdicao = null;
+
+        await carregarDados();
+
+        atualizarDashboard();
+
+        renderizarLista();
+
+        limparFormulario();
+
+        alert("Lançamento salvo com sucesso!");
+
+      } catch (erro) {
+
+        console.error(
+          "Erro inesperado:",
+          erro
+        );
+
+        alert(
+          "Ocorreu um erro ao salvar o lançamento."
+        );
+
+      }
+
+    };
+
+  }
+
+  /* ======================================================
+     LIMPAR FORMULÁRIO
+  ====================================================== */
 
   function limparFormulario() {
-    tipo.value = "";
-    categoria.innerHTML = "";
-    descricao.value = "";
-    valor.value = "";
-    dataInput.value = "";
+
+    idEmEdicao = null;
+
+    if (tipo) {
+
+      tipo.value = "";
+
+    }
+
+    if (categoria) {
+
+      categoria.innerHTML =
+        "<option value=''>Categoria</option>";
+
+    }
+
+    if (descricao) {
+
+      descricao.value = "";
+
+    }
+
+    if (valor) {
+
+      valor.value = "";
+
+    }
+
+    if (dataInput) {
+
+      dataInput.value = "";
+
+    }
+
+    if (btnSalvar) {
+
+      btnSalvar.innerText = "Salvar";
+
+    }
+
   }
 
   /* ======================================================
-     🔒 BLOCO PROTEGIDO – NÃO MEXER
-     DASHBOARD / GRÁFICOS
+     FILTRO
   ====================================================== */
-   function atualizarDashboard() {
-    
-    function calcularIndicadores(dadosFiltrados) {
-   let receita = 0;
-   let despesa = 0;
-   let investimento = 0;
 
-   dadosFiltrados.forEach(l => {
-    if (l.tipo === "Receita") receita += l.valor;
-    if (l.tipo === "Despesa") despesa += l.valor;
-    if (l.tipo === "Investimento") investimento += l.valor;
-   });
-
-   const saldo = receita - despesa;
-   const percentualDespesa = receita > 0
-    ? Math.round((despesa / receita) * 100)
-    : 0;
-
-   return {
-    receita,
-    despesa,
-    investimento,
-    saldo,
-    percentualDespesa
-  };
-}
+  function obterDadosFiltrados() {
 
     let filtrados = [...dados];
-    renderizarAlertasFinanceiros(filtrados);
 
-    if (filtroMes.value)
-      filtrados = filtrados.filter(l => l.data.startsWith(filtroMes.value));
+    if (filtroMes && filtroMes.value) {
 
-    if (filtroAno && filtroAno.value)
-      filtrados = filtrados.filter(l => l.data.startsWith(filtroAno.value));
-    /* 🔔 CHAMADA SEGURA DE ALERTAS (ACRÉSCIMO) */
-executarAlertas(filtrados);
+      filtrados =
+        filtrados.filter(l => {
 
-    let r = 0, d = 0, i = 0;
+          if (!l.data) return false;
+
+          return l.data.startsWith(
+            filtroMes.value
+          );
+
+        });
+
+    }
+
+    return filtrados;
+
+  }
+
+  if (filtroMes) {
+
+    filtroMes.addEventListener(
+      "change",
+      () => {
+
+        atualizarPeriodoDashboard();
+
+        atualizarDashboard();
+
+      }
+    );
+
+  }
+
+  if (btnLimparFiltro) {
+
+    btnLimparFiltro.onclick = () => {
+
+      filtroMes.value = "";
+
+      atualizarPeriodoDashboard();
+
+      atualizarDashboard();
+
+    };
+
+  }
+
+  /* ======================================================
+     PERÍODO DO DASHBOARD
+  ====================================================== */
+
+  function atualizarPeriodoDashboard() {
+
+    if (!dashboardPeriodo) return;
+
+    dashboardPeriodo.innerText =
+      formatarPeriodo(
+        filtroMes?.value || ""
+      );
+
+  }
+
+  /* ======================================================
+     DASHBOARD
+  ====================================================== */
+
+  function atualizarDashboard() {
+
+    const filtrados =
+      obterDadosFiltrados();
+
+    let receita = 0;
+    let despesa = 0;
+    let investimento = 0;
+
     filtrados.forEach(l => {
-      if (l.tipo === "Receita") r += l.valor;
-      if (l.tipo === "Despesa") d += l.valor;
-      if (l.tipo === "Investimento") i += l.valor;
+
+      const valorLancamento =
+        Number(l.valor) || 0;
+
+      if (l.tipo === "Receita") {
+
+        receita += valorLancamento;
+
+      }
+
+      if (l.tipo === "Despesa") {
+
+        despesa += valorLancamento;
+
+      }
+
+      if (l.tipo === "Investimento") {
+
+        investimento += valorLancamento;
+
+      }
+
     });
 
+    const saldoAtual =
+      receita - despesa;
 
-    totalReceitas.innerText = `R$ ${r.toFixed(2)}`;
-    totalDespesas.innerText = `R$ ${d.toFixed(2)}`;
-    totalInvestimentos.innerText = `R$ ${i.toFixed(2)}`;
-    saldo.innerText = `R$ ${(r - d).toFixed(2)}`;
+    if (totalReceitas) {
 
-    renderizarGrafico(r, d, i);
-    renderizarGraficoMensal()
-    renderizarGraficoComparativo();
-    
-    function agruparPorMes(dados) {
-  const mapa = {};
+      totalReceitas.innerText =
+        formatarMoeda(receita);
 
-  dados.forEach(l => {
-    const mes = l.data.slice(0, 7); // YYYY-MM
-
-    if (!mapa[mes]) {
-      mapa[mes] = { receita: 0, despesa: 0 };
     }
 
-    if (l.tipo === "Receita") mapa[mes].receita += l.valor;
-    if (l.tipo === "Despesa") mapa[mes].despesa += l.valor;
-  });
+    if (totalDespesas) {
 
-  return Object.keys(mapa)
-    .sort()
-    .map(mes => ({
-      mes,
-      receita: mapa[mes].receita,
-      despesa: mapa[mes].despesa,
-      saldo: mapa[mes].receita - mapa[mes].despesa
-    }));
-}
-;
-  }
+      totalDespesas.innerText =
+        formatarMoeda(despesa);
 
- function renderizarAlertasFinanceiros(dadosFiltrados) {
-  let container = document.getElementById("alertasInteligentes");
-
-  if (!container) {
-    container = document.createElement("div");
-    container.id = "alertasInteligentes";
-    container.style.marginTop = "20px";
-    container.style.display = "flex";
-    container.style.flexDirection = "column";
-    container.style.gap = "10px";
-
-    // 👉 INSERE LOGO APÓS OS CARDS
-    const cards = document.querySelector(".cards");
-    if (cards && cards.parentNode) {
-      cards.parentNode.insertBefore(container, cards.nextSibling);
-    }
-  }
-
-  container.innerHTML = "";
-
-  let receita = 0;
-  let despesa = 0;
-  let investimento = 0;
-
-  dadosFiltrados.forEach(l => {
-    if (l.tipo === "Receita") receita += l.valor;
-    if (l.tipo === "Despesa") despesa += l.valor;
-    if (l.tipo === "Investimento") investimento += l.valor;
-  });
-
-  const saldo = receita - despesa;
-
-  function alerta(texto, tipo) {
-    const div = document.createElement("div");
-    div.innerText = texto;
-    div.style.padding = "12px 16px";
-    div.style.borderRadius = "12px";
-    div.style.fontSize = "14px";
-    div.style.fontWeight = "500";
-
-    if (tipo === "erro") {
-      div.style.background = "#fee2e2";
-      div.style.color = "#991b1b";
-      div.style.borderLeft = "6px solid #dc2626";
     }
 
-    if (tipo === "alerta") {
-      div.style.background = "#fef3c7";
-      div.style.color = "#92400e";
-      div.style.borderLeft = "6px solid #f59e0b";
+    if (totalInvestimentos) {
+
+      totalInvestimentos.innerText =
+        formatarMoeda(investimento);
+
     }
 
-    if (tipo === "sucesso") {
-      div.style.background = "#dcfce7";
-      div.style.color = "#166534";
-      div.style.borderLeft = "6px solid #16a34a";
+    if (saldo) {
+
+      saldo.innerText =
+        formatarMoeda(saldoAtual);
+
     }
 
-    container.appendChild(div);
-  }
+    atualizarPeriodoDashboard();
 
-  /* 🔴 Despesa maior que receita */
-  if (despesa > receita) {
-    alerta(
-      "Suas despesas estão maiores que suas receitas neste período. Atenção ao risco de endividamento.",
-      "erro"
+    renderizarAlertas(filtrados);
+
+    renderizarGrafico(
+      filtrados,
+      receita,
+      despesa,
+      investimento
     );
+
+    renderizarGraficoMensal(
+      filtrados
+    );
+
+    renderizarGraficoComparativo(
+      filtrados
+    );
+
   }
 
-  /* ⚠️ Despesa acima de 70% */
-  if (receita > 0 && despesa / receita >= 0.7 && despesa <= receita) {
-    alerta(
-      "Suas despesas já consomem mais de 70% da receita. Avalie ajustes antes que o saldo fique negativo.",
-      "alerta"
-    );
-  }
+  /* ======================================================
+     ALERTAS
+  ====================================================== */
 
-  /* 🟡 Saldo negativo */
-  if (saldo < 0) {
-    alerta(
-      "Seu saldo está negativo. O ideal é reduzir despesas ou aumentar receitas imediatamente.",
-      "erro"
-    );
-  }
+  function renderizarAlertas(dadosFiltrados) {
 
-  /* 📉 Nenhuma receita */
-  if (receita === 0 && despesa > 0) {
-    alerta(
-      "Não há receitas registradas neste período, mas existem despesas. Isso compromete totalmente o caixa.",
-      "erro"
-    );
-  }
+    const container =
+      document.getElementById(
+        "alertasInteligentes"
+      );
 
-  /* 🟢 Situação saudável */
-  if (saldo > 0 && receita > 0 && despesa / receita < 0.6) {
-    alerta(
-      "Parabéns! Sua saúde financeira está equilibrada e sob controle neste período.",
-      "sucesso"
-    );
-   }
-   }
-/* ======================================================
-   🧠 ORQUESTRADOR DE ALERTAS (ACRÉSCIMO SEGURO)
-   NÃO REMOVE NENHUMA FUNÇÃO EXISTENTE
-====================================================== */
-function executarAlertas(dadosFiltrados) {
-  try {
-    if (typeof renderizarAlertasFinanceiros === "function") {
-      renderizarAlertasFinanceiros(dadosFiltrados);
+    if (!container) return;
+
+    container.innerHTML = "";
+
+    let receita = 0;
+    let despesa = 0;
+    let investimento = 0;
+
+    dadosFiltrados.forEach(l => {
+
+      const valorLancamento =
+        Number(l.valor) || 0;
+
+      if (l.tipo === "Receita") {
+
+        receita += valorLancamento;
+
+      }
+
+      if (l.tipo === "Despesa") {
+
+        despesa += valorLancamento;
+
+      }
+
+      if (l.tipo === "Investimento") {
+
+        investimento += valorLancamento;
+
+      }
+
+    });
+
+    const saldoAtual =
+      receita - despesa;
+
+    const percentualDespesa =
+      receita > 0
+        ? (despesa / receita) * 100
+        : 0;
+
+    function criarAlerta(
+      texto,
+      classe
+    ) {
+
+      const div =
+        document.createElement("div");
+
+      div.className =
+        `alerta ${classe}`;
+
+      div.innerText = texto;
+
+      container.appendChild(div);
+
     }
-  } catch (e) {
-    console.warn("Erro em renderizarAlertasFinanceiros:", e);
-  }
 
-  try {
-    if (typeof renderizarAlertasInteligentes === "function") {
-      renderizarAlertasInteligentes(dadosFiltrados);
+    if (saldoAtual < 0) {
+
+      criarAlerta(
+        "🔴 Seu saldo está negativo. Atenção imediata ao controle de despesas.",
+        "vermelho"
+      );
+
     }
-  } catch (e) {
-    console.warn("Erro em renderizarAlertasInteligentes:", e);
+
+    if (
+      despesa > receita &&
+      receita > 0
+    ) {
+
+      criarAlerta(
+        "⚠️ Suas despesas estão maiores que suas receitas neste período.",
+        "amarelo"
+      );
+
+    }
+
+    if (
+      percentualDespesa > 70 &&
+      percentualDespesa <= 90 &&
+      despesa <= receita
+    ) {
+
+      criarAlerta(
+        `🟡 Você está comprometendo ${percentualDespesa.toFixed(0)}% da sua receita com despesas. O ideal é manter abaixo de 70%.`,
+        "amarelo"
+      );
+
+    }
+
+    if (
+      percentualDespesa > 90 &&
+      receita > 0
+    ) {
+
+      criarAlerta(
+        `🔥 Alerta crítico: ${percentualDespesa.toFixed(0)}% da sua receita está comprometida com despesas.`,
+        "vermelho"
+      );
+
+    }
+
+    if (
+      investimento === 0 &&
+      receita > 0
+    ) {
+
+      criarAlerta(
+        "💡 Nenhum investimento identificado neste período. Considere investir parte da sua renda.",
+        "azul"
+      );
+
+    }
+
+    if (
+      receita === 0 &&
+      despesa === 0 &&
+      investimento === 0
+    ) {
+
+      criarAlerta(
+        "ℹ️ Nenhum lançamento encontrado neste período.",
+        "azul"
+      );
+
+    }
+
+    if (
+      saldoAtual > 0 &&
+      receita > 0 &&
+      percentualDespesa < 60
+    ) {
+
+      criarAlerta(
+        "✅ Sua saúde financeira está equilibrada neste período.",
+        "verde"
+      );
+
+    }
+
   }
-}
 
+  /* ======================================================
+     GRÁFICO PRINCIPAL
+  ====================================================== */
 
-   function renderizarGrafico(r, d, i) {
-    if (grafico) grafico.destroy();
+  function renderizarGrafico(
+    dadosFiltrados,
+    receita,
+    despesa,
+    investimento
+  ) {
+
+    const canvas =
+      document.getElementById(
+        "grafico"
+      );
+
+    if (!canvas) return;
+
+    if (grafico) {
+
+      grafico.destroy();
+
+      grafico = null;
+
+    }
 
     let labels = [];
     let valores = [];
 
-    if (tipoGrafico.value === "categoria") {
+    if (
+      tipoGrafico &&
+      tipoGrafico.value === "categoria"
+    ) {
+
       const categorias = {};
-      dados.forEach(l => {
-        categorias[l.categoria] = (categorias[l.categoria] || 0) + l.valor;
+
+      dadosFiltrados.forEach(l => {
+
+        const nomeCategoria =
+          l.categoria ||
+          "Sem categoria";
+
+        categorias[nomeCategoria] =
+          (categorias[nomeCategoria] || 0) +
+          (Number(l.valor) || 0);
+
       });
-      labels = Object.keys(categorias);
-      valores = Object.values(categorias);
+
+      labels =
+        Object.keys(categorias);
+
+      valores =
+        Object.values(categorias);
+
     } else {
-      labels = ["Receitas", "Despesas", "Investimentos"];
-      valores = [r, d, i];
+
+      labels = [
+        "Receitas",
+        "Despesas",
+        "Investimentos"
+      ];
+
+      valores = [
+        receita,
+        despesa,
+        investimento
+      ];
+
     }
 
-    grafico = new Chart(document.getElementById("grafico"), {
-      type: "pie",
-      data: {
-        labels,
-        datasets: [{ data: valores }]
-      },
-      options: {
-        responsive: true,
-        plugins: { legend: { position: "bottom" } }
-      }
-    });
-    }
+    grafico =
+      new Chart(
+        canvas,
+        {
 
-   function renderizarGraficoMensal() {
-    if (graficoMensal) graficoMensal.destroy();
+          type: "pie",
+
+          data: {
+
+            labels,
+
+            datasets: [
+              {
+
+                data: valores,
+
+                borderWidth: 2
+
+              }
+            ]
+
+          },
+
+          options: {
+
+            responsive: true,
+
+            maintainAspectRatio: false,
+
+            plugins: {
+
+              legend: {
+
+                position: "bottom"
+
+              }
+
+            }
+
+          }
+
+        }
+      );
+
+  }
+
+  /* ======================================================
+     GRÁFICO MENSAL
+  ====================================================== */
+
+  function renderizarGraficoMensal(
+    dadosFiltrados
+  ) {
+
+    const canvas =
+      document.getElementById(
+        "graficoMensal"
+      );
+
+    if (!canvas) return;
+
+    if (graficoMensal) {
+
+      graficoMensal.destroy();
+
+      graficoMensal = null;
+
+    }
 
     const resumo = {};
-    dados.forEach(l => {
-      const m = l.data.slice(0, 7);
-      resumo[m] = resumo[m] || { r: 0, d: 0 };
-      if (l.tipo === "Receita") resumo[m].r += l.valor;
-      if (l.tipo === "Despesa") resumo[m].d += l.valor;
-     });
 
-     graficoMensal = new Chart(document.getElementById("graficoMensal"), {
-      type: "bar",
-      data: {
-        labels: Object.keys(resumo),
-        datasets: [
-          { label: "Receitas", data: Object.values(resumo).map(v => v.r) },
-          { label: "Despesas", data: Object.values(resumo).map(v => v.d) }
-        ]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: { legend: { position: "bottom" } }
+    dadosFiltrados.forEach(l => {
+
+      if (!l.data) return;
+
+      const mes =
+        l.data.slice(0, 7);
+
+      if (!resumo[mes]) {
+
+        resumo[mes] = {
+
+          receita: 0,
+
+          despesa: 0
+
+        };
+
       }
+
+      const valorLancamento =
+        Number(l.valor) || 0;
+
+      if (
+        l.tipo === "Receita"
+      ) {
+
+        resumo[mes].receita +=
+          valorLancamento;
+
+      }
+
+      if (
+        l.tipo === "Despesa"
+      ) {
+
+        resumo[mes].despesa +=
+          valorLancamento;
+
+      }
+
     });
-   }
-   function renderizarGraficoComparativo() {
-    const canvas = document.getElementById("graficoComparativo");
-   if (!canvas) return;
 
-   // 🔥 GARANTIA ABSOLUTA: destrói antes de criar
-   if (graficoComparativo) {
-    graficoComparativo.destroy();
-    graficoComparativo = null;
-   }
+    const labels =
+      Object.keys(resumo).sort();
 
-   const dadosPorMes = {};
+    const receitas =
+      labels.map(
+        m => resumo[m].receita
+      );
 
-   dados.forEach(l => {
-    if (!l.data) return;
+    const despesas =
+      labels.map(
+        m => resumo[m].despesa
+      );
 
-    const mes = l.data.slice(0, 7);
+    if (labels.length === 0) {
 
-    if (!dadosPorMes[mes]) {
-      dadosPorMes[mes] = { receita: 0, despesa: 0 };
+      return;
+
     }
 
-    if (l.tipo === "Receita") dadosPorMes[mes].receita += Number(l.valor);
-    if (l.tipo === "Despesa") dadosPorMes[mes].despesa += Number(l.valor);
-   });
-
-   const labels = Object.keys(dadosPorMes).sort();
-
-   if (labels.length === 0) return;
-
-   const receitas = labels.map(m => dadosPorMes[m].receita);
-   const despesas = labels.map(m => dadosPorMes[m].despesa);
-
-   graficoComparativo = new Chart(canvas, {
-    type: "line",
-    data: {
-      labels,
-      datasets: [
+    graficoMensal =
+      new Chart(
+        canvas,
         {
-          label: "Receitas",
-          data: receitas,
-          borderWidth: 3,
-          tension: 0.3
-        },
-        {
-          label: "Despesas",
-          data: despesas,
-          borderWidth: 3,
-          tension: 0.3
+
+          type: "bar",
+
+          data: {
+
+            labels,
+
+            datasets: [
+
+              {
+
+                label: "Receitas",
+
+                data: receitas,
+
+                borderWidth: 1
+
+              },
+
+              {
+
+                label: "Despesas",
+
+                data: despesas,
+
+                borderWidth: 1
+
+              }
+
+            ]
+
+          },
+
+          options: {
+
+            responsive: true,
+
+            maintainAspectRatio: false,
+
+            plugins: {
+
+              legend: {
+
+                position: "bottom"
+
+              }
+
+            },
+
+            scales: {
+
+              y: {
+
+                beginAtZero: true
+
+              }
+
+            }
+
+          }
+
         }
-      ]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: { position: "bottom" }
-      },
-      scales: {
-        y: { beginAtZero: true }
-      }
-    }
-  });
-}
 
- function renderizarAlertasInteligentes(dadosFiltrados) {
-  const container = document.getElementById("alertasInteligentes");
-  if (!container) return;
+      );
 
-  container.innerHTML = "";
-
-  let receita = 0;
-  let despesa = 0;
-  let investimento = 0;
-
-  dadosFiltrados.forEach(l => {
-    if (l.tipo === "Receita") receita += l.valor;
-    if (l.tipo === "Despesa") despesa += l.valor;
-    if (l.tipo === "Investimento") investimento += l.valor;
-  });
-
-  const saldo = receita - despesa;
-  const percentualDespesa = receita > 0 ? (despesa / receita) * 100 : 0;
-
-  // 🔴 SALDO NEGATIVO
-  if (saldo < 0) {
-    container.innerHTML += `
-      <div class="alerta vermelho">
-        🔴 Seu saldo está negativo. Atenção imediata ao controle de despesas.
-      </div>
-    `;
   }
-
-  // ⚠️ DESPESA MAIOR QUE RECEITA
-  if (despesa > receita) {
-    container.innerHTML += `
-      <div class="alerta amarelo">
-        ⚠️ Suas despesas estão maiores que suas receitas neste período.
-      </div>
-    `;
-  }
-
-  // 🟡 GASTO ACIMA DO IDEAL
-  if (percentualDespesa > 70 && percentualDespesa <= 90) {
-    container.innerHTML += `
-      <div class="alerta amarelo">
-        🟡 Você está gastando ${percentualDespesa.toFixed(0)}% da sua renda.
-        O ideal é manter abaixo de 70%.
-      </div>
-    `;
-  }
-
-  // 🔴 GASTO CRÍTICO
-  if (percentualDespesa > 90) {
-    container.innerHTML += `
-      <div class="alerta vermelho">
-        🔥 Alerta crítico: mais de ${percentualDespesa.toFixed(0)}% da sua renda está comprometida.
-      </div>
-    `;
-  }
-
-  // 💡 SEM INVESTIMENTOS
-  if (investimento === 0 && receita > 0) {
-    container.innerHTML += `
-      <div class="alerta azul">
-        💡 Nenhum investimento identificado neste período.
-        Considere investir parte da sua renda.
-      </div>
-    `;
-  }
-
-  // ✅ SITUAÇÃO SAUDÁVEL
-  if (container.innerHTML === "") {
-    container.innerHTML = `
-      <div class="alerta verde">
-        ✅ Sua saúde financeira está equilibrada neste período.
-      </div>
-    `;
-  }
-}
 
   /* ======================================================
-     🔒 BLOCO PROTEGIDO – NÃO MEXER
-     LISTA / EDITAR / EXCLUIR
+     GRÁFICO COMPARATIVO
   ====================================================== */
-  function renderizarLista() {
-    lista.innerHTML = "";
-    dados.forEach(l => {
-      const li = document.createElement("li");
-      li.innerHTML = `
-        <div class="linha-info">
-          <strong>${l.data}</strong> – ${l.tipo} • ${l.categoria} • R$ ${l.valor}
-        </div>
-        <div class="linha-acoes">
-          <button type="button" class="btn-acao editar" data-id="${l.id}">✏️</button>
-          <button type="button" class="btn-acao excluir" data-id="${l.id}">🗑</button>
-        </div>
-      `;
-      lista.appendChild(li);
+
+  function renderizarGraficoComparativo(
+    dadosFiltrados
+  ) {
+
+    const canvas =
+      document.getElementById(
+        "graficoComparativo"
+      );
+
+    if (!canvas) return;
+
+    if (graficoComparativo) {
+
+      graficoComparativo.destroy();
+
+      graficoComparativo = null;
+
+    }
+
+    const dadosPorMes = {};
+
+    dadosFiltrados.forEach(l => {
+
+      if (!l.data) return;
+
+      const mes =
+        l.data.slice(0, 7);
+
+      if (!dadosPorMes[mes]) {
+
+        dadosPorMes[mes] = {
+
+          receita: 0,
+
+          despesa: 0
+
+        };
+
+      }
+
+      const valorLancamento =
+        Number(l.valor) || 0;
+
+      if (
+        l.tipo === "Receita"
+      ) {
+
+        dadosPorMes[mes].receita +=
+          valorLancamento;
+
+      }
+
+      if (
+        l.tipo === "Despesa"
+      ) {
+
+        dadosPorMes[mes].despesa +=
+          valorLancamento;
+
+      }
+
     });
+
+    const labels =
+      Object.keys(
+        dadosPorMes
+      ).sort();
+
+    if (labels.length === 0) {
+
+      return;
+
+    }
+
+    const receitas =
+      labels.map(
+        mes =>
+          dadosPorMes[mes].receita
+      );
+
+    const despesas =
+      labels.map(
+        mes =>
+          dadosPorMes[mes].despesa
+      );
+
+    graficoComparativo =
+      new Chart(
+        canvas,
+        {
+
+          type: "line",
+
+          data: {
+
+            labels,
+
+            datasets: [
+
+              {
+
+                label: "Receitas",
+
+                data: receitas,
+
+                borderWidth: 3,
+
+                tension: 0.3,
+
+                fill: false
+
+              },
+
+              {
+
+                label: "Despesas",
+
+                data: despesas,
+
+                borderWidth: 3,
+
+                tension: 0.3,
+
+                fill: false
+
+              }
+
+            ]
+
+          },
+
+          options: {
+
+            responsive: true,
+
+            maintainAspectRatio: false,
+
+            interaction: {
+
+              mode: "index",
+
+              intersect: false
+
+            },
+
+            plugins: {
+
+              legend: {
+
+                position: "bottom"
+
+              }
+
+            },
+
+            scales: {
+
+              y: {
+
+                beginAtZero: true
+
+              }
+
+            }
+
+          }
+
+        }
+
+      );
+
   }
+
+  /* ======================================================
+     MUDANÇA DO TIPO DE GRÁFICO
+  ====================================================== */
+
+  if (tipoGrafico) {
+
+    tipoGrafico.addEventListener(
+      "change",
+      () => {
+
+        atualizarDashboard();
+
+      }
+    );
+
+  }
+
+  /* ======================================================
+     LISTA DE LANÇAMENTOS
+  ====================================================== */
+
+  function renderizarLista() {
+
+    if (!lista) return;
+
+    lista.innerHTML = "";
+
+    if (dados.length === 0) {
+
+      const vazio =
+        document.createElement("li");
+
+      vazio.innerHTML =
+        "<div class='linha-info'>Nenhum lançamento cadastrado.</div>";
+
+      lista.appendChild(vazio);
+
+      return;
+
+    }
+
+    dados.forEach(l => {
+
+      const li =
+        document.createElement("li");
+
+      const valorFormatado =
+        formatarMoeda(l.valor);
+
+      li.innerHTML = `
+
+        <div class="linha-info">
+
+          <strong>
+            ${formatarData(l.data)}
+          </strong>
+
+          –
+          ${l.tipo}
+
+          •
+          ${l.categoria || "Sem categoria"}
+
+          •
+          ${valorFormatado}
+
+          ${
+            l.descricao
+              ? ` • ${l.descricao}`
+              : ""
+          }
+
+        </div>
+
+        <div class="linha-acoes">
+
+          <button
+            type="button"
+            class="btn-acao editar"
+            data-id="${l.id}"
+            title="Editar"
+          >
+            ✏️
+          </button>
+
+          <button
+            type="button"
+            class="btn-acao excluir"
+            data-id="${l.id}"
+            title="Excluir"
+          >
+            🗑
+          </button>
+
+        </div>
+
+      `;
+
+      lista.appendChild(li);
+
+    });
+
+  }
+
+  /* ======================================================
+     EVENTOS DA LISTA
+  ====================================================== */
+
+  if (lista) {
+
+    lista.addEventListener(
+      "click",
+      event => {
+
+        const btnEditar =
+          event.target.closest(
+            ".btn-acao.editar"
+          );
+
+        const btnExcluir =
+          event.target.closest(
+            ".btn-acao.excluir"
+          );
+
+        if (btnEditar) {
+
+          editar(
+            btnEditar.dataset.id
+          );
+
+        }
+
+        if (btnExcluir) {
+
+          excluir(
+            btnExcluir.dataset.id
+          );
+
+        }
+
+      }
+    );
+
+  }
+
+  /* ======================================================
+     EDITAR
+  ====================================================== */
 
   function editar(id) {
-    const l = dados.find(d => d.id === id);
-    if (!l) return;
 
-    idEmEdicao = id;
-    tipo.value = l.tipo;
-    popularCategorias(l.tipo, l.categoria);
-    descricao.value = l.descricao;
-    valor.value = l.valor;
-    dataInput.value = l.data;
+    const lancamento =
+      dados.find(
+        d => String(d.id) === String(id)
+      );
 
-    dashboard.classList.add("hidden");
-    lancamentos.classList.remove("hidden");
+    if (!lancamento) {
+
+      alert(
+        "Lançamento não encontrado."
+      );
+
+      return;
+
+    }
+
+    idEmEdicao =
+      lancamento.id;
+
+    if (tipo) {
+
+      tipo.value =
+        lancamento.tipo;
+
+    }
+
+    popularCategorias(
+      lancamento.tipo,
+      lancamento.categoria
+    );
+
+    if (descricao) {
+
+      descricao.value =
+        lancamento.descricao || "";
+
+    }
+
+    if (valor) {
+
+      valor.value =
+        lancamento.valor;
+
+    }
+
+    if (dataInput) {
+
+      dataInput.value =
+        lancamento.data;
+
+    }
+
+    if (btnSalvar) {
+
+      btnSalvar.innerText =
+        "Atualizar lançamento";
+
+    }
+
+    dashboard.classList.add(
+      "hidden"
+    );
+
+    lancamentos.classList.remove(
+      "hidden"
+    );
+
+    fecharMenuMobile();
+
   }
+
+  /* ======================================================
+     EXCLUIR
+  ====================================================== */
 
   async function excluir(id) {
-    if (!confirm("Excluir lançamento?")) return;
 
-    const { error } = await supabase.from("lancamentos").delete().eq("id", id);
-    if (error) return alert("Erro ao excluir lançamento.");
+    const confirmar =
+      confirm(
+        "Tem certeza que deseja excluir este lançamento?"
+      );
 
-    await carregarDados();
-    atualizarDashboard();
-    renderizarLista();
-  }
+    if (!confirmar) return;
 
-  /* ======================================================
-     🔒 BLOCO PROTEGIDO – NÃO MEXER
-     MENU MOBILE / NAVEGAÇÃO
-  ====================================================== */
-  if (btnMenu && sidebar && menuOverlay) {
-    btnMenu.onclick = () => {
-      const aberto = sidebar.classList.contains("active");
+    try {
 
-      if (aberto) {
-        sidebar.classList.remove("active");
-        menuOverlay.classList.add("hidden");
-      } else {
-        sidebar.classList.add("active");
-        menuOverlay.classList.remove("hidden");
+      const {
+        error
+      } =
+        await supabase
+          .from("lancamentos")
+          .delete()
+          .eq("id", id);
+
+      if (error) {
+
+        console.error(
+          "Erro ao excluir:",
+          error
+        );
+
+        alert(
+          "Erro ao excluir lançamento."
+        );
+
+        return;
+
       }
-    };
 
-    menuOverlay.onclick = () => {
-      sidebar.classList.remove("active");
-      menuOverlay.classList.add("hidden");
-    };
+      await carregarDados();
+
+      atualizarDashboard();
+
+      renderizarLista();
+
+      alert(
+        "Lançamento excluído com sucesso!"
+      );
+
+    } catch (erro) {
+
+      console.error(
+        "Erro inesperado:",
+        erro
+      );
+
+      alert(
+        "Ocorreu um erro ao excluir."
+      );
+
+    }
+
   }
-
-  function fecharMenuMobile() {
-    sidebar.classList.remove("active");
-    menuOverlay.classList.add("hidden");
-  }
-
-  btnDashboard.onclick = () => {
-    dashboard.classList.remove("hidden");
-    lancamentos.classList.add("hidden");
-    fecharMenuMobile();
-  };
-
-  btnLancamentos.onclick = () => {
-    dashboard.classList.add("hidden");
-    lancamentos.classList.remove("hidden");
-    fecharMenuMobile();
-  };
-
-  btnLogout.onclick = async () => {
-    await supabase.auth.signOut();
-    fecharMenuMobile();
-    app.classList.add("hidden");
-    app.style.display = "none";
-    loginContainer.style.display = "flex";
-  };
 
   /* ======================================================
-     🔒 BLOCO PROTEGIDO – NÃO MEXER
      EXPORTAÇÃO PDF
   ====================================================== */
-  const btnExportarPdf = document.getElementById("btnExportarPdf");
+
+  const btnExportarPdf =
+    document.getElementById(
+      "btnExportarPdf"
+    );
 
   if (btnExportarPdf) {
+
     btnExportarPdf.onclick = () => {
-      if (!window.jspdf || !window.jspdf.jsPDF) {
-        alert("Biblioteca de PDF não carregada.");
+
+      if (
+        !window.jspdf ||
+        !window.jspdf.jsPDF
+      ) {
+
+        alert(
+          "Biblioteca de PDF não carregada."
+        );
+
         return;
+
       }
 
-      const { jsPDF } = window.jspdf;
-      const pdf = new jsPDF();
+      const {
+        jsPDF
+      } = window.jspdf;
 
-      pdf.setFontSize(14);
-      pdf.text("TCS Finance – Extrato Financeiro", 10, 10);
+      const pdf =
+        new jsPDF();
 
-      let y = 20;
+      pdf.setFontSize(16);
+
+      pdf.text(
+        "TCS Finance – Extrato Financeiro",
+        10,
+        15
+      );
+
+      pdf.setFontSize(10);
+
+      pdf.text(
+        `Período: ${
+          formatarPeriodo(
+            filtroMes?.value || ""
+          )
+        }`,
+        10,
+        23
+      );
+
+      let y = 35;
+
       dados.forEach(l => {
-        pdf.setFontSize(10);
+
+        const linha =
+          `${formatarData(l.data)} | ` +
+          `${l.tipo} | ` +
+          `${l.categoria || ""} | ` +
+          `${formatarMoeda(l.valor)}`;
+
         pdf.text(
-          `${l.data} | ${l.tipo} | ${l.categoria} | R$ ${Number(l.valor).toFixed(2)}`,
+          linha,
           10,
           y
         );
-        y += 6;
+
+        y += 7;
 
         if (y > 280) {
+
           pdf.addPage();
+
           y = 20;
+
         }
+
       });
 
-      pdf.save("extrato-financeiro.pdf");
+      pdf.save(
+        "extrato-financeiro.pdf"
+      );
+
     };
+
   }
 
   /* ======================================================
-     🔒 BLOCO PROTEGIDO – NÃO MEXER
-     AUTO LOGIN FINAL
+     FILTRO INICIAL
   ====================================================== */
-  if (window.__USER_SESSION__) {
-    iniciarSessao(window.__USER_SESSION__);
+
+  if (filtroMes) {
+
+    filtroMes.value =
+      obterMesAtual();
+
+  }
+
+  atualizarPeriodoDashboard();
+
+  /* ======================================================
+     SESSÃO EXISTENTE
+  ====================================================== */
+
+  try {
+
+    const {
+      data: sessionData
+    } =
+      await supabase.auth.getSession();
+
+    const usuario =
+      sessionData?.session?.user;
+
+    if (usuario) {
+
+      window.__USER_SESSION__ =
+        usuario;
+
+      await iniciarSessao(
+        usuario
+      );
+
+    }
+
+  } catch (erro) {
+
+    console.error(
+      "Erro ao recuperar sessão:",
+      erro
+    );
+
   }
 
 });

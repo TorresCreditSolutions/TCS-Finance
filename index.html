@@ -1,33 +1,22 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-  <!-- ======================================================
-       🔒 BLOCO PROTEGIDO – NÃO MEXER
-       HEAD / METADADOS / LIBS GLOBAIS
-  ====================================================== -->
   <meta charset="UTF-8">
   <title>TCS Finance | Controle Financeiro</title>
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <link rel="icon" href="favicon.ico" type="image/x-icon">
   <link rel="stylesheet" href="style.css">
+  <link rel="stylesheet" href="dashboard-pro.css">
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
-  <!-- PDF -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 </head>
 <body>
 
-<!-- ======================================================
-     🔒 OVERLAY MENU MOBILE
-====================================================== -->
 <div id="menuOverlay" class="menu-overlay hidden"></div>
 
-<!-- ======================================================
-     🔒 LOGIN
-====================================================== -->
 <div id="login-container">
   <h2>TCS Finance</h2>
 
@@ -53,14 +42,8 @@
   </div>
 </div>
 
-<!-- ======================================================
-     🔒 APP ROOT
-====================================================== -->
 <div id="app" class="hidden">
 
-  <!-- ======================================================
-       🔒 SIDEBAR
-  ====================================================== -->
   <aside class="sidebar">
     <span class="logo">TCS Finance</span>
     <nav>
@@ -70,9 +53,6 @@
     </nav>
   </aside>
 
-  <!-- ======================================================
-       🔒 TOPBAR
-  ====================================================== -->
   <header class="topbar">
     <div class="topbar-left">
       <span class="logo">TCS Finance</span>
@@ -84,21 +64,22 @@
     </div>
 
     <div class="topbar-right">
-      <button type="button" id="btnMenu" class="btn-menu">☰</button>
+      <button type="button" id="btnMenu" class="btn-menu" aria-label="Abrir menu">☰</button>
       <button type="button" id="btnLogoutTop" class="btn-logout-top">Sair</button>
     </div>
   </header>
 
-  <!-- ======================================================
-       🔒 CONTEÚDO PRINCIPAL
-  ====================================================== -->
   <main class="content">
 
-    <!-- ======================================================
-         🔒 DASHBOARD
-    ====================================================== -->
     <section id="dashboard">
-      <h1>Dashboard Financeiro</h1>
+      <div class="dashboard-heading">
+        <div>
+          <span class="eyebrow">VISÃO GERAL</span>
+          <h1>Dashboard Financeiro</h1>
+          <p>Acompanhe suas receitas, despesas e investimentos em um só lugar.</p>
+        </div>
+        <div class="dashboard-date" id="dashboardPeriodo">Período atual</div>
+      </div>
 
       <div class="avisos-sistema">
         <span id="nomeCliente">Olá!</span>
@@ -107,40 +88,90 @@
       </div>
 
       <div class="filtros">
-        <label>Mês <input type="month" id="filtroMes"></label>
-        <label>Ano <input type="number" id="filtroAno" placeholder="2026"></label>
-        <button id="btnLimparFiltro">Limpar</button>
+        <label>
+          <span>Período</span>
+          <input type="month" id="filtroMes">
+        </label>
+        <button id="btnLimparFiltro" type="button">Limpar filtro</button>
       </div>
 
       <div class="cards">
-        <div class="card receita"><span>Receitas</span><strong id="totalReceitas">R$ 0,00</strong></div>
-        <div class="card despesa"><span>Despesas</span><strong id="totalDespesas">R$ 0,00</strong></div>
-        <div class="card investimento"><span>Investimentos</span><strong id="totalInvestimentos">R$ 0,00</strong></div>
-        <div class="card saldo"><span>Saldo</span><strong id="saldo">R$ 0,00</strong></div>
+        <div class="card receita">
+          <span class="card-label">Receitas</span>
+          <strong id="totalReceitas">R$ 0,00</strong>
+          <small>Entradas no período</small>
+        </div>
+
+        <div class="card despesa">
+          <span class="card-label">Despesas</span>
+          <strong id="totalDespesas">R$ 0,00</strong>
+          <small>Saídas no período</small>
+        </div>
+
+        <div class="card investimento">
+          <span class="card-label">Investimentos</span>
+          <strong id="totalInvestimentos">R$ 0,00</strong>
+          <small>Valores investidos</small>
+        </div>
+
+        <div class="card saldo">
+          <span class="card-label">Saldo</span>
+          <strong id="saldo">R$ 0,00</strong>
+          <small>Receitas menos despesas</small>
+        </div>
+
+        <div id="alertasInteligentes" class="alertas"></div>
+      </div>
+
+      <div class="dashboard-section-title">
+        <div>
+          <span class="eyebrow">ANÁLISE</span>
+          <h2>Desempenho financeiro</h2>
+        </div>
       </div>
 
       <div class="graficos">
-        <div class="grafico-box">
-          <select id="tipoGrafico">
-            <option value="geral">Resumo Geral</option>
-            <option value="categoria">Por Categoria</option>
-          </select>
-          <canvas id="grafico"></canvas>
+        <div class="grafico-box grafico-principal">
+          <div class="grafico-header">
+            <div>
+              <h3>Distribuição financeira</h3>
+              <p>Visualização dos valores registrados.</p>
+            </div>
+            <select id="tipoGrafico">
+              <option value="geral">Resumo Geral</option>
+              <option value="categoria">Por Categoria</option>
+            </select>
+          </div>
+          <div class="chart-wrap chart-pie">
+            <canvas id="grafico"></canvas>
+          </div>
         </div>
 
         <div class="grafico-box">
-          <h4>Resumo Mensal</h4>
-          <canvas id="graficoMensal"></canvas>
+          <div class="grafico-header">
+            <div>
+              <h3>Resumo mensal</h3>
+              <p>Comparativo de receitas e despesas.</p>
+            </div>
+          </div>
+          <div class="chart-wrap">
+            <canvas id="graficoMensal"></canvas>
+          </div>
         </div>
       </div>
 
-      <!-- 🔹 NOVO GRÁFICO (JÁ SUPORTADO PELO JS) -->
-      <div class="grafico-box">
-    <h4>Evolução Receita x Despesa</h4>
-  <canvas id="graficoComparativo"></canvas>
-</div>
+      <div class="grafico-box grafico-comparativo">
+        <div class="grafico-header">
+          <div>
+            <h3>Evolução Receita x Despesa</h3>
+            <p>Acompanhe a evolução do seu caixa ao longo dos meses.</p>
+          </div>
+        </div>
+        <div class="chart-wrap chart-line">
+          <canvas id="graficoComparativo"></canvas>
+        </div>
+      </div>
 
-      <!-- ADMIN (mantido intacto) -->
       <section id="adminPanel" class="hidden" data-admin-only>
         <h2>Painel Administrativo</h2>
         <table>
@@ -160,12 +191,8 @@
         <p>Gerenciamento de usuários e planos</p>
         <button type="button">Gerenciar Usuários</button>
       </div>
-
     </section>
 
-    <!-- ======================================================
-         🧩 LANÇAMENTOS
-    ====================================================== -->
     <section id="lancamentos" class="hidden">
       <h2>Novo Lançamento</h2>
 
@@ -196,10 +223,6 @@
   </main>
 </div>
 
-<!-- ======================================================
-     🔒 SCRIPT FINAL
-====================================================== -->
 <script src="script.js"></script>
-
 </body>
 </html>
