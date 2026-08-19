@@ -1516,92 +1516,30 @@ document.addEventListener("DOMContentLoaded", async () => {
           dadosPorMes[mes].despesa
       );
 
-    graficoComparativo =
-      new Chart(
-        canvas,
-        {
-
-          type: "line",
-
-          data: {
-
-            labels,
-
-            datasets: [
-
-              {
-
+    graficoComparativo = new Chart(ctx, {
+    type: "line",
+    data: {
+        labels: labels,
+        datasets: [
+            {
                 label: "Receitas",
-
                 data: receitas,
-
-                borderWidth: 3,
-
-                tension: 0.3,
-
-                fill: false
-
-              },
-
-              {
-
+                borderWidth: 2,
+                tension: 0.3
+            },
+            {
                 label: "Despesas",
-
                 data: despesas,
-
-                borderWidth: 3,
-
-                tension: 0.3,
-
-                fill: false
-
-              }
-
-            ]
-
-          },
-
-          options: {
-
-            responsive: true,
-
-            maintainAspectRatio: false,
-
-            interaction: {
-
-              mode: "index",
-
-              intersect: false
-
-            },
-
-            plugins: {
-
-              legend: {
-
-                position: "bottom"
-
-              }
-
-            },
-
-            scales: {
-
-              y: {
-
-                beginAtZero: true
-
-              }
-
+                borderWidth: 2,
+                tension: 0.3
             }
-
-          }
-
-        }
-
-      );
-
-  }
+        ]
+    },
+    options: {
+        responsive: true,
+        maintainAspectRatio: false
+    }
+});
 
   /* ======================================================
      MUDANÇA DO TIPO DE GRÁFICO
