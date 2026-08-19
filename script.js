@@ -1428,127 +1428,201 @@ document.addEventListener("DOMContentLoaded", async () => {
 
  /* ======================================================
    GRÁFICO COMPARATIVO
+   Receita x Despesa
 ====================================================== */
 
 function renderizarGraficoComparativo(dadosFiltrados) {
 
-  const canvas = document.getElementById("graficoComparativo");
+    const canvas = document.getElementById("graficoComparativo");
 
-  if (!canvas) return;
-
-  /* Destrói o gráfico anterior antes de criar outro */
-  if (graficoComparativo) {
-    graficoComparativo.destroy();
-    graficoComparativo = null;
-  }
-
-  const dadosPorMes = {};
-
-  dadosFiltrados.forEach(l => {
-
-    if (!l.data) return;
-
-    const mes = l.data.slice(0, 7);
-
-    if (!dadosPorMes[mes]) {
-      dadosPorMes[mes] = {
-        receita: 0,
-        despesa: 0
-      };
+    if (!canvas) {
+        return;
     }
 
-    const valorLancamento = Number(l.valor) || 0;
+    /* ==================================================
+       DESTRUIR GRÁFICO ANTERIOR
+    ================================================== */
 
-    if (l.tipo === "Receita") {
-      dadosPorMes[mes].receita += valorLancamento;
+    if (graficoComparativo) {
+
+        try {
+            graficoComparativo.destroy();
+        } catch (erro) {
+            console.warn(
+                "Não foi possível destruir o gráfico anterior:",
+                erro
+            );
+        }
+
+        graficoComparativo = null;
     }
 
-    if (l.tipo === "Despesa") {
-      dadosPorMes[mes].despesa += valorLancamento;
+    /* ==================================================
+       ORGANIZAR DADOS POR MÊS
+    ================================================== */
+
+    const dadosPorMes = {};
+
+    dadosFiltrados.forEach(lancamento => {
+
+        if (!lancamento.data) {
+            return;
+        }
+
+        const mes = lancamento.data.substring(0, 7);
+
+        if (!dadosPorMes[mes]) {
+
+            dadosPorMes[mes] = {
+                receita: 0,
+                despesa: 0
+            };
+
+        }
+
+        const valor = Number(lancamento.valor) || 0;
+
+        if (lancamento.tipo === "Receita") {
+            dadosPorMes[mes].receita += valor;
+        }
+
+        if (lancamento.tipo === "Despesa") {
+            dadosPorMes[mes].despesa += valor;
+        }
+
+    });
+
+    /* ==================================================
+       ORDENAR MESES
+    ================================================== */
+
+    const labels = Object.keys(dadosPorMes).sort();
+
+    /* ==================================================
+       SEM DADOS
+    ================================================== */
+
+    if (labels.length === 0) {
+
+        const ctxVazio = canvas.getContext("2d");
+
+        if (ctxVazio) {
+            ctxVazio.clearRect(
+                0,
+                0,
+                canvas.width,
+                canvas.height
+            );
+        }
+
+        return;
     }
 
-  });
+    /* ==================================================
+       PREPARAR VALORES
+    ================================================== */
 
-  const labels = Object.keys(dadosPorMes).sort();
+    const receitas = labels.map(mes => {
+        return dadosPorMes[mes].receita;
+    });
 
-  /* Se não houver dados, não cria gráfico */
-  if (labels.length === 0) {
-    return;
-  }
+    const despesas = labels.map(mes => {
+        return dadosPorMes[mes].despesa;
+    });
 
-  const receitas = labels.map(
-    mes => dadosPorMes[mes].receita
-  );
+    /* ==================================================
+       CONTEXTO DO CANVAS
+    ================================================== */
 
-  const despesas = labels.map(
-    mes => dadosPorMes[mes].despesa
-  );
+    const ctx = canvas.getContext("2d");
 
-  /* Contexto correto do canvas */
-  const ctx = canvas.getContext("2d");
+    if (!ctx) {
+        return;
+    }
 
-  if (!ctx) return;
+    /* ==================================================
+       CRIAR GRÁFICO
+    ================================================== */
 
-  graficoComparativo = new Chart(ctx, {
+    graficoComparativo = new Chart(ctx, {
 
-    type: "line",
+        type: "line",
 
-    data: {
+        data: {
 
-      labels: labels,
+            labels: labels,
 
-      datasets: [
+            datasets: [
 
-        {
-          label: "Receitas",
-          data: receitas,
-          borderWidth: 3,
-          tension: 0.3,
-          fill: false
+                {
+                    label: "Receitas",
+                    data: receitas,
+
+                    borderWidth: 3,
+
+                    tension: 0.25,
+
+                    fill: false,
+
+                    pointRadius: 4,
+
+                    pointHoverRadius: 6
+                },
+
+                {
+                    label: "Despesas",
+                    data: despesas,
+
+                    borderWidth: 3,
+
+                    tension: 0.25,
+
+                    fill: false,
+
+                    pointRadius: 4,
+
+                    pointHoverRadius: 6
+                }
+
+            ]
+
         },
 
-        {
-          label: "Despesas",
-          data: despesas,
-          borderWidth: 3,
-          tension: 0.3,
-          fill: false
+        options: {
+
+            responsive: true,
+
+            maintainAspectRatio: false,
+
+            animation: false,
+
+            resizeDelay: 100,
+
+            plugins: {
+
+                legend: {
+                    position: "top"
+                }
+
+            },
+
+            scales: {
+
+                x: {
+                    beginAtZero: false
+                },
+
+                y: {
+                    beginAtZero: true
+                }
+
+            }
+
         }
 
-      ]
-
-    },
-
-    options: {
-
-      responsive: true,
-
-      maintainAspectRatio: false,
-
-      animation: false,
-
-      plugins: {
-
-        legend: {
-          position: "bottom"
-        }
-
-      },
-
-      scales: {
-
-        y: {
-          beginAtZero: true
-        }
-
-      }
-
-    }
-
-  });
+    });
 
 }
-
   /* ======================================================
      MUDANÇA DO TIPO DE GRÁFICO
   ====================================================== */
