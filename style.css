@@ -823,3 +823,602 @@ button{cursor:pointer}
   .cards .card:after{left:16px;width:52px;height:52px}
   .cards .card strong{font-size:21px}
 }
+/* =========================================================
+   TCS FINANCE — AJUSTE FINAL DE LAYOUT
+   FULL WIDTH + GRÁFICOS + PIZZA
+   ========================================================= */
+
+/* ---------------------------------------------------------
+   ESTRUTURA PRINCIPAL
+   --------------------------------------------------------- */
+
+html,
+body {
+    width: 100%;
+    min-width: 0;
+    overflow-x: hidden;
+}
+
+#app {
+    width: 100%;
+    min-height: 100vh;
+}
+
+.content {
+    width: calc(100% - var(--sidebar));
+    max-width: none !important;
+    min-width: 0;
+    margin-left: var(--sidebar) !important;
+    margin-right: 0 !important;
+    padding: calc(var(--topbar) + 18px) 28px 40px !important;
+    box-sizing: border-box;
+}
+
+/* O conteúdo interno não deve criar uma largura artificial */
+#dashboard {
+    width: 100%;
+    max-width: none !important;
+    min-width: 0;
+}
+
+/* ---------------------------------------------------------
+   FILTRO
+   --------------------------------------------------------- */
+
+.filtros {
+    width: 100%;
+    max-width: none !important;
+    box-sizing: border-box;
+}
+
+/* ---------------------------------------------------------
+   CARDS FINANCEIROS
+   --------------------------------------------------------- */
+
+.cards {
+    width: 100%;
+    max-width: none !important;
+
+    display: grid !important;
+    grid-template-columns:
+        repeat(4, minmax(0, 1fr));
+
+    gap: 16px !important;
+}
+
+.cards .card {
+    min-width: 0;
+    width: 100%;
+}
+
+/* ---------------------------------------------------------
+   ALERTAS
+   --------------------------------------------------------- */
+
+.alertas {
+    width: 100%;
+    min-width: 0;
+}
+
+/* ---------------------------------------------------------
+   ÁREA DE ANÁLISE
+   --------------------------------------------------------- */
+
+.dashboard-section-title {
+    width: 100%;
+}
+
+/* ---------------------------------------------------------
+   DOIS GRÁFICOS SUPERIORES
+   --------------------------------------------------------- */
+
+.graficos {
+    width: 100%;
+    max-width: none !important;
+    min-width: 0;
+
+    display: grid !important;
+    grid-template-columns:
+        minmax(0, 1fr)
+        minmax(0, 1fr);
+
+    gap: 18px !important;
+
+    align-items: stretch;
+}
+
+/* ---------------------------------------------------------
+   CARDS DOS GRÁFICOS
+   --------------------------------------------------------- */
+
+.grafico-box {
+    width: 100%;
+    min-width: 0;
+
+    box-sizing: border-box;
+
+    background: #fff;
+
+    border: 1px solid var(--line);
+    border-radius: 18px;
+
+    box-shadow:
+        0 8px 26px rgba(16, 24, 40, .055);
+
+    overflow: hidden;
+}
+
+/* Os dois cards superiores ficam com a mesma altura */
+.graficos > .grafico-box {
+    height: 330px;
+}
+
+/* ---------------------------------------------------------
+   CABEÇALHO DOS GRÁFICOS
+   --------------------------------------------------------- */
+
+.grafico-header {
+    width: 100%;
+    min-width: 0;
+
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+
+    gap: 16px;
+
+    margin-bottom: 6px;
+}
+
+.grafico-header > div {
+    min-width: 0;
+}
+
+.grafico-header h3 {
+    margin: 0 0 5px;
+
+    color: var(--text);
+
+    font-size: 15px;
+    font-weight: 800;
+
+    line-height: 1.25;
+}
+
+.grafico-header p {
+    margin: 0;
+
+    color: var(--muted);
+
+    font-size: 11px;
+    line-height: 1.4;
+}
+
+.grafico-header select {
+    flex: 0 0 155px;
+
+    width: 155px;
+    height: 36px;
+
+    box-sizing: border-box;
+
+    padding: 0 10px;
+
+    border: 1px solid var(--line);
+    border-radius: 9px;
+
+    background: #fff;
+    color: #344054;
+
+    font-size: 11px;
+    font-weight: 650;
+}
+
+/* ---------------------------------------------------------
+   ÁREA INTERNA DOS GRÁFICOS
+   --------------------------------------------------------- */
+
+.chart-wrap {
+    position: relative;
+
+    width: 100%;
+    min-width: 0;
+
+    box-sizing: border-box;
+}
+
+/* ---------------------------------------------------------
+   PIZZA — CORREÇÃO DEFINITIVA
+   --------------------------------------------------------- */
+
+/*
+   A pizza estava sendo cortada porque o canvas tinha
+   uma altura grande demais para o espaço vertical disponível.
+
+   Agora damos uma área própria e controlada.
+*/
+
+.chart-pie {
+    position: relative;
+
+    width: 100%;
+    height: 238px !important;
+
+    min-height: 238px;
+    max-height: 238px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    box-sizing: border-box;
+}
+
+/*
+   O canvas não pode ultrapassar a área do card.
+*/
+
+.chart-pie canvas {
+    display: block !important;
+
+    width: 100% !important;
+    height: 238px !important;
+
+    max-width: 100% !important;
+    max-height: 238px !important;
+
+    box-sizing: border-box;
+}
+
+/*
+   IMPORTANTE:
+   quando o gráfico for circular, deixamos o espaço
+   horizontal e vertical igualmente disponível.
+*/
+
+.grafico-principal .chart-pie {
+    overflow: hidden;
+}
+
+/* ---------------------------------------------------------
+   GRÁFICO DE BARRAS
+   --------------------------------------------------------- */
+
+.chart-bar {
+    position: relative;
+
+    width: 100%;
+    height: 238px !important;
+
+    min-height: 238px;
+    max-height: 238px;
+
+    box-sizing: border-box;
+}
+
+.chart-bar canvas {
+    display: block !important;
+
+    width: 100% !important;
+    height: 238px !important;
+
+    max-width: 100% !important;
+    max-height: 238px !important;
+
+    box-sizing: border-box;
+}
+
+/* ---------------------------------------------------------
+   GRÁFICO DE EVOLUÇÃO
+   --------------------------------------------------------- */
+
+.grafico-comparativo {
+    width: 100%;
+    max-width: none !important;
+
+    height: 340px;
+
+    margin-top: 18px;
+
+    box-sizing: border-box;
+}
+
+.chart-line {
+    position: relative;
+
+    width: 100%;
+
+    height: 260px !important;
+
+    min-height: 260px;
+}
+
+.chart-line canvas {
+    display: block !important;
+
+    width: 100% !important;
+    height: 260px !important;
+
+    max-width: 100% !important;
+    max-height: 260px !important;
+
+    box-sizing: border-box;
+}
+
+/* ---------------------------------------------------------
+   EVITA QUALQUER ESTOURO HORIZONTAL
+   --------------------------------------------------------- */
+
+.graficos,
+.grafico-box,
+.chart-wrap,
+.chart-pie,
+.chart-bar,
+.chart-line,
+.grafico-box canvas {
+    max-width: 100%;
+}
+
+/* ---------------------------------------------------------
+   LANÇAMENTOS TAMBÉM APROVEITA A TELA
+   --------------------------------------------------------- */
+
+#lancamentos {
+    width: 100%;
+    max-width: none !important;
+}
+
+/* ---------------------------------------------------------
+   FOOTER
+   --------------------------------------------------------- */
+
+.creditos-app {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* =========================================================
+   TELAS GRANDES
+   ========================================================= */
+
+@media (min-width: 1600px) {
+
+    .content {
+        padding-left: 34px !important;
+        padding-right: 34px !important;
+    }
+
+    .cards {
+        gap: 18px !important;
+    }
+
+    .graficos {
+        gap: 20px !important;
+    }
+
+    .graficos > .grafico-box {
+        height: 350px;
+    }
+
+    .chart-pie,
+    .chart-bar {
+        height: 258px !important;
+        min-height: 258px;
+        max-height: 258px;
+    }
+
+    .chart-pie canvas,
+    .chart-bar canvas {
+        height: 258px !important;
+        max-height: 258px !important;
+    }
+
+    .grafico-comparativo {
+        height: 360px;
+    }
+
+    .chart-line {
+        height: 278px !important;
+    }
+
+    .chart-line canvas {
+        height: 278px !important;
+        max-height: 278px !important;
+    }
+}
+
+/* =========================================================
+   NOTEBOOK / TELAS MÉDIAS
+   ========================================================= */
+
+@media (max-width: 1200px) {
+
+    .content {
+        padding-left: 20px !important;
+        padding-right: 20px !important;
+    }
+
+    .cards {
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+    }
+
+    .graficos {
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+    }
+}
+
+/* =========================================================
+   TABLET / MENU MOBILE
+   ========================================================= */
+
+@media (max-width: 850px) {
+
+    .content {
+        width: 100%;
+        margin-left: 0 !important;
+
+        padding:
+            calc(var(--topbar) + 16px)
+            18px
+            32px !important;
+    }
+
+    .graficos {
+        grid-template-columns: 1fr;
+    }
+
+    .graficos > .grafico-box {
+        height: 330px;
+    }
+
+    .chart-pie,
+    .chart-bar {
+        height: 240px !important;
+        min-height: 240px;
+        max-height: 240px;
+    }
+
+    .chart-pie canvas,
+    .chart-bar canvas {
+        height: 240px !important;
+        max-height: 240px !important;
+    }
+
+    .grafico-comparativo {
+        height: 300px;
+    }
+
+    .chart-line {
+        height: 220px !important;
+    }
+
+    .chart-line canvas {
+        height: 220px !important;
+        max-height: 220px !important;
+    }
+}
+
+/* =========================================================
+   CELULAR
+   ========================================================= */
+
+@media (max-width: 600px) {
+
+    .content {
+        padding:
+            calc(var(--topbar) + 14px)
+            12px
+            28px !important;
+    }
+
+    .filtros {
+        flex-direction: column !important;
+        align-items: stretch !important;
+    }
+
+    .filtros input,
+    #btnLimparFiltro {
+        width: 100%;
+    }
+
+    .cards {
+        grid-template-columns: 1fr 1fr;
+        gap: 10px !important;
+    }
+
+    .cards .card {
+        min-height: 126px;
+        padding: 15px !important;
+    }
+
+    .cards .card strong {
+        font-size: 18px !important;
+        word-break: break-word;
+    }
+
+    .graficos {
+        grid-template-columns: 1fr;
+        gap: 12px !important;
+    }
+
+    .graficos > .grafico-box {
+        height: 330px;
+        padding: 15px !important;
+    }
+
+    .grafico-header {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .grafico-header select {
+        width: 100%;
+        flex-basis: auto;
+    }
+
+    .chart-pie,
+    .chart-bar {
+        height: 230px !important;
+        min-height: 230px;
+        max-height: 230px;
+    }
+
+    .chart-pie canvas,
+    .chart-bar canvas {
+        height: 230px !important;
+        max-height: 230px !important;
+    }
+
+    .grafico-comparativo {
+        height: 300px;
+        margin-top: 12px;
+    }
+
+    .chart-line {
+        height: 215px !important;
+        min-height: 215px;
+    }
+
+    .chart-line canvas {
+        height: 215px !important;
+        max-height: 215px !important;
+    }
+}
+
+/* =========================================================
+   CELULARES PEQUENOS
+   ========================================================= */
+
+@media (max-width: 420px) {
+
+    .cards {
+        grid-template-columns: 1fr;
+    }
+
+    .cards .card {
+        min-height: 115px;
+    }
+
+    .grafico-box {
+        border-radius: 15px;
+    }
+
+    .grafico-header h3 {
+        font-size: 14px;
+    }
+
+    .chart-pie,
+    .chart-bar {
+        height: 220px !important;
+        min-height: 220px;
+        max-height: 220px;
+    }
+
+    .chart-pie canvas,
+    .chart-bar canvas {
+        height: 220px !important;
+        max-height: 220px !important;
+    }
+}

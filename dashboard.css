@@ -350,11 +350,7 @@ body{
   box-shadow:0 1px 0 rgba(16,24,40,.06) !important;
 }
 
-/* Evita gráficos gigantes */
-.graficos canvas,
-.grafico-box canvas{
-  max-height:100%;
-}
+
 
 /* =========================================================
    MOBILE
