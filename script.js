@@ -91,8 +91,32 @@ document.addEventListener("DOMContentLoaded", async () => {
   const btnLogoutTop = document.getElementById("btnLogoutTop");
   const btnLogout = document.getElementById("btnLogout");
 
+  const btnRelatorios = document.getElementById("btnRelatorios");
+  const relatorios = document.getElementById("relatorios");
+
   const btnDashboard = document.getElementById("btnDashboard");
   const btnLancamentos = document.getElementById("btnLancamentos");
+  /* ======================================================
+   RELATÓRIOS
+====================================================== */
+
+if (btnRelatorios) {
+
+    btnRelatorios.onclick = () => {
+
+        dashboard.classList.add("hidden");
+        lancamentos.classList.add("hidden");
+
+        if (relatorios) {
+            relatorios.classList.remove("hidden");
+        }
+
+        fecharMenuMobile();
+
+        atualizarRelatorios();
+    };
+
+}
 
   const btnSalvar = document.getElementById("btnSalvar");
 
@@ -119,6 +143,86 @@ document.addEventListener("DOMContentLoaded", async () => {
   const menuOverlay = document.getElementById("menuOverlay");
 
   const dashboardPeriodo = document.getElementById("dashboardPeriodo");
+  /* ======================================================
+   ATUALIZAR RELATÓRIOS
+====================================================== */
+
+function atualizarRelatorios() {
+
+    const filtrados = obterDadosFiltrados();
+
+    let receita = 0;
+    let despesa = 0;
+    let investimento = 0;
+
+    filtrados.forEach(l => {
+
+        const valorLancamento =
+            Number(l.valor) || 0;
+
+        if (l.tipo === "Receita") {
+            receita += valorLancamento;
+        }
+
+        if (l.tipo === "Despesa") {
+            despesa += valorLancamento;
+        }
+
+        if (l.tipo === "Investimento") {
+            investimento += valorLancamento;
+        }
+
+    });
+
+    const saldoAtual =
+        receita - despesa;
+
+    const elementos = {
+
+        relatorioReceitas:
+            formatarMoeda(receita),
+
+        relatorioDespesas:
+            formatarMoeda(despesa),
+
+        relatorioInvestimentos:
+            formatarMoeda(investimento),
+
+        relatorioSaldo:
+            formatarMoeda(saldoAtual),
+
+        relatorioResumoReceitas:
+            formatarMoeda(receita),
+
+        relatorioResumoDespesas:
+            formatarMoeda(despesa),
+
+        relatorioResumoInvestimentos:
+            formatarMoeda(investimento),
+
+        relatorioResumoSaldo:
+            formatarMoeda(saldoAtual),
+
+        relatorioPeriodo:
+            formatarPeriodo(
+                filtroMes?.value || ""
+            )
+
+    };
+
+    Object.entries(elementos).forEach(
+        ([id, valor]) => {
+
+            const elemento =
+                document.getElementById(id);
+
+            if (elemento) {
+                elemento.innerText = valor;
+            }
+
+        }
+    );
+}
 
   /* ======================================================
      FORMATAÇÃO
@@ -247,21 +351,24 @@ document.addEventListener("DOMContentLoaded", async () => {
      NAVEGAÇÃO
   ====================================================== */
 
-  if (btnDashboard) {
+ if (btnDashboard) {
 
     btnDashboard.onclick = () => {
 
-      dashboard.classList.remove("hidden");
+        dashboard.classList.remove("hidden");
 
-      lancamentos.classList.add("hidden");
+        lancamentos.classList.add("hidden");
 
-      fecharMenuMobile();
+        if (relatorios) {
+            relatorios.classList.add("hidden");
+        }
 
-      atualizarDashboard();
+        fecharMenuMobile();
 
+        atualizarDashboard();
     };
 
-  }
+}
 
   if (btnLancamentos) {
 

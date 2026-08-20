@@ -48,9 +48,10 @@
         <span class="nav-icon">⇄</span><span>Lançamentos</span>
       </button>
 
-      <button type="button" id="btnRelatorios" class="nav-item visual-only">
-        <span class="nav-icon">◔</span><span>Relatórios</span>
-      </button>
+      <button type="button" id="btnRelatorios" class="nav-item">
+    <span class="nav-icon">◔</span>
+    <span>Relatórios</span>
+</button>
     </nav>
 
     <div class="sidebar-account">
@@ -242,6 +243,82 @@
       </div>
     </section>
 
+    <section id="relatorios" class="hidden">
+
+    <div class="page-heading">
+        <span class="eyebrow">ANÁLISE</span>
+        <h2>Relatórios Financeiros</h2>
+        <p>Consulte uma visão detalhada da sua movimentação financeira.</p>
+    </div>
+
+    <div class="relatorios-grid">
+
+        <div class="relatorio-card">
+            <span class="relatorio-icon">↑</span>
+            <div>
+                <small>RECEITAS</small>
+                <strong id="relatorioReceitas">R$ 0,00</strong>
+            </div>
+        </div>
+
+        <div class="relatorio-card">
+            <span class="relatorio-icon">↓</span>
+            <div>
+                <small>DESPESAS</small>
+                <strong id="relatorioDespesas">R$ 0,00</strong>
+            </div>
+        </div>
+
+        <div class="relatorio-card">
+            <span class="relatorio-icon">◔</span>
+            <div>
+                <small>INVESTIMENTOS</small>
+                <strong id="relatorioInvestimentos">R$ 0,00</strong>
+            </div>
+        </div>
+
+        <div class="relatorio-card relatorio-saldo">
+            <span class="relatorio-icon">▱</span>
+            <div>
+                <small>SALDO</small>
+                <strong id="relatorioSaldo">R$ 0,00</strong>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="relatorio-resumo">
+
+        <div>
+            <h3>Resumo financeiro</h3>
+            <p id="relatorioPeriodo">
+                Período atual
+            </p>
+        </div>
+
+        <div class="relatorio-linha">
+            <span>Receitas</span>
+            <strong id="relatorioResumoReceitas">R$ 0,00</strong>
+        </div>
+
+        <div class="relatorio-linha">
+            <span>Despesas</span>
+            <strong id="relatorioResumoDespesas">R$ 0,00</strong>
+        </div>
+
+        <div class="relatorio-linha">
+            <span>Investimentos</span>
+            <strong id="relatorioResumoInvestimentos">R$ 0,00</strong>
+        </div>
+
+        <div class="relatorio-linha destaque">
+            <span>Saldo</span>
+            <strong id="relatorioResumoSaldo">R$ 0,00</strong>
+        </div>
+
+    </div>
+
+</section>
     <footer class="creditos-app">© TCS Finance • Dados criptografados • Uso profissional</footer>
   </main>
 </div>
