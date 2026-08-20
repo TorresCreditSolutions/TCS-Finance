@@ -7,7 +7,6 @@
 
   <link rel="icon" href="favicon.ico" type="image/x-icon">
   <link rel="stylesheet" href="style.css">
-  <link rel="stylesheet" href="dashboard-pro.css">
 
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -19,59 +18,79 @@
 
 <div id="login-container">
   <h2>TCS Finance</h2>
-
   <input type="email" id="email" placeholder="Email">
   <input type="password" id="senha" placeholder="Senha">
-
   <button type="button" id="btnLogin">Entrar</button>
   <button type="button" id="btnCadastro">Criar Conta</button>
-
-  <a href="javascript:void(0)" id="btnEsqueciSenha" class="esqueci-senha">
-    Esqueci minha senha
-  </a>
-
+  <a href="javascript:void(0)" id="btnEsqueciSenha" class="esqueci-senha">Esqueci minha senha</a>
   <div class="termos-container">
     <label class="termos">
       <input type="checkbox" id="aceiteTermos">
       Li e aceito os termos de uso
     </label>
   </div>
-
-  <div class="creditos">
-    © Torres Credit Solutions • Dados criptografados
-  </div>
+  <div class="creditos">© Torres Credit Solutions • Dados criptografados</div>
 </div>
 
 <div id="app" class="hidden">
 
   <aside class="sidebar">
-    <span class="logo">TCS Finance</span>
-    <nav>
-      <button type="button" id="btnDashboard">Dashboard</button>
-      <button type="button" id="btnLancamentos">Lançamentos</button>
-      <button type="button" id="btnLogout">Sair</button>
+    <div class="sidebar-brand">
+      <span class="brand-tcs">TCS</span><span class="brand-finance">Finance</span>
+    </div>
+
+    <nav class="sidebar-nav">
+      <button type="button" id="btnDashboard" class="nav-item active">
+        <span class="nav-icon">▥</span><span>Dashboard</span>
+      </button>
+
+      <button type="button" id="btnLancamentos" class="nav-item">
+        <span class="nav-icon">⇄</span><span>Lançamentos</span>
+      </button>
+
+      <button type="button" id="btnRelatorios" class="nav-item visual-only">
+        <span class="nav-icon">◔</span><span>Relatórios</span>
+      </button>
     </nav>
+
+    <div class="sidebar-account">
+      <span class="account-label">CONTA</span>
+      <div class="account-card">
+        <span class="account-avatar">●</span>
+        <div>
+          <strong>Plano FREE</strong>
+          <small>Usuário</small>
+        </div>
+        <span class="free-pill">FREE</span>
+      </div>
+    </div>
+
+    <button type="button" id="btnLogout" class="sidebar-logout">
+      <span class="nav-icon">↪</span><span>Sair</span>
+    </button>
   </aside>
 
   <header class="topbar">
     <div class="topbar-left">
-      <span class="logo">TCS Finance</span>
+      <button type="button" id="btnMenu" class="btn-menu" aria-label="Abrir menu">☰</button>
+      <span class="topbar-title">TCS Finance</span>
     </div>
 
     <div class="topbar-center">
-      <span id="topbarUser">Olá</span>
+      <span id="topbarUser">anderson.a9bank</span>
       <span id="topbarPlano" class="plano-badge">FREE</span>
     </div>
 
     <div class="topbar-right">
-      <button type="button" id="btnMenu" class="btn-menu" aria-label="Abrir menu">☰</button>
-      <button type="button" id="btnLogoutTop" class="btn-logout-top">Sair</button>
+      <button type="button" id="btnLogoutTop" class="btn-logout-top">⇥&nbsp; Sair</button>
     </div>
   </header>
 
   <main class="content">
 
     <section id="dashboard">
+
+      <!-- Mantidos para compatibilidade com o JS; visualmente compactados no novo layout. -->
       <div class="dashboard-heading">
         <div>
           <span class="eyebrow">VISÃO GERAL</span>
@@ -89,7 +108,7 @@
 
       <div class="filtros">
         <label>
-          <span>Período</span>
+          <span>PERÍODO</span>
           <input type="month" id="filtroMes">
         </label>
         <button id="btnLimparFiltro" type="button">Limpar filtro</button>
@@ -97,25 +116,29 @@
 
       <div class="cards">
         <div class="card receita">
-          <span class="card-label">Receitas</span>
+          <span class="card-icon" aria-hidden="true">↑</span>
+          <span class="card-label">RECEITAS</span>
           <strong id="totalReceitas">R$ 0,00</strong>
           <small>Entradas no período</small>
         </div>
 
         <div class="card despesa">
-          <span class="card-label">Despesas</span>
+          <span class="card-icon" aria-hidden="true">↓</span>
+          <span class="card-label">DESPESAS</span>
           <strong id="totalDespesas">R$ 0,00</strong>
           <small>Saídas no período</small>
         </div>
 
         <div class="card investimento">
-          <span class="card-label">Investimentos</span>
+          <span class="card-icon" aria-hidden="true">◔</span>
+          <span class="card-label">INVESTIMENTOS</span>
           <strong id="totalInvestimentos">R$ 0,00</strong>
           <small>Valores investidos</small>
         </div>
 
         <div class="card saldo">
-          <span class="card-label">Saldo</span>
+          <span class="card-icon" aria-hidden="true">▱</span>
+          <span class="card-label">SALDO</span>
           <strong id="saldo">R$ 0,00</strong>
           <small>Receitas menos despesas</small>
         </div>
@@ -154,7 +177,7 @@
               <p>Comparativo de receitas e despesas.</p>
             </div>
           </div>
-          <div class="chart-wrap">
+          <div class="chart-wrap chart-bar">
             <canvas id="graficoMensal"></canvas>
           </div>
         </div>
@@ -175,18 +198,12 @@
       <section id="adminPanel" class="hidden" data-admin-only>
         <h2>Painel Administrativo</h2>
         <table>
-          <thead>
-            <tr>
-              <th>Email</th>
-              <th>Plano</th>
-              <th>Ação</th>
-            </tr>
-          </thead>
+          <thead><tr><th>Email</th><th>Plano</th><th>Ação</th></tr></thead>
           <tbody id="listaUsuariosAdmin"></tbody>
         </table>
       </section>
 
-      <div data-admin-only style="display:none; margin-top: 30px;">
+      <div data-admin-only class="hidden">
         <h2>Painel Administrativo</h2>
         <p>Gerenciamento de usuários e planos</p>
         <button type="button">Gerenciar Usuários</button>
@@ -194,32 +211,38 @@
     </section>
 
     <section id="lancamentos" class="hidden">
-      <h2>Novo Lançamento</h2>
+      <div class="page-heading">
+        <span class="eyebrow">MOVIMENTAÇÕES</span>
+        <h2>Novo Lançamento</h2>
+        <p>Registre suas receitas, despesas e investimentos.</p>
+      </div>
 
-      <select id="tipo">
-        <option value="">Tipo</option>
-        <option value="Receita">Receita</option>
-        <option value="Despesa">Despesa</option>
-        <option value="Investimento">Investimento</option>
-      </select>
+      <div class="lancamento-form-card">
+        <div class="form-grid">
+          <select id="tipo">
+            <option value="">Tipo</option>
+            <option value="Receita">Receita</option>
+            <option value="Despesa">Despesa</option>
+            <option value="Investimento">Investimento</option>
+          </select>
 
-      <select id="categoria"></select>
-      <input type="text" id="descricao" placeholder="Descrição">
-      <input type="number" id="valor" placeholder="Valor">
-      <input type="date" id="data">
+          <select id="categoria"></select>
+          <input type="text" id="descricao" placeholder="Descrição">
+          <input type="number" id="valor" placeholder="Valor">
+          <input type="date" id="data">
+        </div>
 
-      <button id="btnSalvar">Salvar</button>
+        <button id="btnSalvar">Salvar lançamento</button>
+      </div>
 
-      <h3>Extrato</h3>
-      <ul id="listaLancamentos"></ul>
-
-      <button id="btnExportarPdf">Exportar PDF</button>
+      <div class="extrato-card">
+        <h3>Extrato</h3>
+        <ul id="listaLancamentos"></ul>
+        <button id="btnExportarPdf">Exportar PDF</button>
+      </div>
     </section>
 
-    <footer class="creditos-app">
-      © TCS Finance • Dados criptografados • Uso profissional
-    </footer>
-
+    <footer class="creditos-app">© TCS Finance • Dados criptografados • Uso profissional</footer>
   </main>
 </div>
 
