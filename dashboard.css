@@ -309,7 +309,15 @@ body{
 
 .chart-wrap{
   position:relative;
+  width:100%;
   height:300px;
+  overflow:hidden;
+}
+
+.chart-wrap canvas{
+  display:block !important;
+  width:100% !important;
+  height:100% !important;
 }
 
 .chart-pie{
@@ -321,7 +329,12 @@ body{
 }
 
 .chart-line{
-  height:320px;
+  position:relative;
+  width:100%;
+  height:320px !important;
+  min-height:320px !important;
+  max-height:320px !important;
+  overflow:hidden !important;
 }
 
 .creditos-app{

@@ -992,6 +992,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       filtrados
     );
 
+    // renderizarGraficoComparativo(filtrados);
     renderizarGraficoComparativo(
       filtrados
     );
@@ -1431,196 +1432,148 @@ document.addEventListener("DOMContentLoaded", async () => {
    Receita x Despesa
 ====================================================== */
 
-function renderizarGraficoComparativo(dadosFiltrados) {
+function renderizarGraficoComparativo() {
 
-    const canvas = document.getElementById("graficoComparativo");
+  const canvas = document.getElementById("graficoComparativo");
 
-    if (!canvas) {
-        return;
+  if (!canvas) return;
+
+  // Destrói o gráfico anterior completamente
+  if (graficoComparativo) {
+    try {
+      graficoComparativo.destroy();
+    } catch (e) {
+      console.warn("Erro ao destruir gráfico comparativo:", e);
     }
 
-    /* ==================================================
-       DESTRUIR GRÁFICO ANTERIOR
-    ================================================== */
+    graficoComparativo = null;
+  }
 
-    if (graficoComparativo) {
+  const dadosPorMes = {};
 
-        try {
-            graficoComparativo.destroy();
-        } catch (erro) {
-            console.warn(
-                "Não foi possível destruir o gráfico anterior:",
-                erro
-            );
-        }
+  dados.forEach(l => {
 
-        graficoComparativo = null;
+    if (!l.data) return;
+
+    const mes = l.data.slice(0, 7);
+
+    if (!dadosPorMes[mes]) {
+      dadosPorMes[mes] = {
+        receita: 0,
+        despesa: 0
+      };
     }
 
-    /* ==================================================
-       ORGANIZAR DADOS POR MÊS
-    ================================================== */
+    const valorNumerico = Number(l.valor) || 0;
 
-    const dadosPorMes = {};
-
-    dadosFiltrados.forEach(lancamento => {
-
-        if (!lancamento.data) {
-            return;
-        }
-
-        const mes = lancamento.data.substring(0, 7);
-
-        if (!dadosPorMes[mes]) {
-
-            dadosPorMes[mes] = {
-                receita: 0,
-                despesa: 0
-            };
-
-        }
-
-        const valor = Number(lancamento.valor) || 0;
-
-        if (lancamento.tipo === "Receita") {
-            dadosPorMes[mes].receita += valor;
-        }
-
-        if (lancamento.tipo === "Despesa") {
-            dadosPorMes[mes].despesa += valor;
-        }
-
-    });
-
-    /* ==================================================
-       ORDENAR MESES
-    ================================================== */
-
-    const labels = Object.keys(dadosPorMes).sort();
-
-    /* ==================================================
-       SEM DADOS
-    ================================================== */
-
-    if (labels.length === 0) {
-
-        const ctxVazio = canvas.getContext("2d");
-
-        if (ctxVazio) {
-            ctxVazio.clearRect(
-                0,
-                0,
-                canvas.width,
-                canvas.height
-            );
-        }
-
-        return;
+    if (l.tipo === "Receita") {
+      dadosPorMes[mes].receita += valorNumerico;
     }
 
-    /* ==================================================
-       PREPARAR VALORES
-    ================================================== */
-
-    const receitas = labels.map(mes => {
-        return dadosPorMes[mes].receita;
-    });
-
-    const despesas = labels.map(mes => {
-        return dadosPorMes[mes].despesa;
-    });
-
-    /* ==================================================
-       CONTEXTO DO CANVAS
-    ================================================== */
-
-    const ctx = canvas.getContext("2d");
-
-    if (!ctx) {
-        return;
+    if (l.tipo === "Despesa") {
+      dadosPorMes[mes].despesa += valorNumerico;
     }
 
-    /* ==================================================
-       CRIAR GRÁFICO
-    ================================================== */
+  });
 
-    graficoComparativo = new Chart(ctx, {
+  const labels = Object.keys(dadosPorMes).sort();
 
-        type: "line",
+  // Se não houver dados, não cria o gráfico
+  if (labels.length === 0) {
+    canvas.style.display = "none";
+    return;
+  }
 
-        data: {
+  canvas.style.display = "block";
 
-            labels: labels,
+  const receitas = labels.map(mes => dadosPorMes[mes].receita);
+  const despesas = labels.map(mes => dadosPorMes[mes].despesa);
 
-            datasets: [
+  // Define tamanho físico fixo do canvas
+  canvas.width = 1200;
+  canvas.height = 320;
 
-                {
-                    label: "Receitas",
-                    data: receitas,
+  graficoComparativo = new Chart(canvas, {
 
-                    borderWidth: 3,
+    type: "line",
 
-                    tension: 0.25,
+    data: {
+      labels: labels,
 
-                    fill: false,
+      datasets: [
+        {
+          label: "Receitas",
+          data: receitas,
 
-                    pointRadius: 4,
+          borderWidth: 3,
+          tension: 0.25,
 
-                    pointHoverRadius: 6
-                },
+          pointRadius: 4,
+          pointHoverRadius: 6,
 
-                {
-                    label: "Despesas",
-                    data: despesas,
-
-                    borderWidth: 3,
-
-                    tension: 0.25,
-
-                    fill: false,
-
-                    pointRadius: 4,
-
-                    pointHoverRadius: 6
-                }
-
-            ]
-
+          fill: false
         },
 
-        options: {
+        {
+          label: "Despesas",
+          data: despesas,
 
-            responsive: true,
+          borderWidth: 3,
+          tension: 0.25,
 
-            maintainAspectRatio: false,
+          pointRadius: 4,
+          pointHoverRadius: 6,
 
-            animation: false,
+          fill: false
+        }
+      ]
+    },
 
-            resizeDelay: 100,
+    options: {
 
-            plugins: {
+      // IMPORTANTE:
+      // desliga o redimensionamento automático
+      responsive: false,
 
-                legend: {
-                    position: "top"
-                }
+      maintainAspectRatio: false,
 
-            },
+      animation: false,
 
-            scales: {
+      resizeDelay: 0,
 
-                x: {
-                    beginAtZero: false
-                },
+      plugins: {
+        legend: {
+          position: "bottom"
+        },
 
-                y: {
-                    beginAtZero: true
-                }
+        tooltip: {
+          enabled: true
+        }
+      },
 
+      scales: {
+
+        x: {
+          display: true
+        },
+
+        y: {
+          beginAtZero: true,
+
+          ticks: {
+            callback: function(value) {
+              return Number(value).toLocaleString("pt-BR", {
+                style: "currency",
+                currency: "BRL"
+              });
             }
-
+          }
         }
 
-    });
+      }
+    }
+
+  });
 
 }
   /* ======================================================
