@@ -1422,3 +1422,338 @@ body {
         max-height: 220px !important;
     }
 }
+/* =========================================================
+   TCS FINANCE — CORREÇÃO MENU MOBILE
+   JS utiliza "active"
+   ========================================================= */
+
+@media (max-width: 850px) {
+
+    .sidebar {
+        transform: translateX(-102%) !important;
+        transition: transform .25s ease !important;
+        left: 0 !important;
+        visibility: hidden;
+    }
+
+    .sidebar.active {
+        transform: translateX(0) !important;
+        visibility: visible;
+    }
+
+    .btn-menu {
+        display: grid !important;
+        position: relative;
+        z-index: 1400;
+        pointer-events: auto;
+    }
+
+    #menuOverlay {
+        position: fixed;
+        inset: 0;
+        z-index: 1250;
+        background: rgba(7, 27, 44, .42);
+        backdrop-filter: blur(2px);
+    }
+
+    #menuOverlay.hidden {
+        display: none !important;
+    }
+
+    .sidebar {
+        z-index: 1300;
+    }
+
+    .topbar {
+        z-index: 1200;
+    }
+}
+/* =========================================================
+   TCS FINANCE — CARDS MOBILE
+   Layout compacto e sem sobreposição
+   ========================================================= */
+
+@media (max-width: 600px) {
+
+    .cards {
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+        gap: 12px !important;
+    }
+
+    .cards .card {
+        width: 100%;
+        min-width: 0;
+        min-height: 96px;
+
+        padding: 14px 16px 14px 72px !important;
+
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+
+        overflow: hidden;
+    }
+
+    .cards .card:after {
+        left: 16px !important;
+
+        width: 42px !important;
+        height: 42px !important;
+
+        font-size: 21px !important;
+    }
+
+    .cards .card-label {
+        margin-bottom: 4px !important;
+        font-size: 10px !important;
+        line-height: 1.2;
+    }
+
+    .cards .card strong {
+        display: block;
+
+        max-width: 100%;
+
+        font-size: 21px !important;
+        line-height: 1.15 !important;
+        letter-spacing: -.4px !important;
+
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .cards .card small {
+        margin-top: 4px !important;
+        font-size: 10px !important;
+        line-height: 1.2;
+    }
+}
+
+
+/* ---------------------------------------------------------
+   CELULARES MUITO PEQUENOS
+   --------------------------------------------------------- */
+
+@media (max-width: 420px) {
+
+    .cards {
+        grid-template-columns: 1fr !important;
+    }
+
+    .cards .card {
+        min-height: 92px;
+
+        padding:
+            13px
+            14px
+            13px
+            66px !important;
+    }
+
+    .cards .card:after {
+        left: 13px !important;
+
+        width: 40px !important;
+        height: 40px !important;
+
+        font-size: 20px !important;
+    }
+
+    .cards .card strong {
+        font-size: 19px !important;
+    }
+}
+/* =========================================================
+   RELATÓRIOS
+   ========================================================= */
+
+#relatorios {
+    width: 100%;
+    max-width: none;
+}
+
+.relatorios-grid {
+    display: grid;
+    grid-template-columns:
+        repeat(4, minmax(0, 1fr));
+
+    gap: 16px;
+
+    margin-top: 20px;
+}
+
+.relatorio-card {
+    min-height: 120px;
+
+    display: flex;
+    align-items: center;
+
+    gap: 14px;
+
+    padding: 18px;
+
+    border: 1px solid var(--line);
+    border-radius: 18px;
+
+    background: #fff;
+
+    box-shadow: var(--shadow);
+}
+
+.relatorio-icon {
+    width: 48px;
+    height: 48px;
+
+    flex: 0 0 48px;
+
+    display: grid;
+    place-items: center;
+
+    border-radius: 50%;
+
+    background: var(--blue-soft);
+    color: var(--blue);
+
+    font-size: 22px;
+    font-weight: 700;
+}
+
+.relatorio-card small {
+    display: block;
+
+    margin-bottom: 5px;
+
+    color: var(--muted);
+
+    font-size: 10px;
+    font-weight: 800;
+
+    letter-spacing: .8px;
+}
+
+.relatorio-card strong {
+    display: block;
+
+    color: var(--text);
+
+    font-size: 22px;
+    font-weight: 850;
+}
+
+.relatorio-saldo {
+    background: linear-gradient(
+        135deg,
+        #0a2943,
+        #123b5d
+    );
+
+    border-color: #0b3554;
+}
+
+.relatorio-saldo small {
+    color: #d7e6f3;
+}
+
+.relatorio-saldo strong {
+    color: #fff;
+}
+
+.relatorio-saldo .relatorio-icon {
+    background: rgba(255,255,255,.10);
+    color: #fff;
+}
+
+.relatorio-resumo {
+    margin-top: 20px;
+
+    padding: 22px;
+
+    border: 1px solid var(--line);
+    border-radius: 18px;
+
+    background: #fff;
+
+    box-shadow: var(--shadow);
+}
+
+.relatorio-resumo h3 {
+    margin: 0 0 4px;
+
+    font-size: 16px;
+}
+
+.relatorio-resumo p {
+    margin: 0 0 18px;
+
+    color: var(--muted);
+
+    font-size: 12px;
+}
+
+.relatorio-linha {
+    min-height: 48px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 0 4px;
+
+    border-bottom: 1px solid var(--line);
+
+    color: #475467;
+}
+
+.relatorio-linha strong {
+    color: var(--text);
+}
+
+.relatorio-linha.destaque {
+    margin-top: 4px;
+
+    border-bottom: 0;
+
+    font-weight: 800;
+}
+
+.relatorio-linha.destaque strong {
+    color: var(--blue);
+}
+
+
+/* MOBILE */
+
+@media (max-width: 850px) {
+
+    .relatorios-grid {
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 600px) {
+
+    .relatorios-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .relatorio-card {
+        min-height: 92px;
+        padding: 14px;
+    }
+
+    .relatorio-icon {
+        width: 42px;
+        height: 42px;
+        flex-basis: 42px;
+        font-size: 19px;
+    }
+
+    .relatorio-card strong {
+        font-size: 20px;
+    }
+}
+url(../../../Downloads/WhatsApp Unknown 2026-08-20 at 13.30.34/WhatsApp Image 2026-08-20 at 13.30.12 (1).jpeg) url(../../../Downloads/WhatsApp Unknown 2026-08-20 at 13.30.34/WhatsApp Image 2026-08-20 at 13.30.12.jpeg)
