@@ -2102,5 +2102,1979 @@ function renderizarGraficoComparativo() {
     );
 
   }
+/* ======================================================
+   TCS FINANCE
+   MÓDULO DE RECORRÊNCIAS
+====================================================== */
 
+const btnRecorrencias =
+  document.getElementById("btnRecorrencias");
+
+const recorrencias =
+  document.getElementById("recorrencias");
+
+const recTipo =
+  document.getElementById("recTipo");
+
+const recCategoria =
+  document.getElementById("recCategoria");
+
+const recDescricao =
+  document.getElementById("recDescricao");
+
+const recValor =
+  document.getElementById("recValor");
+
+const recFrequencia =
+  document.getElementById("recFrequencia");
+
+const recDiaVencimento =
+  document.getElementById("recDiaVencimento");
+
+const recDataInicio =
+  document.getElementById("recDataInicio");
+
+const recDataFim =
+  document.getElementById("recDataFim");
+
+const btnSalvarRecorrencia =
+  document.getElementById("btnSalvarRecorrencia");
+
+const btnCancelarRecorrencia =
+  document.getElementById("btnCancelarRecorrencia");
+
+const listaRecorrencias =
+  document.getElementById("listaRecorrencias");
+
+const totalRecorrencias =
+  document.getElementById("totalRecorrencias");
+
+const recorrenciasAtivas =
+  document.getElementById("recorrenciasAtivas");
+
+const recorrenciasPausadas =
+  document.getElementById("recorrenciasPausadas");
+
+const contadorRecorrencias =
+  document.getElementById("contadorRecorrencias");
+
+const tituloFormularioRecorrencia =
+  document.getElementById(
+    "tituloFormularioRecorrencia"
+  );
+
+
+let recorrenciasDados = [];
+
+let recorrenciaEmEdicao = null;
+
+
+/* ======================================================
+   FREQUÊNCIAS
+====================================================== */
+
+const nomesFrequencia = {
+  diaria: "Diária",
+  semanal: "Semanal",
+  quinzenal: "Quinzenal",
+  mensal: "Mensal",
+  bimestral: "Bimestral",
+  trimestral: "Trimestral",
+  semestral: "Semestral",
+  anual: "Anual"
+};
+
+
+/* ======================================================
+   NAVEGAÇÃO — RECORRÊNCIAS
+====================================================== */
+
+if (btnRecorrencias) {
+
+  btnRecorrencias.onclick = async () => {
+
+    dashboard?.classList.add("hidden");
+
+    lancamentos?.classList.add("hidden");
+
+    if (relatorios) {
+      relatorios.classList.add("hidden");
+    }
+
+    if (document.getElementById("contas")) {
+      document
+        .getElementById("contas")
+        .classList.add("hidden");
+    }
+
+    if (recorrencias) {
+      recorrencias.classList.remove("hidden");
+    }
+
+    fecharMenuMobile();
+
+    ativarMenu(
+      btnRecorrencias
+    );
+
+    await carregarRecorrencias();
+
+  };
+
+}
+
+
+/* ======================================================
+   FUNÇÃO PARA ATIVAR MENU
+====================================================== */
+
+function ativarMenu(botaoAtivo) {
+
+  const botoes =
+    document.querySelectorAll(
+      ".sidebar .nav-item"
+    );
+
+  botoes.forEach(botao => {
+    botao.classList.remove("active");
+  });
+
+  if (botaoAtivo) {
+    botaoAtivo.classList.add("active");
+  }
+
+}
+
+
+/* ======================================================
+   AJUSTAR DASHBOARD
+====================================================== */
+
+if (btnDashboard) {
+
+  const cliqueOriginalDashboard =
+    btnDashboard.onclick;
+
+  btnDashboard.onclick = () => {
+
+    dashboard?.classList.remove("hidden");
+
+    lancamentos?.classList.add("hidden");
+
+    recorrencias?.classList.add("hidden");
+
+    if (relatorios) {
+      relatorios.classList.add("hidden");
+    }
+
+    if (document.getElementById("contas")) {
+      document
+        .getElementById("contas")
+        .classList.add("hidden");
+    }
+
+    fecharMenuMobile();
+
+    ativarMenu(
+      btnDashboard
+    );
+
+    atualizarDashboard();
+
+  };
+
+}
+
+
+/* ======================================================
+   AJUSTAR LANÇAMENTOS
+====================================================== */
+
+if (btnLancamentos) {
+
+  btnLancamentos.onclick = () => {
+
+    dashboard?.classList.add("hidden");
+
+    lancamentos?.classList.remove("hidden");
+
+    recorrencias?.classList.add("hidden");
+
+    if (relatorios) {
+      relatorios.classList.add("hidden");
+    }
+
+    if (document.getElementById("contas")) {
+      document
+        .getElementById("contas")
+        .classList.add("hidden");
+    }
+
+    fecharMenuMobile();
+
+    ativarMenu(
+      btnLancamentos
+    );
+
+    renderizarLista();
+
+  };
+
+}
+
+
+/* ======================================================
+   AJUSTAR RELATÓRIOS
+====================================================== */
+
+if (btnRelatorios) {
+
+  btnRelatorios.onclick = () => {
+
+    dashboard?.classList.add("hidden");
+
+    lancamentos?.classList.add("hidden");
+
+    recorrencias?.classList.add("hidden");
+
+    if (document.getElementById("contas")) {
+      document
+        .getElementById("contas")
+        .classList.add("hidden");
+    }
+
+    if (relatorios) {
+      relatorios.classList.remove("hidden");
+    }
+
+    fecharMenuMobile();
+
+    ativarMenu(
+      btnRelatorios
+    );
+
+    atualizarRelatorios();
+
+  };
+
+}
+
+
+/* ======================================================
+   CARREGAR CATEGORIAS PARA RECORRÊNCIA
+====================================================== */
+
+async function carregarCategoriasRecorrencia(
+  tipoSelecionado = "",
+  categoriaSelecionada = ""
+) {
+
+  if (!recCategoria) return;
+
+  recCategoria.innerHTML =
+    "<option value=''>Carregando categorias...</option>";
+
+  try {
+
+    const {
+      data,
+      error
+    } = await supabase
+      .from("categorias_financeiras")
+      .select("*")
+      .order("nome", {
+        ascending: true
+      });
+
+    if (error) {
+      console.error(
+        "Erro ao carregar categorias:",
+        error
+      );
+
+      recCategoria.innerHTML =
+        "<option value=''>Erro ao carregar categorias</option>";
+
+      return;
+    }
+
+    recCategoria.innerHTML =
+      "<option value=''>Selecione uma categoria</option>";
+
+    const categorias =
+      (data || []).filter(cat => {
+
+        if (!tipoSelecionado) {
+          return true;
+        }
+
+        return (
+          !cat.tipo ||
+          cat.tipo === tipoSelecionado
+        );
+
+      });
+
+    categorias.forEach(cat => {
+
+      const option =
+        document.createElement("option");
+
+      option.value =
+        cat.id;
+
+      option.textContent =
+        cat.nome ||
+        cat.descricao ||
+        "Categoria";
+
+      if (
+        String(cat.id) ===
+        String(categoriaSelecionada)
+      ) {
+        option.selected = true;
+      }
+
+      recCategoria.appendChild(
+        option
+      );
+
+    });
+
+  } catch (erro) {
+
+    console.error(
+      "Erro inesperado ao carregar categorias:",
+      erro
+    );
+
+    recCategoria.innerHTML =
+      "<option value=''>Erro ao carregar categorias</option>";
+
+  }
+
+}
+
+
+/* ======================================================
+   ALTERAÇÃO DO TIPO
+====================================================== */
+
+if (recTipo) {
+
+  recTipo.onchange = async () => {
+
+    await carregarCategoriasRecorrencia(
+      recTipo.value
+    );
+
+  };
+
+}
+
+
+/* ======================================================
+   CARREGAR RECORRÊNCIAS
+====================================================== */
+
+async function carregarRecorrencias() {
+
+  if (!listaRecorrencias) return;
+
+  listaRecorrencias.innerHTML = `
+    <div class="recorrencias-vazio">
+      <div class="recorrencias-vazio-icone">↻</div>
+      <strong>Carregando recorrências...</strong>
+      <p>Aguarde enquanto buscamos seus lançamentos automáticos.</p>
+    </div>
+  `;
+
+  try {
+
+    const {
+      data: userData,
+      error: userError
+    } = await supabase.auth.getUser();
+
+    if (
+      userError ||
+      !userData?.user
+    ) {
+
+      listaRecorrencias.innerHTML = `
+        <div class="recorrencias-vazio">
+          <div class="recorrencias-vazio-icone">🔒</div>
+          <strong>Sessão expirada</strong>
+          <p>Faça login novamente para acessar suas recorrências.</p>
+        </div>
+      `;
+
+      return;
+
+    }
+
+    const {
+      data,
+      error
+    } = await supabase
+      .from("lancamentos_recorrentes")
+      .select("*")
+      .eq(
+        "user_id",
+        userData.user.id
+      )
+      .order("data_inicio", {
+        ascending: false
+      });
+
+    if (error) {
+
+      console.error(
+        "Erro ao carregar recorrências:",
+        error
+      );
+
+      listaRecorrencias.innerHTML = `
+        <div class="recorrencias-vazio">
+          <div class="recorrencias-vazio-icone">⚠️</div>
+          <strong>Não foi possível carregar</strong>
+          <p>${escapeHtml(error.message)}</p>
+        </div>
+      `;
+
+      return;
+
+    }
+
+    recorrenciasDados =
+      data || [];
+
+    await carregarNomesCategorias();
+
+    renderizarRecorrencias();
+
+  } catch (erro) {
+
+    console.error(
+      "Erro inesperado nas recorrências:",
+      erro
+    );
+
+    listaRecorrencias.innerHTML = `
+      <div class="recorrencias-vazio">
+        <div class="recorrencias-vazio-icone">⚠️</div>
+        <strong>Erro inesperado</strong>
+        <p>Não foi possível carregar suas recorrências.</p>
+      </div>
+    `;
+
+  }
+
+}
+
+
+/* ======================================================
+   NOMES DAS CATEGORIAS
+====================================================== */
+
+let categoriasRecorrenciaMapa = {};
+
+
+async function carregarNomesCategorias() {
+
+  categoriasRecorrenciaMapa = {};
+
+  if (
+    !recorrenciasDados.length
+  ) {
+    return;
+  }
+
+  try {
+
+    const ids =
+      recorrenciasDados
+        .map(item => item.categoria_id)
+        .filter(Boolean);
+
+    if (!ids.length) {
+      return;
+    }
+
+    const {
+      data,
+      error
+    } = await supabase
+      .from("categorias_financeiras")
+      .select("id,nome")
+      .in("id", ids);
+
+    if (error) {
+
+      console.warn(
+        "Não foi possível carregar nomes das categorias:",
+        error
+      );
+
+      return;
+
+    }
+
+    (data || []).forEach(cat => {
+
+      categoriasRecorrenciaMapa[
+        cat.id
+      ] = cat.nome;
+
+    });
+
+  } catch (erro) {
+
+    console.warn(
+      "Erro ao carregar nomes das categorias:",
+      erro
+    );
+
+  }
+
+}
+
+
+/* ======================================================
+   ESCAPAR HTML
+====================================================== */
+
+function escapeHtml(valor) {
+
+  return String(
+    valor ?? ""
+  )
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+
+}
+
+
+/* ======================================================
+   PRÓXIMA DATA
+====================================================== */
+
+function calcularProximoLancamento(
+  recorrencia
+) {
+
+  if (!recorrencia) {
+    return null;
+  }
+
+  const hoje =
+    new Date();
+
+  hoje.setHours(
+    0,
+    0,
+    0,
+    0
+  );
+
+  const dataInicio =
+    recorrencia.data_inicio
+      ? new Date(
+          `${recorrencia.data_inicio}T00:00:00`
+        )
+      : hoje;
+
+  dataInicio.setHours(
+    0,
+    0,
+    0,
+    0
+  );
+
+  let data =
+    new Date(dataInicio);
+
+  const dia =
+    Number(
+      recorrencia.dia_vencimento
+    );
+
+  const frequencia =
+    recorrencia.frequencia;
+
+  if (
+    frequencia === "diaria"
+  ) {
+
+    data = new Date(
+      Math.max(
+        hoje.getTime(),
+        dataInicio.getTime()
+      )
+    );
+
+    if (
+      data < hoje
+    ) {
+      data.setDate(
+        data.getDate() + 1
+      );
+    }
+
+  } else if (
+    frequencia === "semanal"
+  ) {
+
+    while (
+      data < hoje
+    ) {
+
+      data.setDate(
+        data.getDate() + 7
+      );
+
+    }
+
+  } else if (
+    frequencia === "quinzenal"
+  ) {
+
+    while (
+      data < hoje
+    ) {
+
+      data.setDate(
+        data.getDate() + 15
+      );
+
+    }
+
+  } else {
+
+    const mesesPorFrequencia = {
+
+      mensal: 1,
+      bimestral: 2,
+      trimestral: 3,
+      semestral: 6,
+      anual: 12
+
+    };
+
+    const intervalo =
+      mesesPorFrequencia[
+        frequencia
+      ] || 1;
+
+    const anoInicial =
+      dataInicio.getFullYear();
+
+    const mesInicial =
+      dataInicio.getMonth();
+
+    let ano =
+      anoInicial;
+
+    let mes =
+      mesInicial;
+
+    if (
+      Number.isFinite(dia) &&
+      dia >= 1 &&
+      dia <= 31
+    ) {
+
+      data =
+        criarDataSegura(
+          ano,
+          mes,
+          dia
+        );
+
+    }
+
+    while (
+      data < hoje
+    ) {
+
+      mes += intervalo;
+
+      data =
+        criarDataSegura(
+          ano,
+          mes,
+          dia || 1
+        );
+
+    }
+
+  }
+
+  if (
+    recorrencia.data_fim
+  ) {
+
+    const dataFim =
+      new Date(
+        `${recorrencia.data_fim}T00:00:00`
+      );
+
+    if (
+      data > dataFim
+    ) {
+      return null;
+    }
+
+  }
+
+  return data;
+
+}
+
+
+/* ======================================================
+   CRIAR DATA SEGURA
+====================================================== */
+
+function criarDataSegura(
+  ano,
+  mes,
+  dia
+) {
+
+  const primeiroDia =
+    new Date(
+      ano,
+      mes,
+      1
+    );
+
+  const ultimoDia =
+    new Date(
+      ano,
+      mes + 1,
+      0
+    ).getDate();
+
+  const diaSeguro =
+    Math.min(
+      Math.max(
+        Number(dia) || 1,
+        1
+      ),
+      ultimoDia
+    );
+
+  return new Date(
+    primeiroDia.getFullYear(),
+    primeiroDia.getMonth(),
+    diaSeguro
+  );
+
+}
+
+
+/* ======================================================
+   RENDERIZAR RECORRÊNCIAS
+====================================================== */
+
+function renderizarRecorrencias() {
+
+  if (!listaRecorrencias) {
+    return;
+  }
+
+  const total =
+    recorrenciasDados.length;
+
+  const ativas =
+    recorrenciasDados.filter(
+      item => item.ativo === true
+    ).length;
+
+  const pausadas =
+    total - ativas;
+
+  if (totalRecorrencias) {
+    totalRecorrencias.innerText =
+      total;
+  }
+
+  if (recorrenciasAtivas) {
+    recorrenciasAtivas.innerText =
+      ativas;
+  }
+
+  if (recorrenciasPausadas) {
+    recorrenciasPausadas.innerText =
+      pausadas;
+  }
+
+  if (contadorRecorrencias) {
+
+    contadorRecorrencias.innerText =
+      total === 0
+        ? "Nenhuma recorrência cadastrada."
+        : `${total} ${
+            total === 1
+              ? "recorrência cadastrada"
+              : "recorrências cadastradas"
+          }.`;
+
+  }
+
+  if (!total) {
+
+    listaRecorrencias.innerHTML = `
+      <div class="recorrencias-vazio">
+
+        <div class="recorrencias-vazio-icone">
+          ↻
+        </div>
+
+        <strong>
+          Nenhuma recorrência cadastrada
+        </strong>
+
+        <p>
+          Cadastre sua primeira receita,
+          despesa ou investimento automático
+          usando o formulário acima.
+        </p>
+
+      </div>
+    `;
+
+    return;
+
+  }
+
+  listaRecorrencias.innerHTML = "";
+
+  recorrenciasDados.forEach(
+    recorrencia => {
+
+      const categoriaNome =
+        categoriasRecorrenciaMapa[
+          recorrencia.categoria_id
+        ] ||
+        "Sem categoria";
+
+      const proximo =
+        calcularProximoLancamento(
+          recorrencia
+        );
+
+      const statusAtivo =
+        recorrencia.ativo === true;
+
+      let icone =
+        "↻";
+
+      if (
+        recorrencia.tipo === "Receita"
+      ) {
+        icone = "↑";
+      }
+
+      if (
+        recorrencia.tipo === "Despesa"
+      ) {
+        icone = "↓";
+      }
+
+      if (
+        recorrencia.tipo === "Investimento"
+      ) {
+        icone = "◔";
+      }
+
+      const card =
+        document.createElement(
+          "div"
+        );
+
+      card.className =
+        "recorrencia-item";
+
+      card.innerHTML = `
+
+        <div class="recorrencia-item-topo">
+
+          <div class="recorrencia-item-identificacao">
+
+            <div class="recorrencia-item-icone">
+              ${icone}
+            </div>
+
+            <div class="recorrencia-item-titulo">
+
+              <strong>
+                ${escapeHtml(
+                  recorrencia.descricao ||
+                  "Recorrência sem descrição"
+                )}
+              </strong>
+
+              <span>
+                ${escapeHtml(
+                  recorrencia.tipo ||
+                  ""
+                )}
+                •
+                ${escapeHtml(
+                  categoriaNome
+                )}
+              </span>
+
+            </div>
+
+          </div>
+
+
+          <span
+            class="recorrencia-status ${
+              statusAtivo
+                ? "ativa"
+                : "pausada"
+            }"
+          >
+            ${statusAtivo
+              ? "● Ativa"
+              : "● Pausada"}
+          </span>
+
+        </div>
+
+
+        <div class="recorrencia-item-valor">
+
+          ${formatarMoeda(
+            recorrencia.valor
+          )}
+
+        </div>
+
+
+        <div class="recorrencia-item-info">
+
+          <div class="recorrencia-item-info-bloco">
+
+            <span>FREQUÊNCIA</span>
+
+            <strong>
+              ${
+                nomesFrequencia[
+                  recorrencia.frequencia
+                ] ||
+                recorrencia.frequencia ||
+                "-"
+              }
+            </strong>
+
+          </div>
+
+
+          <div class="recorrencia-item-info-bloco">
+
+            <span>DIA</span>
+
+            <strong>
+              ${
+                recorrencia.dia_vencimento ||
+                "-"
+              }
+            </strong>
+
+          </div>
+
+
+          <div class="recorrencia-item-info-bloco">
+
+            <span>INÍCIO</span>
+
+            <strong>
+              ${
+                recorrencia.data_inicio
+                  ? formatarData(
+                      recorrencia.data_inicio
+                    )
+                  : "-"
+              }
+            </strong>
+
+          </div>
+
+
+          <div class="recorrencia-item-info-bloco">
+
+            <span>TÉRMINO</span>
+
+            <strong>
+              ${
+                recorrencia.data_fim
+                  ? formatarData(
+                      recorrencia.data_fim
+                    )
+                  : "Sem término"
+              }
+            </strong>
+
+          </div>
+
+        </div>
+
+
+        <div class="recorrencia-proximo">
+
+          <span>
+            PRÓXIMO LANÇAMENTO
+          </span>
+
+          <strong>
+            ${
+              statusAtivo && proximo
+                ? formatarDataISO(
+                    proximo
+                  )
+                : statusAtivo
+                  ? "Sem próxima ocorrência"
+                  : "Recorrência pausada"
+            }
+          </strong>
+
+        </div>
+
+
+        <div class="recorrencia-item-acoes">
+
+          <button
+            type="button"
+            class="acao-editar"
+            data-id="${recorrencia.id}"
+          >
+            ✏️ Editar
+          </button>
+
+          <button
+            type="button"
+            class="acao-pausar"
+            data-id="${recorrencia.id}"
+          >
+            ${
+              statusAtivo
+                ? "⏸ Pausar"
+                : "▶ Reativar"
+            }
+          </button>
+
+          <button
+            type="button"
+            class="acao-excluir"
+            data-id="${recorrencia.id}"
+          >
+            🗑 Excluir
+          </button>
+
+        </div>
+
+      `;
+
+      listaRecorrencias.appendChild(
+        card
+      );
+
+    }
+  );
+
+}
+
+
+/* ======================================================
+   FORMATAR DATA DE OBJETO DATE
+====================================================== */
+
+function formatarDataISO(
+  data
+) {
+
+  if (!data) return "";
+
+  const dia =
+    String(
+      data.getDate()
+    ).padStart(
+      2,
+      "0"
+    );
+
+  const mes =
+    String(
+      data.getMonth() + 1
+    ).padStart(
+      2,
+      "0"
+    );
+
+  const ano =
+    data.getFullYear();
+
+  return `${dia}/${mes}/${ano}`;
+
+}
+
+
+/* ======================================================
+   SALVAR RECORRÊNCIA
+====================================================== */
+
+if (btnSalvarRecorrencia) {
+
+  btnSalvarRecorrencia.onclick =
+    async () => {
+
+      if (
+        !recTipo?.value ||
+        !recCategoria?.value ||
+        !recDescricao?.value.trim() ||
+        !recValor?.value ||
+        !recFrequencia?.value ||
+        !recDataInicio?.value
+      ) {
+
+        alert(
+          "Preencha tipo, categoria, descrição, valor, frequência e data de início."
+        );
+
+        return;
+
+      }
+
+
+      const valorNumerico =
+        Number(
+          String(
+            recValor.value
+          ).replace(
+            ",",
+            "."
+          )
+        );
+
+
+      if (
+        !Number.isFinite(
+          valorNumerico
+        ) ||
+        valorNumerico <= 0
+      ) {
+
+        alert(
+          "Informe um valor válido."
+        );
+
+        return;
+
+      }
+
+
+      const dia =
+        Number(
+          recDiaVencimento.value
+        );
+
+
+      if (
+        recFrequencia.value === "mensal" ||
+        recFrequencia.value === "bimestral" ||
+        recFrequencia.value === "trimestral" ||
+        recFrequencia.value === "semestral" ||
+        recFrequencia.value === "anual"
+      ) {
+
+        if (
+          !Number.isInteger(dia) ||
+          dia < 1 ||
+          dia > 31
+        ) {
+
+          alert(
+            "Informe um dia de lançamento entre 1 e 31."
+          );
+
+          return;
+
+        }
+
+      }
+
+
+      if (
+        recDataFim.value &&
+        recDataFim.value <
+          recDataInicio.value
+      ) {
+
+        alert(
+          "A data de término não pode ser anterior à data de início."
+        );
+
+        return;
+
+      }
+
+
+      try {
+
+        const {
+          data: userData,
+          error: userError
+        } =
+          await supabase.auth.getUser();
+
+
+        if (
+          userError ||
+          !userData?.user
+        ) {
+
+          alert(
+            "Sua sessão expirou. Faça login novamente."
+          );
+
+          return;
+
+        }
+
+
+        const dadosRecorrencia = {
+
+          user_id:
+            userData.user.id,
+
+          tipo:
+            recTipo.value,
+
+          categoria_id:
+            recCategoria.value,
+
+          descricao:
+            recDescricao.value.trim(),
+
+          valor:
+            valorNumerico,
+
+          frequencia:
+            recFrequencia.value,
+
+          dia_vencimento:
+            Number.isInteger(dia)
+              ? dia
+              : null,
+
+          data_inicio:
+            recDataInicio.value,
+
+          data_fim:
+            recDataFim.value ||
+            null,
+
+          ativo:
+            true
+
+        };
+
+
+        let resultado;
+
+
+        if (
+          recorrenciaEmEdicao
+        ) {
+
+          resultado =
+            await supabase
+              .from(
+                "lancamentos_recorrentes"
+              )
+              .update(
+                dadosRecorrencia
+              )
+              .eq(
+                "id",
+                recorrenciaEmEdicao
+              )
+              .eq(
+                "user_id",
+                userData.user.id
+              );
+
+        } else {
+
+          resultado =
+            await supabase
+              .from(
+                "lancamentos_recorrentes"
+              )
+              .insert(
+                dadosRecorrencia
+              );
+
+        }
+
+
+        if (
+          resultado.error
+        ) {
+
+          console.error(
+            "Erro ao salvar recorrência:",
+            resultado.error
+          );
+
+          alert(
+            `Não foi possível salvar a recorrência.\n\n${resultado.error.message}`
+          );
+
+          return;
+
+        }
+
+
+        alert(
+          recorrenciaEmEdicao
+            ? "Recorrência atualizada com sucesso!"
+            : "Recorrência criada com sucesso!"
+        );
+
+
+        limparFormularioRecorrencia();
+
+        await carregarRecorrencias();
+
+      } catch (erro) {
+
+        console.error(
+          "Erro inesperado ao salvar recorrência:",
+          erro
+        );
+
+        alert(
+          "Ocorreu um erro ao salvar a recorrência."
+        );
+
+      }
+
+    };
+
+}
+
+
+/* ======================================================
+   EVENTOS DA LISTA DE RECORRÊNCIAS
+====================================================== */
+
+if (listaRecorrencias) {
+
+  listaRecorrencias.addEventListener(
+    "click",
+    async event => {
+
+      const btnEditar =
+        event.target.closest(
+          ".acao-editar"
+        );
+
+      const btnPausar =
+        event.target.closest(
+          ".acao-pausar"
+        );
+
+      const btnExcluir =
+        event.target.closest(
+          ".acao-excluir"
+        );
+
+
+      if (btnEditar) {
+
+        await editarRecorrencia(
+          btnEditar.dataset.id
+        );
+
+        return;
+
+      }
+
+
+      if (btnPausar) {
+
+        await alternarStatusRecorrencia(
+          btnPausar.dataset.id
+        );
+
+        return;
+
+      }
+
+
+      if (btnExcluir) {
+
+        await excluirRecorrencia(
+          btnExcluir.dataset.id
+        );
+
+      }
+
+    }
+  );
+
+}
+
+
+/* ======================================================
+   EDITAR RECORRÊNCIA
+====================================================== */
+
+async function editarRecorrencia(
+  id
+) {
+
+  const recorrencia =
+    recorrenciasDados.find(
+      item =>
+        String(item.id) ===
+        String(id)
+    );
+
+
+  if (!recorrencia) {
+
+    alert(
+      "Recorrência não encontrada."
+    );
+
+    return;
+
+  }
+
+
+  recorrenciaEmEdicao =
+    recorrencia.id;
+
+
+  if (tituloFormularioRecorrencia) {
+
+    tituloFormularioRecorrencia.innerText =
+      "Editar recorrência";
+
+  }
+
+
+  if (btnSalvarRecorrencia) {
+
+    btnSalvarRecorrencia.innerText =
+      "Atualizar recorrência";
+
+  }
+
+
+  if (btnCancelarRecorrencia) {
+
+    btnCancelarRecorrencia.classList.remove(
+      "hidden"
+    );
+
+  }
+
+
+  if (recTipo) {
+
+    recTipo.value =
+      recorrencia.tipo || "";
+
+  }
+
+
+  await carregarCategoriasRecorrencia(
+    recorrencia.tipo,
+    recorrencia.categoria_id
+  );
+
+
+  if (recDescricao) {
+
+    recDescricao.value =
+      recorrencia.descricao ||
+      "";
+
+  }
+
+
+  if (recValor) {
+
+    recValor.value =
+      recorrencia.valor ||
+      "";
+
+  }
+
+
+  if (recFrequencia) {
+
+    recFrequencia.value =
+      recorrencia.frequencia ||
+      "";
+
+  }
+
+
+  if (recDiaVencimento) {
+
+    recDiaVencimento.value =
+      recorrencia.dia_vencimento ||
+      "";
+
+  }
+
+
+  if (recDataInicio) {
+
+    recDataInicio.value =
+      recorrencia.data_inicio ||
+      "";
+
+  }
+
+
+  if (recDataFim) {
+
+    recDataFim.value =
+      recorrencia.data_fim ||
+      "";
+
+  }
+
+
+  window.scrollTo({
+    top: 0,
+    behavior: "smooth"
+  });
+
+}
+
+
+/* ======================================================
+   PAUSAR / REATIVAR
+====================================================== */
+
+async function alternarStatusRecorrencia(
+  id
+) {
+
+  const recorrencia =
+    recorrenciasDados.find(
+      item =>
+        String(item.id) ===
+        String(id)
+    );
+
+
+  if (!recorrencia) {
+
+    alert(
+      "Recorrência não encontrada."
+    );
+
+    return;
+
+  }
+
+
+  const novoStatus =
+    recorrencia.ativo !== true;
+
+
+  const acao =
+    novoStatus
+      ? "reativar"
+      : "pausar";
+
+
+  const confirmar =
+    confirm(
+      `Deseja ${acao} a recorrência "${recorrencia.descricao || "sem descrição"}"?`
+    );
+
+
+  if (!confirmar) {
+    return;
+  }
+
+
+  try {
+
+    const {
+      data: userData,
+      error: userError
+    } =
+      await supabase.auth.getUser();
+
+
+    if (
+      userError ||
+      !userData?.user
+    ) {
+
+      alert(
+        "Sua sessão expirou."
+      );
+
+      return;
+
+    }
+
+
+    const {
+      error
+    } =
+      await supabase
+        .from(
+          "lancamentos_recorrentes"
+        )
+        .update({
+          ativo:
+            novoStatus
+        })
+        .eq(
+          "id",
+          recorrencia.id
+        )
+        .eq(
+          "user_id",
+          userData.user.id
+        );
+
+
+    if (error) {
+
+      console.error(
+        "Erro ao alterar status:",
+        error
+      );
+
+      alert(
+        `Não foi possível alterar o status.\n\n${error.message}`
+      );
+
+      return;
+
+    }
+
+
+    await carregarRecorrencias();
+
+
+  } catch (erro) {
+
+    console.error(
+      "Erro inesperado:",
+      erro
+    );
+
+    alert(
+      "Ocorreu um erro ao alterar o status."
+    );
+
+  }
+
+}
+
+
+/* ======================================================
+   EXCLUIR RECORRÊNCIA
+====================================================== */
+
+async function excluirRecorrencia(
+  id
+) {
+
+  const recorrencia =
+    recorrenciasDados.find(
+      item =>
+        String(item.id) ===
+        String(id)
+    );
+
+
+  if (!recorrencia) {
+
+    alert(
+      "Recorrência não encontrada."
+    );
+
+    return;
+
+  }
+
+
+  const confirmar =
+    confirm(
+      `Tem certeza que deseja excluir a recorrência "${recorrencia.descricao || "sem descrição"}"?\n\nOs lançamentos financeiros que já foram gerados NÃO serão apagados.`
+    );
+
+
+  if (!confirmar) {
+    return;
+  }
+
+
+  try {
+
+    const {
+      data: userData,
+      error: userError
+    } =
+      await supabase.auth.getUser();
+
+
+    if (
+      userError ||
+      !userData?.user
+    ) {
+
+      alert(
+        "Sua sessão expirou."
+      );
+
+      return;
+
+    }
+
+
+    const {
+      error
+    } =
+      await supabase
+        .from(
+          "lancamentos_recorrentes"
+        )
+        .delete()
+        .eq(
+          "id",
+          recorrencia.id
+        )
+        .eq(
+          "user_id",
+          userData.user.id
+        );
+
+
+    if (error) {
+
+      console.error(
+        "Erro ao excluir recorrência:",
+        error
+      );
+
+      alert(
+        `Não foi possível excluir a recorrência.\n\n${error.message}`
+      );
+
+      return;
+
+    }
+
+
+    if (
+      String(
+        recorrenciaEmEdicao
+      ) ===
+      String(
+        recorrencia.id
+      )
+    ) {
+
+      limparFormularioRecorrencia();
+
+    }
+
+
+    await carregarRecorrencias();
+
+
+    alert(
+      "Recorrência excluída com sucesso!"
+    );
+
+
+  } catch (erro) {
+
+    console.error(
+      "Erro inesperado:",
+      erro
+    );
+
+    alert(
+      "Ocorreu um erro ao excluir a recorrência."
+    );
+
+  }
+
+}
+
+
+/* ======================================================
+   CANCELAR EDIÇÃO
+====================================================== */
+
+if (btnCancelarRecorrencia) {
+
+  btnCancelarRecorrencia.onclick =
+    () => {
+
+      limparFormularioRecorrencia();
+
+    };
+
+}
+
+
+/* ======================================================
+   LIMPAR FORMULÁRIO
+====================================================== */
+
+function limparFormularioRecorrencia() {
+
+  recorrenciaEmEdicao =
+    null;
+
+
+  if (recTipo) {
+    recTipo.value = "";
+  }
+
+
+  if (recCategoria) {
+
+    recCategoria.innerHTML =
+      "<option value=''>Selecione uma categoria</option>";
+
+  }
+
+
+  if (recDescricao) {
+    recDescricao.value = "";
+  }
+
+
+  if (recValor) {
+    recValor.value = "";
+  }
+
+
+  if (recFrequencia) {
+    recFrequencia.value = "";
+  }
+
+
+  if (recDiaVencimento) {
+    recDiaVencimento.value = "";
+  }
+
+
+  if (recDataInicio) {
+    recDataInicio.value = "";
+  }
+
+
+  if (recDataFim) {
+    recDataFim.value = "";
+  }
+
+
+  if (tituloFormularioRecorrencia) {
+
+    tituloFormularioRecorrencia.innerText =
+      "Nova recorrência";
+
+  }
+
+
+  if (btnSalvarRecorrencia) {
+
+    btnSalvarRecorrencia.innerText =
+      "Criar recorrência";
+
+  }
+
+
+  if (btnCancelarRecorrencia) {
+
+    btnCancelarRecorrencia.classList.add(
+      "hidden"
+    );
+
+  }
+
+}
+
+
+/* ======================================================
+   DATA INICIAL AUTOMÁTICA
+====================================================== */
+
+if (recDataInicio) {
+
+  recDataInicio.value =
+    obterDataHoje();
+
+}
+
+
+/* ======================================================
+   DATA DE HOJE
+====================================================== */
+
+function obterDataHoje() {
+
+  const agora =
+    new Date();
+
+  const ano =
+    agora.getFullYear();
+
+  const mes =
+    String(
+      agora.getMonth() + 1
+    ).padStart(
+      2,
+      "0"
+    );
+
+  const dia =
+    String(
+      agora.getDate()
+    ).padStart(
+      2,
+      "0"
+    );
+
+  return `${ano}-${mes}-${dia}`;
+
+}
+
+
+/* ======================================================
+   INICIALIZAÇÃO
+====================================================== */
+
+if (recTipo) {
+
+  carregarCategoriasRecorrencia();
+
+}
 });
