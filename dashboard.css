@@ -447,3 +447,172 @@ body{
     min-height:115px;
   }
 }
+
+/* =========================================================
+   TCS FINANCE — CABEÇALHO FINAL
+   DESKTOP: limpo, sem botão de menu e sem Sair no topo
+   MOBILE: menu hambúrguer + informações dentro do menu
+   ========================================================= */
+
+/* ---------------------------------------------------------
+   DESKTOP
+   --------------------------------------------------------- */
+
+@media (min-width: 851px) {
+
+    /* Botão hambúrguer NÃO aparece no desktop */
+    #btnMenu,
+    .btn-menu {
+        display: none !important;
+        visibility: hidden !important;
+        pointer-events: none !important;
+    }
+
+    /* Botão Sair do topo NÃO aparece no desktop */
+    #btnLogoutTop,
+    .btn-logout-top {
+        display: none !important;
+        visibility: hidden !important;
+        pointer-events: none !important;
+    }
+
+    /* Mantém o título alinhado corretamente */
+    .topbar-left {
+        display: flex !important;
+        align-items: center !important;
+        gap: 0 !important;
+    }
+
+    .topbar-title {
+        margin-left: 0 !important;
+    }
+
+    /* Usuário + plano continuam no desktop */
+    .topbar-center {
+        display: flex !important;
+        align-items: center !important;
+        gap: 8px !important;
+    }
+}
+
+
+/* ---------------------------------------------------------
+   MOBILE
+   --------------------------------------------------------- */
+
+@media (max-width: 850px) {
+
+    /* Cabeçalho mobile */
+    .topbar {
+        height: 58px !important;
+        min-height: 58px !important;
+        padding: 0 14px !important;
+        display: flex !important;
+        align-items: center !important;
+        justify-content: space-between !important;
+    }
+
+    /* BOTÃO HAMBÚRGUER — SOMENTE MOBILE */
+    #btnMenu,
+    .btn-menu {
+        display: flex !important;
+        align-items: center !important;
+        justify-content: center !important;
+
+        width: 40px !important;
+        height: 40px !important;
+
+        margin: 0 10px 0 0 !important;
+        padding: 0 !important;
+
+        border: 0 !important;
+        background: transparent !important;
+        color: #344054 !important;
+
+        font-size: 24px !important;
+        line-height: 1 !important;
+
+        cursor: pointer !important;
+        visibility: visible !important;
+        pointer-events: auto !important;
+
+        position: relative !important;
+        z-index: 1401 !important;
+    }
+
+    #btnMenu:hover,
+    .btn-menu:hover {
+        background: #f2f4f7 !important;
+        border-radius: 10px !important;
+    }
+
+    /* Título */
+    .topbar-left {
+        display: flex !important;
+        align-items: center !important;
+        min-width: 0 !important;
+    }
+
+    .topbar-title {
+        font-size: 17px !important;
+        font-weight: 800 !important;
+        white-space: nowrap !important;
+    }
+
+    /* Usuário e plano saem do topo no celular */
+    .topbar-center {
+        display: none !important;
+    }
+
+    /* Sair do topo sai completamente */
+    .topbar-right,
+    #btnLogoutTop,
+    .btn-logout-top {
+        display: none !important;
+        visibility: hidden !important;
+        pointer-events: none !important;
+    }
+
+    /* Sidebar continua sendo o local principal das opções */
+    .sidebar {
+        z-index: 1300 !important;
+    }
+
+    /* ÚNICO botão Sair: dentro do menu */
+    .sidebar-logout {
+        display: flex !important;
+        visibility: visible !important;
+        pointer-events: auto !important;
+    }
+
+    /* Overlay acima do conteúdo, abaixo do menu */
+    #menuOverlay {
+        z-index: 1250 !important;
+    }
+}
+
+
+/* ---------------------------------------------------------
+   CELULARES PEQUENOS
+   --------------------------------------------------------- */
+
+@media (max-width: 420px) {
+
+    .topbar {
+        height: 56px !important;
+        min-height: 56px !important;
+        padding: 0 10px !important;
+    }
+
+    #btnMenu,
+    .btn-menu {
+        width: 38px !important;
+        height: 38px !important;
+        margin-right: 8px !important;
+        font-size: 23px !important;
+    }
+
+    .topbar-title {
+        font-size: 16px !important;
+    }
+}
