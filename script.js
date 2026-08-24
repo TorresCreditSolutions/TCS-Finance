@@ -2362,6 +2362,7 @@ if (btnRelatorios) {
 
 /* ======================================================
    CARREGAR CATEGORIAS PARA RECORRÊNCIA
+   CORREÇÃO: COMPARAÇÃO DE TIPO SEM DIFERENÇA DE MAIÚSCULAS
 ====================================================== */
 
 async function carregarCategoriasRecorrencia(
@@ -2369,24 +2370,68 @@ async function carregarCategoriasRecorrencia(
   categoriaSelecionada = ""
 ) {
 
-  if (!recCategoria) return;
+  if (!recCategoria) {
+    return;
+  }
 
   recCategoria.innerHTML =
     "<option value=''>Carregando categorias...</option>";
 
   try {
 
+    /* --------------------------------------------------
+       USUÁRIO LOGADO
+    -------------------------------------------------- */
+
+    const {
+      data: userData,
+      error: userError
+    } = await supabase.auth.getUser();
+
+    if (
+      userError ||
+      !userData?.user
+    ) {
+
+      recCategoria.innerHTML =
+        "<option value=''>Sessão expirada</option>";
+
+      console.error(
+        "Erro ao identificar usuário:",
+        userError
+      );
+
+      return;
+
+    }
+
+    /* --------------------------------------------------
+       BUSCAR CATEGORIAS
+    -------------------------------------------------- */
+
     const {
       data,
       error
     } = await supabase
       .from("categorias_financeiras")
-      .select("*")
-      .order("nome", {
-        ascending: true
-      });
+      .select("id,user_id,nome,tipo,ativa")
+      .eq(
+        "user_id",
+        userData.user.id
+      )
+      .eq(
+        "ativa",
+        true
+      )
+      .order(
+        "nome",
+        {
+          ascending: true
+        }
+      );
 
     if (error) {
+
       console.error(
         "Erro ao carregar categorias:",
         error
@@ -2396,50 +2441,123 @@ async function carregarCategoriasRecorrencia(
         "<option value=''>Erro ao carregar categorias</option>";
 
       return;
+
     }
+
+    /* --------------------------------------------------
+       RESET DO SELECT
+    -------------------------------------------------- */
 
     recCategoria.innerHTML =
       "<option value=''>Selecione uma categoria</option>";
 
-    const categorias =
-      (data || []).filter(cat => {
+    /* --------------------------------------------------
+       NORMALIZAR TIPO
+       
+       Banco:
+       investimento
 
-        if (!tipoSelecionado) {
-          return true;
+       HTML:
+       Investimento
+
+       Ambos passam a ser:
+       investimento
+    -------------------------------------------------- */
+
+    const tipoNormalizado =
+      String(
+        tipoSelecionado || ""
+      )
+        .trim()
+        .toLowerCase();
+
+    /* --------------------------------------------------
+       FILTRAR CATEGORIAS
+    -------------------------------------------------- */
+
+    const categorias =
+      (data || []).filter(
+        cat => {
+
+          const tipoCategoria =
+            String(
+              cat.tipo || ""
+            )
+              .trim()
+              .toLowerCase();
+
+          if (!tipoNormalizado) {
+            return true;
+          }
+
+          return (
+            !tipoCategoria ||
+            tipoCategoria === tipoNormalizado
+          );
+
+        }
+      );
+
+    /* --------------------------------------------------
+       CRIAR OPTIONS
+    -------------------------------------------------- */
+
+    categorias.forEach(
+      cat => {
+
+        const option =
+          document.createElement(
+            "option"
+          );
+
+        option.value =
+          cat.id;
+
+        option.textContent =
+          cat.nome ||
+          "Categoria";
+
+        if (
+          String(cat.id) ===
+          String(categoriaSelecionada)
+        ) {
+
+          option.selected = true;
+
         }
 
-        return (
-          !cat.tipo ||
-          cat.tipo === tipoSelecionado
+        recCategoria.appendChild(
+          option
         );
 
-      });
+      }
+    );
 
-    categorias.forEach(cat => {
+    /* --------------------------------------------------
+       NENHUMA CATEGORIA
+    -------------------------------------------------- */
+
+    if (
+      categorias.length === 0
+    ) {
 
       const option =
-        document.createElement("option");
+        document.createElement(
+          "option"
+        );
 
-      option.value =
-        cat.id;
+      option.value = "";
 
       option.textContent =
-        cat.nome ||
-        cat.descricao ||
-        "Categoria";
+        "Nenhuma categoria cadastrada";
 
-      if (
-        String(cat.id) ===
-        String(categoriaSelecionada)
-      ) {
-        option.selected = true;
-      }
+      option.disabled = true;
 
       recCategoria.appendChild(
         option
       );
 
-    });
+    }
 
   } catch (erro) {
 
@@ -2454,7 +2572,6 @@ async function carregarCategoriasRecorrencia(
   }
 
 }
-
 
 /* ======================================================
    ALTERAÇÃO DO TIPO
