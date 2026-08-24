@@ -4219,6 +4219,249 @@ function atualizarSelectCategorias(
 
 }
 
+/* ======================================================
+   CARREGAR CATEGORIAS PARA RECORRÊNCIA
+   CORREÇÃO: COMPARAÇÃO DE TIPO SEM DIFERENÇA DE MAIÚSCULAS
+====================================================== */
+
+async function carregarCategoriasRecorrencia(
+  tipoSelecionado = "",
+  categoriaSelecionada = ""
+) {
+
+  if (!recCategoria) {
+    return;
+  }
+
+  recCategoria.innerHTML =
+    "<option value=''>Carregando categorias...</option>";
+
+  try {
+
+    /* --------------------------------------------------
+       USUÁRIO LOGADO
+    -------------------------------------------------- */
+
+    const {
+      data: userData,
+      error: userError
+    } =
+      await supabase.auth.getUser();
+
+    if (
+      userError ||
+      !userData?.user
+    ) {
+
+      recCategoria.innerHTML =
+        "<option value=''>Sessão expirada</option>";
+
+      console.error(
+        "Erro ao identificar usuário:",
+        userError
+      );
+
+      return;
+
+    }
+
+
+    /* --------------------------------------------------
+       BUSCAR CATEGORIAS
+    -------------------------------------------------- */
+
+    const {
+      data,
+      error
+    } =
+      await supabase
+        .from(
+          "categorias_financeiras"
+        )
+        .select(
+          "id,user_id,nome,tipo,ativa"
+        )
+        .eq(
+          "user_id",
+          userData.user.id
+        )
+        .eq(
+          "ativa",
+          true
+        )
+        .order(
+          "nome",
+          {
+            ascending:
+              true
+          }
+        );
+
+
+    if (error) {
+
+      console.error(
+        "Erro ao carregar categorias:",
+        error
+      );
+
+      recCategoria.innerHTML =
+        "<option value=''>Erro ao carregar categorias</option>";
+
+      return;
+
+    }
+
+
+    /* --------------------------------------------------
+       RESET DO SELECT
+    -------------------------------------------------- */
+
+    recCategoria.innerHTML =
+      "<option value=''>Selecione uma categoria</option>";
+
+
+    /* --------------------------------------------------
+       NORMALIZAR TIPO
+       
+       Banco:
+       investimento
+
+       HTML:
+       Investimento
+
+       Ambos passam a ser:
+       investimento
+    -------------------------------------------------- */
+
+    const tipoNormalizado =
+      String(
+        tipoSelecionado || ""
+      )
+        .trim()
+        .toLowerCase();
+
+
+    /* --------------------------------------------------
+       FILTRAR CATEGORIAS
+    -------------------------------------------------- */
+
+    const categorias =
+      (data || []).filter(
+        cat => {
+
+          const tipoCategoria =
+            String(
+              cat.tipo || ""
+            )
+              .trim()
+              .toLowerCase();
+
+
+          if (
+            !tipoNormalizado
+          ) {
+
+            return true;
+
+          }
+
+
+          return (
+            !tipoCategoria ||
+            tipoCategoria ===
+              tipoNormalizado
+          );
+
+        }
+      );
+
+
+    /* --------------------------------------------------
+       CRIAR OPTIONS
+    -------------------------------------------------- */
+
+    categorias.forEach(
+      cat => {
+
+        const option =
+          document.createElement(
+            "option"
+          );
+
+        option.value =
+          cat.id;
+
+        option.textContent =
+          cat.nome ||
+          "Categoria";
+
+
+        if (
+          String(
+            cat.id
+          ) ===
+          String(
+            categoriaSelecionada
+          )
+        ) {
+
+          option.selected =
+            true;
+
+        }
+
+
+        recCategoria.appendChild(
+          option
+        );
+
+      }
+    );
+
+
+    /* --------------------------------------------------
+       NENHUMA CATEGORIA
+    -------------------------------------------------- */
+
+    if (
+      categorias.length === 0
+    ) {
+
+      const option =
+        document.createElement(
+          "option"
+        );
+
+      option.value =
+        "";
+
+      option.textContent =
+        "Nenhuma categoria cadastrada";
+
+      option.disabled =
+        true;
+
+      recCategoria.appendChild(
+        option
+      );
+
+    }
+
+
+  } catch (erro) {
+
+    console.error(
+      "Erro inesperado ao carregar categorias:",
+      erro
+    );
+
+    recCategoria.innerHTML =
+      "<option value=''>Erro ao carregar categorias</option>";
+
+  }
+
+}
 
 /* ======================================================
    ALTERAÇÃO DO TIPO DO LANÇAMENTO
@@ -4238,7 +4481,18 @@ if (tipo) {
   );
 
 }
+if (recTipo) {
 
+  recTipo.onchange =
+    async () => {
+
+      await carregarCategoriasRecorrencia(
+        recTipo.value
+      );
+
+    };
+
+}
 
 /* ======================================================
    MÁSCARA DE VALOR
