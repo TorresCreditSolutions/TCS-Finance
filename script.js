@@ -1,6 +1,10 @@
 /* ======================================================
    TCS FINANCE - SCRIPT PRINCIPAL
    VERSÃO LIMPA / ESTÁVEL
+   CORREÇÃO:
+   - Removidas declarações duplicadas
+   - Mantida recuperação automática da sessão
+   - Login não é solicitado novamente ao recarregar
 ====================================================== */
 
 console.log("SCRIPT CARREGADO");
@@ -20,13 +24,17 @@ document.addEventListener("DOMContentLoaded", async () => {
     "sb_publishable_qkDLfEnWNNXyqQVdogQzBQ_Sre7CVBL"
   );
 
+
   /* ========================= ESTADO ========================= */
 
   let dados = [];
+
   let grafico = null;
   let graficoMensal = null;
   let graficoComparativo = null;
+
   let idEmEdicao = null;
+
   let planoUsuario = "FREE";
 
   const LIMITE_FREE = 30;
@@ -34,9 +42,20 @@ document.addEventListener("DOMContentLoaded", async () => {
   let recorrenciasDados = [];
   let recorrenciaEmEdicao = null;
 
+  let categoriasFinanceiras = [];
+  let categoriaEmEdicao = null;
+
+  let categoriaSelecionadaEdicao = null;
+
+
+  /* ======================================================
+     CATEGORIAS PADRÃO
+  ====================================================== */
+
   const categoriasPadrao = {
 
     Receita: [
+
       "Salário",
       "Renda Extra",
       "Mesada",
@@ -49,9 +68,11 @@ document.addEventListener("DOMContentLoaded", async () => {
       "Juros",
       "Reembolsos",
       "Outros"
+
     ],
 
     Despesa: [
+
       "Moradia",
       "Alimentação",
       "Transporte",
@@ -69,9 +90,11 @@ document.addEventListener("DOMContentLoaded", async () => {
       "Pets",
       "Compras diversas",
       "Outros"
+
     ],
 
     Investimento: [
+
       "Renda Fixa",
       "Tesouro Direto",
       "CDB",
@@ -83,396 +106,322 @@ document.addEventListener("DOMContentLoaded", async () => {
       "Previdência",
       "Poupança",
       "Outros"
+
     ]
 
   };
 
+
   let categoriasPorTipo = {
 
     Receita: [],
-
     Despesa: [],
-
     Investimento: []
 
   };
 
+
   const nomesFrequencia = {
 
     diaria: "Diária",
-
     semanal: "Semanal",
-
     quinzenal: "Quinzenal",
-
     mensal: "Mensal",
-
     bimestral: "Bimestral",
-
     trimestral: "Trimestral",
-
     semestral: "Semestral",
-
     anual: "Anual"
 
   };
 
 
-/* ======================================================
-   ELEMENTOS DO DOM
-====================================================== */
+  /* ======================================================
+     ELEMENTOS DO DOM
+  ====================================================== */
 
-/* ------------------------------------------------------
-   ÁREA PRINCIPAL
------------------------------------------------------- */
 
-const loginContainer =
-  document.getElementById("login-container");
+  /* ------------------------------------------------------
+     ÁREA PRINCIPAL
+  ------------------------------------------------------ */
 
-const app =
-  document.getElementById("app");
+  const loginContainer =
+    document.getElementById("login-container");
 
-const dashboard =
-  document.getElementById("dashboard");
+  const app =
+    document.getElementById("app");
 
-const lancamentos =
-  document.getElementById("lancamentos");
+  const dashboard =
+    document.getElementById("dashboard");
 
-const recorrencias =
-  document.getElementById("recorrencias");
+  const lancamentos =
+    document.getElementById("lancamentos");
 
-const relatorios =
-  document.getElementById("relatorios");
+  const recorrencias =
+    document.getElementById("recorrencias");
 
-const contas =
-  document.getElementById("contas");
+  const relatorios =
+    document.getElementById("relatorios");
 
+  const contas =
+    document.getElementById("contas");
 
-/* ------------------------------------------------------
-   LOGIN
------------------------------------------------------- */
 
-const emailInput =
-  document.getElementById("email");
+  /* ------------------------------------------------------
+     LOGIN
+  ------------------------------------------------------ */
 
-const senhaInput =
-  document.getElementById("senha");
+  const emailInput =
+    document.getElementById("email");
 
-const aceiteTermos =
-  document.getElementById("aceiteTermos");
+  const senhaInput =
+    document.getElementById("senha");
 
-const btnLogin =
-  document.getElementById("btnLogin");
+  const aceiteTermos =
+    document.getElementById("aceiteTermos");
 
-const btnCadastro =
-  document.getElementById("btnCadastro");
+  const btnLogin =
+    document.getElementById("btnLogin");
 
-const btnLogout =
-  document.getElementById("btnLogout");
+  const btnCadastro =
+    document.getElementById("btnCadastro");
 
-const btnLogoutTop =
-  document.getElementById("btnLogoutTop");
+  const btnLogout =
+    document.getElementById("btnLogout");
 
+  const btnLogoutTop =
+    document.getElementById("btnLogoutTop");
 
-/* ------------------------------------------------------
-   NAVEGAÇÃO
------------------------------------------------------- */
 
-const btnDashboard =
-  document.getElementById("btnDashboard");
+  /* ------------------------------------------------------
+     NAVEGAÇÃO
+  ------------------------------------------------------ */
 
-const btnLancamentos =
-  document.getElementById("btnLancamentos");
+  const btnDashboard =
+    document.getElementById("btnDashboard");
 
-const btnRecorrencias =
-  document.getElementById("btnRecorrencias");
+  const btnLancamentos =
+    document.getElementById("btnLancamentos");
 
-const btnContas =
-  document.getElementById("btnContas");
+  const btnRecorrencias =
+    document.getElementById("btnRecorrencias");
 
-const btnRelatorios =
-  document.getElementById("btnRelatorios");
+  const btnContas =
+    document.getElementById("btnContas");
 
+  const btnRelatorios =
+    document.getElementById("btnRelatorios");
 
-/* ------------------------------------------------------
-   MENU MOBILE
------------------------------------------------------- */
 
-const btnMenu =
-  document.getElementById("btnMenu");
+  /* ------------------------------------------------------
+     MENU MOBILE
+  ------------------------------------------------------ */
 
-const sidebar =
-  document.querySelector(".sidebar");
+  const btnMenu =
+    document.getElementById("btnMenu");
 
-const menuOverlay =
-  document.getElementById("menuOverlay");
+  const sidebar =
+    document.querySelector(".sidebar");
 
+  const menuOverlay =
+    document.getElementById("menuOverlay");
 
-/* ------------------------------------------------------
-   USUÁRIO / TOPBAR
------------------------------------------------------- */
 
-const nomeCliente =
-  document.getElementById("nomeCliente");
+  /* ------------------------------------------------------
+     USUÁRIO / TOPBAR
+  ------------------------------------------------------ */
 
-const topbarUser =
-  document.getElementById("topbarUser");
+  const nomeCliente =
+    document.getElementById("nomeCliente");
 
-const topbarPlano =
-  document.getElementById("topbarPlano");
+  const topbarUser =
+    document.getElementById("topbarUser");
 
+  const topbarPlano =
+    document.getElementById("topbarPlano");
 
-/* ------------------------------------------------------
-   LANÇAMENTOS
------------------------------------------------------- */
 
-const tipo =
-  document.getElementById("tipo");
+  /* ------------------------------------------------------
+     LANÇAMENTOS
+  ------------------------------------------------------ */
 
-const categoria =
-  document.getElementById("categoria");
+  const tipo =
+    document.getElementById("tipo");
 
-const descricao =
-  document.getElementById("descricao");
+  const categoria =
+    document.getElementById("categoria");
 
-const valor =
-  document.getElementById("valor");
+  const descricao =
+    document.getElementById("descricao");
 
-const dataInput =
-  document.getElementById("data");
+  const valor =
+    document.getElementById("valor");
 
-const btnSalvar =
-  document.getElementById("btnSalvar");
+  const dataInput =
+    document.getElementById("data");
 
+  const btnSalvar =
+    document.getElementById("btnSalvar");
 
-/* ------------------------------------------------------
-   FILTRO / DASHBOARD
------------------------------------------------------- */
 
-const filtroMes =
-  document.getElementById("filtroMes");
+  /* ------------------------------------------------------
+     FILTRO / DASHBOARD
+  ------------------------------------------------------ */
 
-const btnLimparFiltro =
-  document.getElementById("btnLimparFiltro");
+  const filtroMes =
+    document.getElementById("filtroMes");
 
-const dashboardPeriodo =
-  document.getElementById("dashboardPeriodo");
+  const btnLimparFiltro =
+    document.getElementById("btnLimparFiltro");
 
+  const dashboardPeriodo =
+    document.getElementById("dashboardPeriodo");
 
-const totalReceitas =
-  document.getElementById("totalReceitas");
+  const totalReceitas =
+    document.getElementById("totalReceitas");
 
-const totalDespesas =
-  document.getElementById("totalDespesas");
+  const totalDespesas =
+    document.getElementById("totalDespesas");
 
-const totalInvestimentos =
-  document.getElementById("totalInvestimentos");
+  const totalInvestimentos =
+    document.getElementById("totalInvestimentos");
 
-const saldo =
-  document.getElementById("saldo");
+  const saldo =
+    document.getElementById("saldo");
 
-const lista =
-  document.getElementById("listaLancamentos");
+  const lista =
+    document.getElementById("listaLancamentos");
 
+  const tipoGrafico =
+    document.getElementById("tipoGrafico");
 
-const tipoGrafico =
-  document.getElementById("tipoGrafico");
 
+  /* ======================================================
+     CATEGORIAS FINANCEIRAS
+  ====================================================== */
 
-/* ======================================================
-   CATEGORIAS FINANCEIRAS
-====================================================== */
+  const categorias =
+    document.getElementById("categorias");
 
-const categorias =
-  document.getElementById("categorias");
+  const catTipo =
+    document.getElementById("catTipo");
 
-const catTipo =
-  document.getElementById("catTipo");
+  const catNome =
+    document.getElementById("catNome");
 
-const catNome =
-  document.getElementById("catNome");
+  const catDescricao =
+    document.getElementById("catDescricao");
 
-const catDescricao =
-  document.getElementById("catDescricao");
+  const catIcone =
+    document.getElementById("catIcone");
 
-const catIcone =
-  document.getElementById("catIcone");
+  const btnSalvarCategoria =
+    document.getElementById("btnSalvarCategoria");
 
-const btnSalvarCategoria =
-  document.getElementById("btnSalvarCategoria");
+  const btnCancelarCategoria =
+    document.getElementById("btnCancelarCategoria");
 
-const btnCancelarCategoria =
-  document.getElementById("btnCancelarCategoria");
+  const listaCategorias =
+    document.getElementById("listaCategorias");
 
-const listaCategorias =
-  document.getElementById("listaCategorias");
+  const filtroCategoriaTipo =
+    document.getElementById("filtroCategoriaTipo");
 
+  const contadorCategorias =
+    document.getElementById("contadorCategorias");
 
-/* ------------------------------------------------------
-   ESTADO DAS CATEGORIAS
------------------------------------------------------- */
 
-let categoriasFinanceiras = [];
+  /* ======================================================
+     RECORRÊNCIAS
+  ====================================================== */
 
-let categoriaEmEdicao = null;
+  const recTipo =
+    document.getElementById("recTipo");
 
+  const recCategoria =
+    document.getElementById("recCategoria");
 
-/* ------------------------------------------------------
-   ELEMENTOS AUXILIARES DE CATEGORIAS
------------------------------------------------------- */
+  const recDescricao =
+    document.getElementById("recDescricao");
 
-const filtroCategoriaTipo =
-  document.getElementById("filtroCategoriaTipo");
+  const recValor =
+    document.getElementById("recValor");
 
-const contadorCategorias =
-  document.getElementById("contadorCategorias");
+  const recFrequencia =
+    document.getElementById("recFrequencia");
 
+  const recDiaVencimento =
+    document.getElementById("recDiaVencimento");
 
-/* ======================================================
-   RECORRÊNCIAS
-====================================================== */
+  const recDataInicio =
+    document.getElementById("recDataInicio");
 
-const recTipo =
-  document.getElementById("recTipo");
+  const recDataFim =
+    document.getElementById("recDataFim");
 
-const recCategoria =
-  document.getElementById("recCategoria");
 
-const recDescricao =
-  document.getElementById("recDescricao");
+  const btnSalvarRecorrencia =
+    document.getElementById("btnSalvarRecorrencia");
 
-const recValor =
-  document.getElementById("recValor");
+  const btnCancelarRecorrencia =
+    document.getElementById("btnCancelarRecorrencia");
 
-const recFrequencia =
-  document.getElementById("recFrequencia");
 
-const recDiaVencimento =
-  document.getElementById("recDiaVencimento");
+  const listaRecorrencias =
+    document.getElementById("listaRecorrencias");
 
-const recDataInicio =
-  document.getElementById("recDataInicio");
+  const totalRecorrencias =
+    document.getElementById("totalRecorrencias");
 
-const recDataFim =
-  document.getElementById("recDataFim");
+  const recorrenciasAtivas =
+    document.getElementById("recorrenciasAtivas");
 
+  const recorrenciasPausadas =
+    document.getElementById("recorrenciasPausadas");
 
-/* ------------------------------------------------------
-   BOTÕES DE RECORRÊNCIA
------------------------------------------------------- */
+  const contadorRecorrencias =
+    document.getElementById("contadorRecorrencias");
 
-const btnSalvarRecorrencia =
-  document.getElementById("btnSalvarRecorrencia");
+  const tituloFormularioRecorrencia =
+    document.getElementById(
+      "tituloFormularioRecorrencia"
+    );
 
-const btnCancelarRecorrencia =
-  document.getElementById("btnCancelarRecorrencia");
 
+  /* ======================================================
+     CONTAS
+  ====================================================== */
 
-/* ------------------------------------------------------
-   LISTA / CONTADORES DE RECORRÊNCIAS
------------------------------------------------------- */
+  const listaContas =
+    document.getElementById("listaContas");
 
-const listaRecorrencias =
-  document.getElementById("listaRecorrencias");
+  const btnSalvarConta =
+    document.getElementById("btnSalvarConta");
 
-const totalRecorrencias =
-  document.getElementById("totalRecorrencias");
+  const btnCancelarConta =
+    document.getElementById("btnCancelarConta");
 
-const recorrenciasAtivas =
-  document.getElementById("recorrenciasAtivas");
 
-const recorrenciasPausadas =
-  document.getElementById("recorrenciasPausadas");
+  /* ======================================================
+     RELATÓRIOS / EXPORTAÇÃO
+  ====================================================== */
 
-const contadorRecorrencias =
-  document.getElementById("contadorRecorrencias");
+  const btnExportarPdf =
+    document.getElementById("btnExportarPdf");
 
-const tituloFormularioRecorrencia =
-  document.getElementById(
-    "tituloFormularioRecorrencia"
-  );
+  const btnExportarExcel =
+    document.getElementById("btnExportarExcel");
 
+  const btnExportarJson =
+    document.getElementById("btnExportarJson");
 
-/* ------------------------------------------------------
-   ESTADO DAS RECORRÊNCIAS
------------------------------------------------------- */
 
-let recorrenciasDados = [];
-
-let recorrenciaEmEdicao = null;
-
-
-/* ======================================================
-   CONTAS
-====================================================== */
-
-const listaContas =
-  document.getElementById("listaContas");
-
-const btnSalvarConta =
-  document.getElementById("btnSalvarConta");
-
-const btnCancelarConta =
-  document.getElementById("btnCancelarConta");
-
-
-/* ======================================================
-   RELATÓRIOS / EXPORTAÇÃO
-====================================================== */
-
-const btnExportarPdf =
-  document.getElementById("btnExportarPdf");
-
-const btnExportarExcel =
-  document.getElementById("btnExportarExcel");
-
-const btnExportarJson =
-  document.getElementById("btnExportarJson");
-
-
-/* ======================================================
-   VARIÁVEIS DE APOIO
-====================================================== */
-
-/*
- * Mantém o estado da categoria selecionada
- * quando o formulário está sendo editado.
- */
-
-let categoriaSelecionadaEdicao = null;
-
-
-/*
- * Mantém o estado do lançamento em edição.
- */
-
-let idEmEdicao = null;
-
-
-/*
- * Gráficos do dashboard.
- */
-
-let grafico = null;
-
-let graficoMensal = null;
-
-let graficoComparativo = null;
-
-
-/*
- * Plano atual do usuário.
- */
-
-const LIMITE_FREE = 30;
-
-let planoUsuario = "FREE";
-  
-  /* ========================= UTILITÁRIOS ========================= */
+  /* ======================================================
+     UTILITÁRIOS
+  ====================================================== */
 
   function normalizarTipoCategoria(tipoSelecionado) {
 
-    const valor =
+    const valorNormalizado =
       String(
         tipoSelecionado || ""
       )
@@ -481,7 +430,7 @@ let planoUsuario = "FREE";
 
 
     if (
-      valor === "receita"
+      valorNormalizado === "receita"
     ) {
 
       return "Receita";
@@ -490,7 +439,7 @@ let planoUsuario = "FREE";
 
 
     if (
-      valor === "despesa"
+      valorNormalizado === "despesa"
     ) {
 
       return "Despesa";
@@ -499,7 +448,7 @@ let planoUsuario = "FREE";
 
 
     if (
-      valor === "investimento"
+      valorNormalizado === "investimento"
     ) {
 
       return "Investimento";
@@ -570,7 +519,9 @@ let planoUsuario = "FREE";
   ) {
 
     if (!data) {
+
       return "";
+
     }
 
 
@@ -583,7 +534,9 @@ let planoUsuario = "FREE";
 
 
     return partes.length === 3
+
       ? `${partes[2]}/${partes[1]}/${partes[0]}`
+
       : String(data);
 
   }
@@ -765,7 +718,9 @@ let planoUsuario = "FREE";
   }
 
 
-  /* ========================= CATEGORIAS ========================= */
+  /* ======================================================
+     CATEGORIAS
+  ====================================================== */
 
   async function garantirCategoriasPadrao() {
 
@@ -997,9 +952,7 @@ let planoUsuario = "FREE";
       categoriasPorTipo = {
 
         Receita: [],
-
         Despesa: [],
-
         Investimento: []
 
       };
@@ -1252,7 +1205,7 @@ let planoUsuario = "FREE";
         );
 
 
-      const categorias =
+      const categoriasFiltradas =
         (
           data || []
         ).filter(
@@ -1282,7 +1235,7 @@ let planoUsuario = "FREE";
         "<option value=''>Selecione uma categoria</option>";
 
 
-      categorias.forEach(
+      categoriasFiltradas.forEach(
         cat => {
 
           const option =
@@ -1329,7 +1282,7 @@ let planoUsuario = "FREE";
 
 
       if (
-        !categorias.length
+        !categoriasFiltradas.length
       ) {
 
         const option =
@@ -1372,7 +1325,9 @@ let planoUsuario = "FREE";
   }
 
 
-  /* ========================= LOGIN ========================= */
+  /* ======================================================
+     SESSÃO / LOGIN
+  ====================================================== */
 
   async function iniciarSessao(
     user
@@ -1414,6 +1369,12 @@ let planoUsuario = "FREE";
 
     }
 
+
+    /*
+     * IMPORTANTE:
+     * Aqui apenas restauramos a sessão existente.
+     * Não fazemos novo login.
+     */
 
     if (loginContainer) {
 
@@ -1483,6 +1444,10 @@ let planoUsuario = "FREE";
 
   }
 
+
+  /* ------------------------------------------------------
+     LOGIN MANUAL
+  ------------------------------------------------------ */
 
   if (btnLogin) {
 
@@ -1605,6 +1570,10 @@ let planoUsuario = "FREE";
 
   }
 
+
+  /* ------------------------------------------------------
+     CADASTRO
+  ------------------------------------------------------ */
 
   if (btnCadastro) {
 
@@ -1735,6 +1704,10 @@ let planoUsuario = "FREE";
   }
 
 
+  /* ------------------------------------------------------
+     LOGOUT
+  ------------------------------------------------------ */
+
   async function fazerLogout() {
 
     try {
@@ -1793,7 +1766,9 @@ let planoUsuario = "FREE";
   }
 
 
-  /* ========================= LANÇAMENTOS ========================= */
+  /* ======================================================
+     LANÇAMENTOS
+  ====================================================== */
 
   async function carregarDados() {
 
@@ -2231,6 +2206,7 @@ let planoUsuario = "FREE";
 
 
     window.scrollTo({
+
       top:
         0,
 
@@ -2541,7 +2517,9 @@ let planoUsuario = "FREE";
   }
 
 
-  /* ========================= DASHBOARD ========================= */
+  /* ======================================================
+     DASHBOARD
+  ====================================================== */
 
   function atualizarPeriodoDashboard() {
 
@@ -2735,9 +2713,7 @@ let planoUsuario = "FREE";
     let labels = [
 
       "Receitas",
-
       "Despesas",
-
       "Investimentos"
 
     ];
@@ -2746,9 +2722,7 @@ let planoUsuario = "FREE";
     let valores = [
 
       receita,
-
       despesa,
-
       investimento
 
     ];
@@ -3216,7 +3190,9 @@ let planoUsuario = "FREE";
   }
 
 
-  /* ========================= RELATÓRIOS ========================= */
+  /* ======================================================
+     RELATÓRIOS
+  ====================================================== */
 
   function atualizarRelatorios() {
 
@@ -3367,7 +3343,9 @@ let planoUsuario = "FREE";
   }
 
 
-  /* ========================= RECORRÊNCIAS ========================= */
+  /* ======================================================
+     RECORRÊNCIAS
+  ====================================================== */
 
   async function carregarRecorrencias() {
 
@@ -3946,12 +3924,6 @@ let planoUsuario = "FREE";
             user_id:
               userData.user.id,
 
-            /*
-             * IMPORTANTE:
-             * O banco espera os tipos padronizados:
-             * Receita / Despesa / Investimento.
-             */
-
             tipo:
               tipoRec,
 
@@ -4310,8 +4282,10 @@ let planoUsuario = "FREE";
             "lancamentos_recorrentes"
           )
           .update({
+
             ativo:
               novoStatus
+
           })
           .eq(
             "id",
@@ -4654,7 +4628,9 @@ let planoUsuario = "FREE";
   }
 
 
-  /* ========================= NAVEGAÇÃO ========================= */
+  /* ======================================================
+     NAVEGAÇÃO
+  ====================================================== */
 
   if (btnDashboard) {
 
@@ -4771,6 +4747,10 @@ let planoUsuario = "FREE";
   }
 
 
+  /* ------------------------------------------------------
+     MENU MOBILE
+  ------------------------------------------------------ */
+
   if (btnMenu) {
 
     btnMenu.addEventListener(
@@ -4810,7 +4790,9 @@ let planoUsuario = "FREE";
   }
 
 
-  /* ========================= PDF ========================= */
+  /* ======================================================
+     PDF
+  ====================================================== */
 
   if (btnExportarPdf) {
 
@@ -4943,7 +4925,9 @@ let planoUsuario = "FREE";
   }
 
 
-  /* ========================= INICIALIZAÇÃO ========================= */
+  /* ======================================================
+     INICIALIZAÇÃO
+  ====================================================== */
 
   if (filtroMes) {
 
@@ -4977,6 +4961,16 @@ let planoUsuario = "FREE";
   }
 
 
+  /* ------------------------------------------------------
+     RECUPERAR SESSÃO EXISTENTE
+     
+     IMPORTANTE:
+     Este trecho NÃO faz login.
+     
+     Ele apenas pergunta ao Supabase se já existe
+     uma sessão autenticada salva no navegador.
+  ------------------------------------------------------ */
+
   try {
 
     const {
@@ -5000,11 +4994,22 @@ let planoUsuario = "FREE";
       sessionData?.session?.user
     ) {
 
+      console.log(
+        "Sessão existente encontrada. Restaurando usuário..."
+      );
+
+
       await iniciarSessao(
         sessionData.session.user
       );
 
+
     } else {
+
+      console.log(
+        "Nenhuma sessão ativa encontrada."
+      );
+
 
       if (app) {
 
