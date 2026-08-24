@@ -1,1655 +1,1358 @@
-/* ======================================================
-   TCS FINANCE
-   SCRIPT PRINCIPAL
-   VERSÃO CORRIGIDA - AUTENTICAÇÃO SUPABASE
+// ======================================================
+// TCS FINANCE
+// SCRIPT.JS — VERSÃO CORRIGIDA E COMPLETA
+// ======================================================
 
-   CORREÇÕES PRINCIPAIS:
-   - Sessão persistente no navegador
-   - Auto refresh do token
-   - Recuperação automática da sessão
-   - onAuthStateChange
-   - Login sem solicitar novamente após reload
-   - Proteção contra inicialização duplicada
-   - Logout completo
-   - Tratamento de sessão expirada
-   - Mantidas funções financeiras
-====================================================== */
+document.addEventListener(
+  "DOMContentLoaded",
+  async () => {
 
-console.log("========================================");
-console.log("TCS FINANCE - SCRIPT CARREGADO");
-console.log("========================================");
-
-
-document.addEventListener("DOMContentLoaded", async () => {
-
-  /* ======================================================
-     CONTROLE DE INICIALIZAÇÃO
-  ====================================================== */
-
-  let sistemaInicializado = false;
-  let processandoAutenticacao = false;
-
-
-  /* ======================================================
-     SUPABASE
-  ====================================================== */
-
-  if (!window.supabase) {
-
-    console.error(
-      "Supabase não foi carregado no HTML."
+    console.log(
+      "TCS Finance iniciando..."
     );
 
-    alert(
-      "Não foi possível iniciar o sistema.\n\n" +
-      "A biblioteca do Supabase não foi carregada.\n\n" +
-      "Verifique o HTML e recarregue a página."
-    );
+    // ======================================================
+    // VARIÁVEIS GLOBAIS
+    // ======================================================
 
-    return;
+    let usuarioAtual =
+      null;
 
-  }
+    let sessaoAtual =
+      null;
+
+    let dados =
+      [];
+
+    let categoriasFinanceiras =
+      [];
+
+    let recorrenciasDados =
+      [];
+
+    let recorrenciaEmEdicao =
+      null;
+
+    let grafico =
+      null;
+
+    let graficoMensal =
+      null;
+
+    let graficoComparativo =
+      null;
 
 
-  let supabase;
+    // ======================================================
+    // SUPABASE
+    // ======================================================
+
+    const supabase =
+      window.supabaseClient ||
+      window.supabase;
 
 
-  try {
+    if (!supabase) {
 
-    supabase =
-      window.supabase.createClient(
+      console.error(
+        "Cliente Supabase não encontrado."
+      );
 
-        "https://figkamlmpangolnasaby.supabase.co",
+      alert(
+        "Erro: o Supabase não foi inicializado."
+      );
 
-        "sb_publishable_qkDLfEnWNNXyqQVdogQzBQ_Sre7CVBL",
+      return;
 
+    }
+
+
+    // ======================================================
+    // ELEMENTOS DO DOM
+    // ======================================================
+
+    const login =
+      document.getElementById(
+        "login"
+      );
+
+    const app =
+      document.getElementById(
+        "app"
+      );
+
+    const dashboard =
+      document.getElementById(
+        "dashboard"
+      );
+
+    const lancamentos =
+      document.getElementById(
+        "lancamentos"
+      );
+
+    const recorrencias =
+      document.getElementById(
+        "recorrencias"
+      );
+
+    const relatorios =
+      document.getElementById(
+        "relatorios"
+      );
+
+    const contas =
+      document.getElementById(
+        "contas"
+      );
+
+
+    const btnDashboard =
+      document.getElementById(
+        "btnDashboard"
+      );
+
+    const btnLancamentos =
+      document.getElementById(
+        "btnLancamentos"
+      );
+
+    const btnRecorrencias =
+      document.getElementById(
+        "btnRecorrencias"
+      );
+
+    const btnRelatorios =
+      document.getElementById(
+        "btnRelatorios"
+      );
+
+    const btnContas =
+      document.getElementById(
+        "btnContas"
+      );
+
+
+    const btnMenu =
+      document.getElementById(
+        "btnMenu"
+      );
+
+    const sidebar =
+      document.getElementById(
+        "sidebar"
+      );
+
+    const menuOverlay =
+      document.getElementById(
+        "menuOverlay"
+      );
+
+
+    // ======================================================
+    // LOGIN
+    // ======================================================
+
+    const formLogin =
+      document.getElementById(
+        "formLogin"
+      );
+
+    const loginEmail =
+      document.getElementById(
+        "loginEmail"
+      );
+
+    const loginSenha =
+      document.getElementById(
+        "loginSenha"
+      );
+
+    const btnLogin =
+      document.getElementById(
+        "btnLogin"
+      );
+
+    const btnLogout =
+      document.getElementById(
+        "btnLogout"
+      );
+
+    const btnEsqueciSenha =
+      document.getElementById(
+        "btnEsqueciSenha"
+      );
+
+
+    // ======================================================
+    // DASHBOARD
+    // ======================================================
+
+    const totalReceitas =
+      document.getElementById(
+        "totalReceitas"
+      );
+
+    const totalDespesas =
+      document.getElementById(
+        "totalDespesas"
+      );
+
+    const totalInvestimentos =
+      document.getElementById(
+        "totalInvestimentos"
+      );
+
+    const saldo =
+      document.getElementById(
+        "saldo"
+      );
+
+    const dashboardPeriodo =
+      document.getElementById(
+        "dashboardPeriodo"
+      );
+
+
+    const filtroMes =
+      document.getElementById(
+        "filtroMes"
+      );
+
+    const btnLimparFiltro =
+      document.getElementById(
+        "btnLimparFiltro"
+      );
+
+    const tipoGrafico =
+      document.getElementById(
+        "tipoGrafico"
+      );
+
+
+    // ======================================================
+    // LANÇAMENTOS
+    // ======================================================
+
+    const lista =
+      document.getElementById(
+        "lista"
+      );
+
+    const formLancamento =
+      document.getElementById(
+        "formLancamento"
+      );
+
+    const tipo =
+      document.getElementById(
+        "tipo"
+      );
+
+    const categoria =
+      document.getElementById(
+        "categoria"
+      );
+
+    const descricao =
+      document.getElementById(
+        "descricao"
+      );
+
+    const valor =
+      document.getElementById(
+        "valor"
+      );
+
+    const dataInput =
+      document.getElementById(
+        "data"
+      );
+
+    const btnSalvar =
+      document.getElementById(
+        "btnSalvar"
+      );
+
+    const btnCancelar =
+      document.getElementById(
+        "btnCancelar"
+      );
+
+
+    // ======================================================
+    // RECORRÊNCIAS
+    // ======================================================
+
+    const listaRecorrencias =
+      document.getElementById(
+        "listaRecorrencias"
+      );
+
+    const recTipo =
+      document.getElementById(
+        "recTipo"
+      );
+
+    const recCategoria =
+      document.getElementById(
+        "recCategoria"
+      );
+
+    const recDescricao =
+      document.getElementById(
+        "recDescricao"
+      );
+
+    const recValor =
+      document.getElementById(
+        "recValor"
+      );
+
+    const recFrequencia =
+      document.getElementById(
+        "recFrequencia"
+      );
+
+    const recDiaVencimento =
+      document.getElementById(
+        "recDiaVencimento"
+      );
+
+    const recDataInicio =
+      document.getElementById(
+        "recDataInicio"
+      );
+
+    const recDataFim =
+      document.getElementById(
+        "recDataFim"
+      );
+
+    const btnSalvarRecorrencia =
+      document.getElementById(
+        "btnSalvarRecorrencia"
+      );
+
+    const btnCancelarRecorrencia =
+      document.getElementById(
+        "btnCancelarRecorrencia"
+      );
+
+    const tituloFormularioRecorrencia =
+      document.getElementById(
+        "tituloFormularioRecorrencia"
+      );
+
+
+    const totalRecorrencias =
+      document.getElementById(
+        "totalRecorrencias"
+      );
+
+    const recorrenciasAtivas =
+      document.getElementById(
+        "recorrenciasAtivas"
+      );
+
+    const recorrenciasPausadas =
+      document.getElementById(
+        "recorrenciasPausadas"
+      );
+
+    const contadorRecorrencias =
+      document.getElementById(
+        "contadorRecorrencias"
+      );
+
+
+    // ======================================================
+    // EXPORTAÇÕES
+    // ======================================================
+
+    const btnExportarPdf =
+      document.getElementById(
+        "btnExportarPdf"
+      );
+
+    const btnExportarJson =
+      document.getElementById(
+        "btnExportarJson"
+      );
+
+    const btnExportarExcel =
+      document.getElementById(
+        "btnExportarExcel"
+      );
+
+
+    // ======================================================
+    // RELATÓRIOS
+    // ======================================================
+
+    const relatorioReceitas =
+      document.getElementById(
+        "relatorioReceitas"
+      );
+
+    const relatorioDespesas =
+      document.getElementById(
+        "relatorioDespesas"
+      );
+
+    const relatorioInvestimentos =
+      document.getElementById(
+        "relatorioInvestimentos"
+      );
+
+    const relatorioSaldo =
+      document.getElementById(
+        "relatorioSaldo"
+      );
+
+
+    // ======================================================
+    // FREQUÊNCIAS
+    // ======================================================
+
+    const nomesFrequencia = {
+
+      diaria:
+        "Diária",
+
+      semanal:
+        "Semanal",
+
+      quinzenal:
+        "Quinzenal",
+
+      mensal:
+        "Mensal",
+
+      bimestral:
+        "Bimestral",
+
+      trimestral:
+        "Trimestral",
+
+      semestral:
+        "Semestral",
+
+      anual:
+        "Anual"
+
+    };
+
+
+    // ======================================================
+    // FUNÇÕES UTILITÁRIAS
+    // ======================================================
+
+    function escapeHtml(
+      valor
+    ) {
+
+      return String(
+        valor ?? ""
+      )
+        .replace(
+          /&/g,
+          "&amp;"
+        )
+        .replace(
+          /</g,
+          "&lt;"
+        )
+        .replace(
+          />/g,
+          "&gt;"
+        )
+        .replace(
+          /"/g,
+          "&quot;"
+        )
+        .replace(
+          /'/g,
+          "&#039;"
+        );
+
+    }
+
+
+    function formatarMoeda(
+      valor
+    ) {
+
+      const numero =
+        Number(
+          valor
+        ) || 0;
+
+
+      return numero.toLocaleString(
+        "pt-BR",
         {
+          style:
+            "currency",
 
-          auth: {
+          currency:
+            "BRL"
+        }
+      );
 
-            /*
-             * Mantém a sessão salva no navegador.
-             */
-            persistSession:
-              true,
+    }
 
-            /*
-             * Renova automaticamente o access token.
-             */
-            autoRefreshToken:
-              true,
 
-            /*
-             * Permite detectar sessões vindas
-             * de confirmação de email / URL.
-             */
-            detectSessionInUrl:
-              true,
+    function formatarData(
+      data
+    ) {
 
-            /*
-             * Usa localStorage para persistência.
-             */
-            storage:
-              window.localStorage,
+      if (!data) {
 
-            /*
-             * Chave própria do TCS Finance.
-             */
-            storageKey:
-              "tcs-finance-auth"
+        return "";
+
+      }
+
+
+      const texto =
+        String(
+          data
+        );
+
+
+      if (
+        /^\d{4}-\d{2}-\d{2}$/.test(
+          texto
+        )
+      ) {
+
+        const partes =
+          texto.split(
+            "-"
+          );
+
+
+        return `${partes[2]}/${partes[1]}/${partes[0]}`;
+
+      }
+
+
+      const d =
+        new Date(
+          data
+        );
+
+
+      if (
+        Number.isNaN(
+          d.getTime()
+        )
+      ) {
+
+        return texto;
+
+      }
+
+
+      return d.toLocaleDateString(
+        "pt-BR"
+      );
+
+    }
+
+
+    function obterDataHoje() {
+
+      const agora =
+        new Date();
+
+
+      const ano =
+        agora.getFullYear();
+
+
+      const mes =
+        String(
+          agora.getMonth() + 1
+        ).padStart(
+          2,
+          "0"
+        );
+
+
+      const dia =
+        String(
+          agora.getDate()
+        ).padStart(
+          2,
+          "0"
+        );
+
+
+      return `${ano}-${mes}-${dia}`;
+
+    }
+
+
+    function obterMesAtual() {
+
+      const hoje =
+        obterDataHoje();
+
+
+      return hoje.slice(
+        0,
+        7
+      );
+
+    }
+
+
+    function formatarPeriodo(
+      periodo
+    ) {
+
+      if (!periodo) {
+
+        return "Todos os períodos";
+
+      }
+
+
+      const partes =
+        String(
+          periodo
+        ).split(
+          "-"
+        );
+
+
+      if (
+        partes.length !== 2
+      ) {
+
+        return periodo;
+
+      }
+
+
+      const ano =
+        Number(
+          partes[0]
+        );
+
+      const mes =
+        Number(
+          partes[1]
+        );
+
+
+      if (
+        !ano ||
+        !mes
+      ) {
+
+        return periodo;
+
+      }
+
+
+      const nomes = [
+
+        "Janeiro",
+        "Fevereiro",
+        "Março",
+        "Abril",
+        "Maio",
+        "Junho",
+        "Julho",
+        "Agosto",
+        "Setembro",
+        "Outubro",
+        "Novembro",
+        "Dezembro"
+
+      ];
+
+
+      return `${nomes[mes - 1]} de ${ano}`;
+
+    }
+
+
+    function normalizarTipoCategoria(
+      valor
+    ) {
+
+      const texto =
+        String(
+          valor || ""
+        )
+          .trim()
+          .toLowerCase();
+
+
+      if (
+        texto === "receita" ||
+        texto === "receitas"
+      ) {
+
+        return "Receita";
+
+      }
+
+
+      if (
+        texto === "despesa" ||
+        texto === "despesas"
+      ) {
+
+        return "Despesa";
+
+      }
+
+
+      if (
+        texto === "investimento" ||
+        texto === "investimentos"
+      ) {
+
+        return "Investimento";
+
+      }
+
+
+      return String(
+        valor || ""
+      );
+
+    }
+
+
+    function fecharMenuMobile() {
+
+      if (sidebar) {
+
+        sidebar.classList.remove(
+          "active"
+        );
+
+      }
+
+
+      if (menuOverlay) {
+
+        menuOverlay.classList.add(
+          "hidden"
+        );
+
+      }
+
+    }
+
+
+    function ativarMenu(
+      botao
+    ) {
+
+      document
+        .querySelectorAll(
+          ".menu-item, .nav-item, .sidebar button"
+        )
+        .forEach(
+          el => {
+
+            el.classList.remove(
+              "active"
+            );
+
+          }
+        );
+
+
+      if (botao) {
+
+        botao.classList.add(
+          "active"
+        );
+
+      }
+
+
+      fecharMenuMobile();
+
+    }
+
+
+    function mostrarTela(
+      tela
+    ) {
+
+      const telas = [
+
+        dashboard,
+        lancamentos,
+        recorrencias,
+        relatorios,
+        contas
+
+      ];
+
+
+      telas.forEach(
+        el => {
+
+          if (!el) {
+
+            return;
 
           }
 
-        }
 
-      );
-
-
-    console.log(
-      "Cliente Supabase inicializado corretamente."
-    );
-
-
-  } catch (erro) {
-
-    console.error(
-      "Erro ao criar cliente Supabase:",
-      erro
-    );
-
-    alert(
-      "Erro ao conectar ao sistema.\n\n" +
-      "Verifique a configuração do Supabase."
-    );
-
-    return;
-
-  }
-
-
-  /* ======================================================
-     ESTADO
-  ====================================================== */
-
-  let usuarioAtual = null;
-
-  let sessaoAtual = null;
-
-  let dados = [];
-
-  let grafico = null;
-
-  let graficoMensal = null;
-
-  let graficoComparativo = null;
-
-  let idEmEdicao = null;
-
-  let planoUsuario = "FREE";
-
-  const LIMITE_FREE = 30;
-
-  let recorrenciasDados = [];
-
-  let recorrenciaEmEdicao = null;
-
-  let categoriasFinanceiras = [];
-
-  let categoriaEmEdicao = null;
-
-  let categoriaSelecionadaEdicao = null;
-
-  let categoriasPorTipo = {
-
-    Receita: [],
-
-    Despesa: [],
-
-    Investimento: []
-
-  };
-
-
-  /* ======================================================
-     CATEGORIAS PADRÃO
-  ====================================================== */
-
-  const categoriasPadrao = {
-
-    Receita: [
-
-      "Salário",
-      "Renda Extra",
-      "Mesada",
-      "Freelance",
-      "Vendas",
-      "Comissões",
-      "Benefícios",
-      "Aluguéis",
-      "Dividendos",
-      "Juros",
-      "Reembolsos",
-      "Outros"
-
-    ],
-
-    Despesa: [
-
-      "Moradia",
-      "Alimentação",
-      "Transporte",
-      "Saúde",
-      "Educação",
-      "Lazer",
-      "Compras",
-      "Cartão de Crédito",
-      "Contas",
-      "Impostos",
-      "Empréstimos",
-      "Seguros",
-      "Assinaturas",
-      "Viagens",
-      "Pets",
-      "Compras diversas",
-      "Outros"
-
-    ],
-
-    Investimento: [
-
-      "Renda Fixa",
-      "Tesouro Direto",
-      "CDB",
-      "LCI/LCA",
-      "Ações",
-      "FIIs",
-      "ETFs",
-      "Criptomoedas",
-      "Previdência",
-      "Poupança",
-      "Outros"
-
-    ]
-
-  };
-
-
-  /* ======================================================
-     FREQUÊNCIAS
-  ====================================================== */
-
-  const nomesFrequencia = {
-
-    diaria:
-      "Diária",
-
-    semanal:
-      "Semanal",
-
-    quinzenal:
-      "Quinzenal",
-
-    mensal:
-      "Mensal",
-
-    bimestral:
-      "Bimestral",
-
-    trimestral:
-      "Trimestral",
-
-    semestral:
-      "Semestral",
-
-    anual:
-      "Anual"
-
-  };
-
-
-  /* ======================================================
-     ELEMENTOS DO DOM
-  ====================================================== */
-
-  const loginContainer =
-    document.getElementById(
-      "login-container"
-    );
-
-  const app =
-    document.getElementById(
-      "app"
-    );
-
-  const dashboard =
-    document.getElementById(
-      "dashboard"
-    );
-
-  const lancamentos =
-    document.getElementById(
-      "lancamentos"
-    );
-
-  const recorrencias =
-    document.getElementById(
-      "recorrencias"
-    );
-
-  const relatorios =
-    document.getElementById(
-      "relatorios"
-    );
-
-  const contas =
-    document.getElementById(
-      "contas"
-    );
-
-
-  /* ======================================================
-     LOGIN
-  ====================================================== */
-
-  const emailInput =
-    document.getElementById(
-      "email"
-    );
-
-  const senhaInput =
-    document.getElementById(
-      "senha"
-    );
-
-  const aceiteTermos =
-    document.getElementById(
-      "aceiteTermos"
-    );
-
-  const btnLogin =
-    document.getElementById(
-      "btnLogin"
-    );
-
-  const btnCadastro =
-    document.getElementById(
-      "btnCadastro"
-    );
-
-  const btnLogout =
-    document.getElementById(
-      "btnLogout"
-    );
-
-  const btnLogoutTop =
-    document.getElementById(
-      "btnLogoutTop"
-    );
-
-
-  /* ======================================================
-     NAVEGAÇÃO
-  ====================================================== */
-
-  const btnDashboard =
-    document.getElementById(
-      "btnDashboard"
-    );
-
-  const btnLancamentos =
-    document.getElementById(
-      "btnLancamentos"
-    );
-
-  const btnRecorrencias =
-    document.getElementById(
-      "btnRecorrencias"
-    );
-
-  const btnContas =
-    document.getElementById(
-      "btnContas"
-    );
-
-  const btnRelatorios =
-    document.getElementById(
-      "btnRelatorios"
-    );
-
-
-  /* ======================================================
-     MENU MOBILE
-  ====================================================== */
-
-  const btnMenu =
-    document.getElementById(
-      "btnMenu"
-    );
-
-  const sidebar =
-    document.querySelector(
-      ".sidebar"
-    );
-
-  const menuOverlay =
-    document.getElementById(
-      "menuOverlay"
-    );
-
-
-  /* ======================================================
-     USUÁRIO
-  ====================================================== */
-
-  const nomeCliente =
-    document.getElementById(
-      "nomeCliente"
-    );
-
-  const topbarUser =
-    document.getElementById(
-      "topbarUser"
-    );
-
-  const topbarPlano =
-    document.getElementById(
-      "topbarPlano"
-    );
-
-
-  /* ======================================================
-     LANÇAMENTOS
-  ====================================================== */
-
-  const tipo =
-    document.getElementById(
-      "tipo"
-    );
-
-  const categoria =
-    document.getElementById(
-      "categoria"
-    );
-
-  const descricao =
-    document.getElementById(
-      "descricao"
-    );
-
-  const valor =
-    document.getElementById(
-      "valor"
-    );
-
-  const dataInput =
-    document.getElementById(
-      "data"
-    );
-
-  const btnSalvar =
-    document.getElementById(
-      "btnSalvar"
-    );
-
-
-  /* ======================================================
-     DASHBOARD
-  ====================================================== */
-
-  const filtroMes =
-    document.getElementById(
-      "filtroMes"
-    );
-
-  const btnLimparFiltro =
-    document.getElementById(
-      "btnLimparFiltro"
-    );
-
-  const dashboardPeriodo =
-    document.getElementById(
-      "dashboardPeriodo"
-    );
-
-  const totalReceitas =
-    document.getElementById(
-      "totalReceitas"
-    );
-
-  const totalDespesas =
-    document.getElementById(
-      "totalDespesas"
-    );
-
-  const totalInvestimentos =
-    document.getElementById(
-      "totalInvestimentos"
-    );
-
-  const saldo =
-    document.getElementById(
-      "saldo"
-    );
-
-  const lista =
-    document.getElementById(
-      "listaLancamentos"
-    );
-
-  const tipoGrafico =
-    document.getElementById(
-      "tipoGrafico"
-    );
-
-
-  /* ======================================================
-     CATEGORIAS
-  ====================================================== */
-
-  const categorias =
-    document.getElementById(
-      "categorias"
-    );
-
-  const catTipo =
-    document.getElementById(
-      "catTipo"
-    );
-
-  const catNome =
-    document.getElementById(
-      "catNome"
-    );
-
-  const catDescricao =
-    document.getElementById(
-      "catDescricao"
-    );
-
-  const catIcone =
-    document.getElementById(
-      "catIcone"
-    );
-
-  const btnSalvarCategoria =
-    document.getElementById(
-      "btnSalvarCategoria"
-    );
-
-  const btnCancelarCategoria =
-    document.getElementById(
-      "btnCancelarCategoria"
-    );
-
-  const listaCategorias =
-    document.getElementById(
-      "listaCategorias"
-    );
-
-  const filtroCategoriaTipo =
-    document.getElementById(
-      "filtroCategoriaTipo"
-    );
-
-  const contadorCategorias =
-    document.getElementById(
-      "contadorCategorias"
-    );
-
-
-  /* ======================================================
-     RECORRÊNCIAS
-  ====================================================== */
-
-  const recTipo =
-    document.getElementById(
-      "recTipo"
-    );
-
-  const recCategoria =
-    document.getElementById(
-      "recCategoria"
-    );
-
-  const recDescricao =
-    document.getElementById(
-      "recDescricao"
-    );
-
-  const recValor =
-    document.getElementById(
-      "recValor"
-    );
-
-  const recFrequencia =
-    document.getElementById(
-      "recFrequencia"
-    );
-
-  const recDiaVencimento =
-    document.getElementById(
-      "recDiaVencimento"
-    );
-
-  const recDataInicio =
-    document.getElementById(
-      "recDataInicio"
-    );
-
-  const recDataFim =
-    document.getElementById(
-      "recDataFim"
-    );
-
-  const btnSalvarRecorrencia =
-    document.getElementById(
-      "btnSalvarRecorrencia"
-    );
-
-  const btnCancelarRecorrencia =
-    document.getElementById(
-      "btnCancelarRecorrencia"
-    );
-
-  const listaRecorrencias =
-    document.getElementById(
-      "listaRecorrencias"
-    );
-
-  const totalRecorrencias =
-    document.getElementById(
-      "totalRecorrencias"
-    );
-
-  const recorrenciasAtivas =
-    document.getElementById(
-      "recorrenciasAtivas"
-    );
-
-  const recorrenciasPausadas =
-    document.getElementById(
-      "recorrenciasPausadas"
-    );
-
-  const contadorRecorrencias =
-    document.getElementById(
-      "contadorRecorrencias"
-    );
-
-  const tituloFormularioRecorrencia =
-    document.getElementById(
-      "tituloFormularioRecorrencia"
-    );
-
-
-  /* ======================================================
-     CONTAS
-  ====================================================== */
-
-  const listaContas =
-    document.getElementById(
-      "listaContas"
-    );
-
-  const btnSalvarConta =
-    document.getElementById(
-      "btnSalvarConta"
-    );
-
-  const btnCancelarConta =
-    document.getElementById(
-      "btnCancelarConta"
-    );
-
-
-  /* ======================================================
-     EXPORTAÇÃO
-  ====================================================== */
-
-  const btnExportarPdf =
-    document.getElementById(
-      "btnExportarPdf"
-    );
-
-  const btnExportarExcel =
-    document.getElementById(
-      "btnExportarExcel"
-    );
-
-  const btnExportarJson =
-    document.getElementById(
-      "btnExportarJson"
-    );
-
-
-  /* ======================================================
-     UTILITÁRIOS
-  ====================================================== */
-
-  function normalizarTipoCategoria(
-    tipoSelecionado
-  ) {
-
-    const valorNormalizado =
-      String(
-        tipoSelecionado || ""
-      )
-        .trim()
-        .toLowerCase();
-
-
-    if (
-      valorNormalizado ===
-      "receita"
-    ) {
-
-      return "Receita";
-
-    }
-
-
-    if (
-      valorNormalizado ===
-      "despesa"
-    ) {
-
-      return "Despesa";
-
-    }
-
-
-    if (
-      valorNormalizado ===
-      "investimento"
-    ) {
-
-      return "Investimento";
-
-    }
-
-
-    return String(
-      tipoSelecionado || ""
-    ).trim();
-
-  }
-
-
-  function escapeHtml(
-    valor
-  ) {
-
-    return String(
-      valor ?? ""
-    )
-      .replaceAll(
-        "&",
-        "&amp;"
-      )
-      .replaceAll(
-        "<",
-        "&lt;"
-      )
-      .replaceAll(
-        ">",
-        "&gt;"
-      )
-      .replaceAll(
-        '"',
-        "&quot;"
-      )
-      .replaceAll(
-        "'",
-        "&#039;"
-      );
-
-  }
-
-
-  function formatarMoeda(
-    valorNumerico
-  ) {
-
-    return (
-      Number(
-        valorNumerico
-      ) || 0
-    ).toLocaleString(
-      "pt-BR",
-      {
-
-        style:
-          "currency",
-
-        currency:
-          "BRL"
-
-      }
-    );
-
-  }
-
-
-  function formatarData(
-    data
-  ) {
-
-    if (!data) {
-
-      return "";
-
-    }
-
-
-    const partes =
-      String(
-        data
-      ).split(
-        "-"
-      );
-
-
-    return partes.length === 3
-
-      ? `${partes[2]}/${partes[1]}/${partes[0]}`
-
-      : String(data);
-
-  }
-
-
-  function obterDataHoje() {
-
-    const agora =
-      new Date();
-
-
-    return (
-
-      `${agora.getFullYear()}-` +
-
-      `${String(
-        agora.getMonth() + 1
-      ).padStart(
-        2,
-        "0"
-      )}-` +
-
-      `${String(
-        agora.getDate()
-      ).padStart(
-        2,
-        "0"
-      )}`
-
-    );
-
-  }
-
-
-  function obterMesAtual() {
-
-    const agora =
-      new Date();
-
-
-    return (
-
-      `${agora.getFullYear()}-` +
-
-      `${String(
-        agora.getMonth() + 1
-      ).padStart(
-        2,
-        "0"
-      )}`
-
-    );
-
-  }
-
-
-  function formatarPeriodo(
-    mes
-  ) {
-
-    if (!mes) {
-
-      return "Todos os períodos";
-
-    }
-
-
-    const partes =
-      String(
-        mes
-      ).split(
-        "-"
-      );
-
-
-    if (
-      partes.length !== 2
-    ) {
-
-      return mes;
-
-    }
-
-
-    const data =
-      new Date(
-        Number(
-          partes[0]
-        ),
-        Number(
-          partes[1]
-        ) - 1,
-        1
-      );
-
-
-    return data.toLocaleDateString(
-      "pt-BR",
-      {
-
-        month:
-          "long",
-
-        year:
-          "numeric"
-
-      }
-    );
-
-  }
-
-
-  function fecharMenuMobile() {
-
-    if (sidebar) {
-
-      sidebar.classList.remove(
-        "active"
-      );
-
-    }
-
-
-    if (menuOverlay) {
-
-      menuOverlay.classList.add(
-        "hidden"
-      );
-
-    }
-
-  }
-
-
-  function ativarMenu(
-    botao
-  ) {
-
-    document
-      .querySelectorAll(
-        ".sidebar .nav-item"
-      )
-      .forEach(
-        item => {
-
-          item.classList.remove(
+          el.classList.remove(
             "active"
           );
 
-        }
-      );
 
-
-    if (botao) {
-
-      botao.classList.add(
-        "active"
-      );
-
-    }
-
-  }
-
-
-  function mostrarTela(
-    tela
-  ) {
-
-    [
-
-      dashboard,
-      lancamentos,
-      recorrencias,
-      relatorios,
-      contas
-
-    ].forEach(
-      elemento => {
-
-        if (elemento) {
-
-          elemento.classList.add(
+          el.classList.add(
             "hidden"
           );
 
         }
+      );
+
+
+      if (tela) {
+
+        tela.classList.remove(
+          "hidden"
+        );
+
+        tela.classList.add(
+          "active"
+        );
 
       }
-    );
 
 
-    if (tela) {
-
-      tela.classList.remove(
-        "hidden"
-      );
+      fecharMenuMobile();
 
     }
 
 
-    fecharMenuMobile();
+    // ======================================================
+    // LOGIN / INTERFACE
+    // ======================================================
 
-  }
+    function mostrarInterfaceLogin() {
 
+      if (login) {
 
-  /* ======================================================
-     INTERFACE DE LOGIN
-  ====================================================== */
+        login.classList.remove(
+          "hidden"
+        );
 
-  function mostrarInterfaceLogin() {
+        login.classList.add(
+          "active"
+        );
 
-    console.log(
-      "Mostrando tela de login."
-    );
-
-
-    if (app) {
-
-      app.classList.add(
-        "hidden"
-      );
-
-      app.style.display =
-        "none";
-
-    }
+      }
 
 
-    if (loginContainer) {
+      if (app) {
 
-      loginContainer.style.display =
-        "flex";
+        app.classList.add(
+          "hidden"
+        );
 
-      loginContainer.classList.remove(
-        "hidden"
-      );
+        app.classList.remove(
+          "active"
+        );
 
-    }
-
-  }
-
-
-  function mostrarInterfaceApp() {
-
-    console.log(
-      "Mostrando aplicação."
-    );
-
-
-    if (loginContainer) {
-
-      loginContainer.style.display =
-        "none";
-
-      loginContainer.classList.add(
-        "hidden"
-      );
+      }
 
     }
 
 
-    if (app) {
+    function mostrarInterfaceApp() {
 
-      app.style.display =
-        "flex";
+      if (login) {
 
-      app.classList.remove(
-        "hidden"
-      );
+        login.classList.add(
+          "hidden"
+        );
+
+        login.classList.remove(
+          "active"
+        );
+
+      }
+
+
+      if (app) {
+
+        app.classList.remove(
+          "hidden"
+        );
+
+        app.classList.add(
+          "active"
+        );
+
+      }
 
     }
 
-  }
+
+    // ======================================================
+    // OBTTER USUÁRIO
+    // ======================================================
+
+    async function obterUsuarioAtual() {
+
+      try {
+
+        const {
+          data,
+          error
+        } =
+          await supabase.auth.getUser();
 
 
-  /* ======================================================
-     OBTÉM USUÁRIO ATUAL
-  ====================================================== */
+        if (error) {
 
-  async function obterUsuarioAtual() {
+          console.error(
+            "Erro ao obter usuário:",
+            error
+          );
 
-    try {
+          return null;
 
-      const {
-        data,
-        error
-      } =
-        await supabase.auth.getUser();
+        }
 
 
-      if (error) {
+        usuarioAtual =
+          data?.user ||
+          null;
+
+
+        return usuarioAtual;
+
+      } catch (erro) {
 
         console.error(
-          "Erro ao obter usuário:",
-          error
+          "Erro inesperado ao obter usuário:",
+          erro
         );
 
         return null;
 
       }
 
-
-      return data?.user || null;
-
-
-    } catch (erro) {
-
-      console.error(
-        "Erro inesperado ao obter usuário:",
-        erro
-      );
-
-      return null;
-
     }
 
-  }
 
+    // ======================================================
+    // LOGIN
+    // ======================================================
 
-  /* ======================================================
-     CATEGORIAS PADRÃO
-  ====================================================== */
+    if (formLogin) {
 
-  async function garantirCategoriasPadrao() {
+      formLogin.addEventListener(
+        "submit",
+        async event => {
 
-    try {
+          event.preventDefault();
 
-      const user =
-        usuarioAtual ||
-        await obterUsuarioAtual();
 
+          const email =
+            loginEmail?.value?.trim() ||
+            "";
 
-      if (!user) {
+          const senha =
+            loginSenha?.value ||
+            "";
 
-        return;
 
-      }
+          if (!email || !senha) {
 
-
-      const userId =
-        user.id;
-
-
-      const {
-        data: existentes,
-        error: buscaError
-      } =
-        await supabase
-          .from(
-            "categorias_financeiras"
-          )
-          .select(
-            "id,nome,tipo,ativa"
-          )
-          .eq(
-            "user_id",
-            userId
-          );
-
-
-      if (buscaError) {
-
-        console.error(
-          "Erro ao verificar categorias:",
-          buscaError
-        );
-
-        return;
-
-      }
-
-
-      const mapa =
-        new Set(
-          (
-            existentes || []
-          ).map(
-            item =>
-              `${normalizarTipoCategoria(
-                item.tipo
-              ).toLowerCase()}::${String(
-                item.nome || ""
-              ).trim().toLowerCase()}`
-          )
-        );
-
-
-      const novas =
-        [];
-
-
-      Object.entries(
-        categoriasPadrao
-      ).forEach(
-        (
-          [
-            tipoPadrao,
-            nomes
-          ]
-        ) => {
-
-          nomes.forEach(
-            nome => {
-
-              const chave =
-                `${tipoPadrao.toLowerCase()}::${nome.toLowerCase()}`;
-
-
-              if (
-                !mapa.has(
-                  chave
-                )
-              ) {
-
-                novas.push({
-
-                  user_id:
-                    userId,
-
-                  nome:
-                    nome,
-
-                  tipo:
-                    tipoPadrao,
-
-                  ativa:
-                    true
-
-                });
-
-              }
-
-            }
-          );
-
-        }
-      );
-
-
-      if (
-        !novas.length
-      ) {
-
-        return;
-
-      }
-
-
-      const {
-        error
-      } =
-        await supabase
-          .from(
-            "categorias_financeiras"
-          )
-          .insert(
-            novas
-          );
-
-
-      if (error) {
-
-        console.error(
-          "Erro ao criar categorias padrão:",
-          error
-        );
-
-      }
-
-    } catch (erro) {
-
-      console.error(
-        "Erro inesperado ao garantir categorias padrão:",
-        erro
-      );
-
-    }
-
-  }
-
-
-  async function carregarCategoriasFinanceiras() {
-
-    try {
-
-      const user =
-        usuarioAtual ||
-        await obterUsuarioAtual();
-
-
-      if (!user) {
-
-        return;
-
-      }
-
-
-      await garantirCategoriasPadrao();
-
-
-      const {
-        data,
-        error
-      } =
-        await supabase
-          .from(
-            "categorias_financeiras"
-          )
-          .select(
-            "id,user_id,nome,tipo,ativa"
-          )
-          .eq(
-            "user_id",
-            user.id
-          )
-          .eq(
-            "ativa",
-            true
-          )
-          .order(
-            "nome",
-            {
-              ascending:
-                true
-            }
-          );
-
-
-      if (error) {
-
-        console.error(
-          "Erro ao carregar categorias:",
-          error
-        );
-
-        return;
-
-      }
-
-
-      categoriasFinanceiras =
-        data || [];
-
-
-      categoriasPorTipo = {
-
-        Receita: [],
-
-        Despesa: [],
-
-        Investimento: []
-
-      };
-
-
-      (
-        data || []
-      ).forEach(
-        item => {
-
-          const tipoNormalizado =
-            normalizarTipoCategoria(
-              item.tipo
+            alert(
+              "Informe seu e-mail e sua senha."
             );
 
-
-          if (
-            categoriasPorTipo[
-              tipoNormalizado
-            ]
-          ) {
-
-            categoriasPorTipo[
-              tipoNormalizado
-            ].push(
-              item
-            );
+            return;
 
           }
 
-        }
-      );
 
+          try {
 
-    } catch (erro) {
+            if (btnLogin) {
 
-      console.error(
-        "Erro inesperado ao carregar categorias:",
-        erro
-      );
+              btnLogin.disabled =
+                true;
 
-    }
+              btnLogin.innerText =
+                "Entrando...";
 
-  }
-
-
-  function popularCategorias(
-    tipoSelecionado,
-    categoriaSelecionada = ""
-  ) {
-
-    if (!categoria) {
-
-      return;
-
-    }
-
-
-    categoria.innerHTML =
-      "<option value=''>Selecione uma categoria</option>";
-
-
-    categoria.disabled =
-      !tipoSelecionado;
-
-
-    const tipoNormalizado =
-      normalizarTipoCategoria(
-        tipoSelecionado
-      );
-
-
-    const listaCategoriasTipo =
-      categoriasPorTipo[
-        tipoNormalizado
-      ] || [];
-
-
-    listaCategoriasTipo.forEach(
-      cat => {
-
-        const option =
-          document.createElement(
-            "option"
-          );
-
-
-        option.value =
-          cat.nome;
-
-
-        option.textContent =
-          cat.nome;
-
-
-        option.dataset.id =
-          cat.id;
-
-
-        if (
-
-          String(
-            categoriaSelecionada
-          ) ===
-          String(
-            cat.nome
-          )
-
-          ||
-
-          String(
-            categoriaSelecionada
-          ) ===
-          String(
-            cat.id
-          )
-
-        ) {
-
-          option.selected =
-            true;
-
-        }
-
-
-        categoria.appendChild(
-          option
-        );
-
-      }
-    );
-
-
-    if (
-
-      !listaCategoriasTipo.length &&
-      tipoSelecionado
-
-    ) {
-
-      const option =
-        document.createElement(
-          "option"
-        );
-
-
-      option.value =
-        "";
-
-
-      option.textContent =
-        "Nenhuma categoria cadastrada";
-
-
-      option.disabled =
-        true;
-
-
-      categoria.appendChild(
-        option
-      );
-
-    }
-
-  }
-
-
-  async function carregarCategoriasRecorrencia(
-    tipoSelecionado = "",
-    categoriaSelecionada = ""
-  ) {
-
-    if (!recCategoria) {
-
-      return;
-
-    }
-
-
-    recCategoria.innerHTML =
-      "<option value=''>Carregando categorias...</option>";
-
-
-    try {
-
-      const user =
-        usuarioAtual ||
-        await obterUsuarioAtual();
-
-
-      if (!user) {
-
-        recCategoria.innerHTML =
-          "<option value=''>Sessão expirada</option>";
-
-        return;
-
-      }
-
-
-      await garantirCategoriasPadrao();
-
-
-      const {
-        data,
-        error
-      } =
-        await supabase
-          .from(
-            "categorias_financeiras"
-          )
-          .select(
-            "id,user_id,nome,tipo,ativa"
-          )
-          .eq(
-            "user_id",
-            user.id
-          )
-          .eq(
-            "ativa",
-            true
-          )
-          .order(
-            "nome",
-            {
-              ascending:
-                true
             }
-          );
 
 
-      if (error) {
+            const {
+              data,
+              error
+            } =
+              await supabase.auth.signInWithPassword({
 
-        console.error(
-          "Erro ao carregar categorias da recorrência:",
-          error
-        );
+                email,
 
+                password:
+                  senha
 
-        recCategoria.innerHTML =
-          "<option value=''>Erro ao carregar categorias</option>";
-
-        return;
-
-      }
+              });
 
 
-      const tipoNormalizado =
-        normalizarTipoCategoria(
-          tipoSelecionado
-        );
+            if (error) {
+
+              console.error(
+                "Erro no login:",
+                error
+              );
 
 
-      const categoriasFiltradas =
-        (
-          data || []
-        ).filter(
-          cat => {
+              alert(
+                `Não foi possível entrar.\n\n${error.message}`
+              );
+
+              return;
+
+            }
+
+
+            sessaoAtual =
+              data?.session ||
+              null;
+
+            usuarioAtual =
+              data?.user ||
+              null;
+
 
             if (
-              !tipoSelecionado
+              usuarioAtual
             ) {
 
-              return true;
+              await iniciarSessao(
+                usuarioAtual,
+                sessaoAtual
+              );
+
+            }
+
+          } catch (erro) {
+
+            console.error(
+              "Erro inesperado no login:",
+              erro
+            );
+
+
+            alert(
+              "Ocorreu um erro ao realizar o login."
+            );
+
+          } finally {
+
+            if (btnLogin) {
+
+              btnLogin.disabled =
+                false;
+
+              btnLogin.innerText =
+                "Entrar";
+
+            }
+
+          }
+
+        }
+      );
+
+    }
+
+
+    // ======================================================
+    // LOGOUT
+    // ======================================================
+
+    if (btnLogout) {
+
+      btnLogout.addEventListener(
+        "click",
+        async () => {
+
+          try {
+
+            await supabase.auth.signOut();
+
+          } catch (erro) {
+
+            console.error(
+              "Erro ao sair:",
+              erro
+            );
+
+          }
+
+
+          usuarioAtual =
+            null;
+
+          sessaoAtual =
+            null;
+
+          dados =
+            [];
+
+          recorrenciasDados =
+            [];
+
+
+          mostrarInterfaceLogin();
+
+        }
+      );
+
+    }
+
+
+    // ======================================================
+    // RECUPERAÇÃO DE SENHA
+    // ======================================================
+
+    if (btnEsqueciSenha) {
+
+      btnEsqueciSenha.addEventListener(
+        "click",
+        async () => {
+
+          const email =
+            loginEmail?.value?.trim() ||
+            "";
+
+
+          if (!email) {
+
+            alert(
+              "Digite seu e-mail antes de solicitar a recuperação da senha."
+            );
+
+            loginEmail?.focus();
+
+            return;
+
+          }
+
+
+          try {
+
+            const {
+              error
+            } =
+              await supabase.auth.resetPasswordForEmail(
+                email
+              );
+
+
+            if (error) {
+
+              alert(
+                `Não foi possível enviar o e-mail.\n\n${error.message}`
+              );
+
+              return;
 
             }
 
 
-            return (
+            alert(
+              "Se o e-mail estiver cadastrado, você receberá as instruções para redefinir sua senha."
+            );
 
-              normalizarTipoCategoria(
-                cat.tipo
-              ) ===
-              tipoNormalizado
+          } catch (erro) {
 
+            console.error(
+              "Erro ao recuperar senha:",
+              erro
+            );
+
+
+            alert(
+              "Ocorreu um erro ao solicitar a recuperação da senha."
             );
 
           }
+
+        }
+      );
+
+    }
+
+
+    // ======================================================
+    // INICIALIZAR SESSÃO
+    // ======================================================
+
+    async function iniciarSessao(
+      user,
+      session
+    ) {
+
+      if (!user) {
+
+        mostrarInterfaceLogin();
+
+        return;
+
+      }
+
+
+      usuarioAtual =
+        user;
+
+      sessaoAtual =
+        session ||
+        null;
+
+
+      mostrarInterfaceApp();
+
+
+      try {
+
+        await Promise.all([
+
+          carregarCategorias(),
+
+          carregarLancamentos(),
+
+          carregarRecorrencias()
+
+        ]);
+
+      } catch (erro) {
+
+        console.error(
+          "Erro ao carregar dados da sessão:",
+          erro
         );
 
+      }
 
-      recCategoria.innerHTML =
+
+      mostrarTela(
+        dashboard
+      );
+
+
+      ativarMenu(
+        btnDashboard
+      );
+
+
+      atualizarDashboard();
+
+    }
+
+
+    // ======================================================
+    // CATEGORIAS
+    // ======================================================
+
+    async function carregarCategorias() {
+
+      if (!usuarioAtual) {
+
+        return;
+
+      }
+
+
+      try {
+
+        const {
+          data,
+          error
+        } =
+          await supabase
+            .from(
+              "categorias"
+            )
+            .select(
+              "*"
+            )
+            .eq(
+              "user_id",
+              usuarioAtual.id
+            )
+            .order(
+              "nome",
+              {
+                ascending:
+                  true
+              }
+            );
+
+
+        if (error) {
+
+          console.error(
+            "Erro ao carregar categorias:",
+            error
+          );
+
+          categoriasFinanceiras =
+            [];
+
+          return;
+
+        }
+
+
+        categoriasFinanceiras =
+          data ||
+          [];
+
+
+        preencherCategoriasLancamento();
+
+      } catch (erro) {
+
+        console.error(
+          "Erro inesperado ao carregar categorias:",
+          erro
+        );
+
+      }
+
+    }
+
+
+    function preencherCategoriasLancamento() {
+
+      if (!categoria) {
+
+        return;
+
+      }
+
+
+      categoria.innerHTML =
         "<option value=''>Selecione uma categoria</option>";
 
 
-      categoriasFiltradas.forEach(
-        cat => {
+      categoriasFinanceiras.forEach(
+        item => {
 
           const option =
             document.createElement(
@@ -1658,31 +1361,138 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
           option.value =
-            cat.id;
+            item.id;
 
 
           option.textContent =
-            cat.nome;
+            item.nome ||
+            item.name ||
+            "Sem nome";
+
+
+          categoria.appendChild(
+            option
+          );
+
+        }
+      );
+
+
+      if (tipo?.value) {
+
+        categoria.disabled =
+          false;
+
+      } else {
+
+        categoria.disabled =
+          true;
+
+      }
+
+    }
+
+
+    // ======================================================
+    // CATEGORIAS DAS RECORRÊNCIAS
+    // ======================================================
+
+    async function carregarCategoriasRecorrencia(
+      tipoSelecionado,
+      categoriaSelecionada
+    ) {
+
+      if (!recCategoria) {
+
+        return;
+
+      }
+
+
+      recCategoria.innerHTML =
+        "<option value=''>Carregando categorias...</option>";
+
+
+      const tipoNormalizado =
+        normalizarTipoCategoria(
+          tipoSelecionado
+        );
+
+
+      let listaCategorias =
+        categoriasFinanceiras;
+
+
+      if (
+        !listaCategorias.length
+      ) {
+
+        await carregarCategorias();
+
+        listaCategorias =
+          categoriasFinanceiras;
+
+      }
+
+
+      if (
+        tipoNormalizado
+      ) {
+
+        listaCategorias =
+          listaCategorias.filter(
+            item => {
+
+              const tipoCategoria =
+                normalizarTipoCategoria(
+                  item.tipo ||
+                  item.tipo_categoria
+                );
+
+
+              return (
+                !tipoCategoria ||
+                tipoCategoria ===
+                  tipoNormalizado
+              );
+
+            }
+          );
+
+      }
+
+
+      recCategoria.innerHTML =
+        "<option value=''>Selecione uma categoria</option>";
+
+
+      listaCategorias.forEach(
+        item => {
+
+          const option =
+            document.createElement(
+              "option"
+            );
+
+
+          option.value =
+            item.id;
+
+
+          option.textContent =
+            item.nome ||
+            item.name ||
+            "Sem nome";
 
 
           if (
-
+            categoriaSelecionada &&
             String(
-              cat.id
+              item.id
             ) ===
             String(
               categoriaSelecionada
             )
-
-            ||
-
-            String(
-              cat.nome
-            ) ===
-            String(
-              categoriaSelecionada
-            )
-
           ) {
 
             option.selected =
@@ -1698,971 +1508,14 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
       );
 
-
-      if (
-        !categoriasFiltradas.length
-      ) {
-
-        const option =
-          document.createElement(
-            "option"
-          );
-
-
-        option.value =
-          "";
-
-
-        option.textContent =
-          "Nenhuma categoria cadastrada";
-
-
-        option.disabled =
-          true;
-
-
-        recCategoria.appendChild(
-          option
-        );
-
-      }
-
-    } catch (erro) {
-
-      console.error(
-        "Erro inesperado ao carregar categorias da recorrência:",
-        erro
-      );
-
-
-      recCategoria.innerHTML =
-        "<option value=''>Erro ao carregar categorias</option>";
-
-    }
-
-  }
-
-
-  /* ======================================================
-     INICIAR SESSÃO
-  ====================================================== */
-
-  async function iniciarSessao(
-    user,
-    session = null
-  ) {
-
-    if (!user) {
-
-      console.warn(
-        "iniciarSessao chamada sem usuário."
-      );
-
-      return;
-
     }
 
 
-    /*
-     * Evita inicializações simultâneas.
-     */
-    if (
-      processandoAutenticacao
-    ) {
-
-      console.log(
-        "Inicialização de autenticação já está em andamento."
-      );
-
-      return;
-
-    }
-
-
-    processandoAutenticacao =
-      true;
-
-
-    try {
-
-      usuarioAtual =
-        user;
-
-
-      if (session) {
-
-        sessaoAtual =
-          session;
-
-      }
-
-
-      console.log(
-        "Usuário autenticado:",
-        user.email
-      );
-
-
-      const nomeUsuario =
-        user.user_metadata?.nome ||
-        user.user_metadata?.name ||
-        user.email?.split("@")[0] ||
-        "Usuário";
-
-
-      if (topbarUser) {
-
-        topbarUser.innerText =
-          nomeUsuario;
-
-      }
-
-
-      if (topbarPlano) {
-
-        topbarPlano.innerText =
-          planoUsuario;
-
-      }
-
-
-      if (nomeCliente) {
-
-        nomeCliente.innerText =
-          `Olá, ${nomeUsuario}!`;
-
-      }
-
-
-      mostrarInterfaceApp();
-
-
-      mostrarTela(
-        dashboard
-      );
-
-
-      if (
-        filtroMes &&
-        !filtroMes.value
-      ) {
-
-        filtroMes.value =
-          obterMesAtual();
-
-      }
-
-
-      if (
-        dataInput &&
-        !dataInput.value
-      ) {
-
-        dataInput.value =
-          obterDataHoje();
-
-      }
-
-
-      if (
-        recDataInicio &&
-        !recDataInicio.value
-      ) {
-
-        recDataInicio.value =
-          obterDataHoje();
-
-      }
-
-
-      /*
-       * Carregamentos principais.
-       */
-      await carregarCategoriasFinanceiras();
-
-      await carregarDados();
-
-      atualizarDashboard();
-
-      renderizarLista();
-
-      sistemaInicializado =
-        true;
-
-
-      console.log(
-        "TCS Finance inicializado com sucesso."
-      );
-
-
-    } catch (erro) {
-
-      console.error(
-        "Erro ao iniciar sessão:",
-        erro
-      );
-
-      alert(
-        "O login foi realizado, mas ocorreu um erro ao carregar seus dados.\n\n" +
-        "Verifique o console para mais detalhes."
-      );
-
-    } finally {
-
-      processandoAutenticacao =
-        false;
-
-    }
-
-  }
-
-
-  /* ======================================================
-     LOGIN
-  ====================================================== */
-
-  if (btnLogin) {
-
-    btnLogin.addEventListener(
-      "click",
-      async () => {
-
-        try {
-
-          if (
-            !aceiteTermos?.checked
-          ) {
-
-            alert(
-              "Você precisa aceitar os termos de uso."
-            );
-
-            return;
-
-          }
-
-
-          const email =
-            emailInput?.value?.trim() ||
-            "";
-
-
-          const senha =
-            senhaInput?.value ||
-            "";
-
-
-          if (!email) {
-
-            alert(
-              "Informe seu email."
-            );
-
-            emailInput?.focus();
-
-            return;
-
-          }
-
-
-          if (!senha) {
-
-            alert(
-              "Informe sua senha."
-            );
-
-            senhaInput?.focus();
-
-            return;
-
-          }
-
-
-          btnLogin.disabled =
-            true;
-
-
-          btnLogin.innerText =
-            "Entrando...";
-
-
-          console.log(
-            "Tentando autenticar:",
-            email
-          );
-
-
-          /*
-           * Antes do login, encerramos qualquer
-           * estado de sessão inconsistente.
-           */
-          try {
-
-            await supabase.auth.signOut();
-
-          } catch (_) {
-
-            /*
-             * Não interrompe o login caso
-             * não exista sessão anterior.
-             */
-
-          }
-
-
-          const {
-            data,
-            error
-          } =
-            await supabase.auth.signInWithPassword({
-
-              email:
-                email,
-
-              password:
-                senha
-
-            });
-
-
-          if (error) {
-
-            console.error(
-              "Erro retornado pelo Supabase:",
-              error
-            );
-
-
-            let mensagem =
-              error.message ||
-              "Não foi possível fazer login.";
-
-
-            if (
-              error.message?.toLowerCase().includes(
-                "invalid login credentials"
-              )
-            ) {
-
-              mensagem =
-                "Email ou senha incorretos.";
-
-            }
-
-
-            if (
-              error.message?.toLowerCase().includes(
-                "email not confirmed"
-              )
-            ) {
-
-              mensagem =
-                "Seu email ainda não foi confirmado.\n\n" +
-                "Verifique sua caixa de entrada e confirme seu cadastro antes de entrar.";
-
-            }
-
-
-            if (
-              error.message?.toLowerCase().includes(
-                "too many requests"
-              )
-            ) {
-
-              mensagem =
-                "Muitas tentativas de login.\n\n" +
-                "Aguarde alguns minutos e tente novamente.";
-
-            }
-
-
-            alert(
-              mensagem
-            );
-
-            return;
-
-          }
-
-
-          console.log(
-            "Resposta do login:",
-            data
-          );
-
-
-          /*
-           * O ponto mais importante:
-           * precisamos ter uma SESSION válida.
-           */
-          if (
-            !data?.session ||
-            !data?.user
-          ) {
-
-            console.error(
-              "Supabase não retornou sessão após login.",
-              data
-            );
-
-
-            alert(
-              "O Supabase aceitou a solicitação, mas não retornou uma sessão autenticada.\n\n" +
-              "Isso normalmente indica que o email ainda precisa ser confirmado."
-            );
-
-            return;
-
-          }
-
-
-          sessaoAtual =
-            data.session;
-
-
-          usuarioAtual =
-            data.user;
-
-
-          /*
-           * O Supabase já persiste a sessão automaticamente,
-           * mas garantimos também que o estado local esteja correto.
-           */
-          try {
-
-            await supabase.auth.setSession({
-
-              access_token:
-                data.session.access_token,
-
-              refresh_token:
-                data.session.refresh_token
-
-            });
-
-          } catch (erroSessao) {
-
-            console.warn(
-              "Não foi necessário redefinir a sessão:",
-              erroSessao
-            );
-
-          }
-
-
-          await iniciarSessao(
-            data.user,
-            data.session
-          );
-
-
-        } catch (erro) {
-
-          console.error(
-            "Erro inesperado no login:",
-            erro
-          );
-
-
-          alert(
-            "Ocorreu um erro ao fazer login.\n\n" +
-            "Verifique sua conexão e tente novamente."
-          );
-
-
-        } finally {
-
-          btnLogin.disabled =
-            false;
-
-
-          btnLogin.innerText =
-            "Entrar";
-
-        }
-
-      }
-    );
-
-  }
-
-
-  /* ======================================================
-     ENTER NO LOGIN
-  ====================================================== */
-
-  if (emailInput) {
-
-    emailInput.addEventListener(
-      "keydown",
-      event => {
-
-        if (
-          event.key ===
-          "Enter"
-        ) {
-
-          event.preventDefault();
-
-          btnLogin?.click();
-
-        }
-
-      }
-    );
-
-  }
-
-
-  if (senhaInput) {
-
-    senhaInput.addEventListener(
-      "keydown",
-      event => {
-
-        if (
-          event.key ===
-          "Enter"
-        ) {
-
-          event.preventDefault();
-
-          btnLogin?.click();
-
-        }
-
-      }
-    );
-
-  }
-
-
-  /* ======================================================
-     CADASTRO
-  ====================================================== */
-
-  if (btnCadastro) {
-
-    btnCadastro.addEventListener(
-      "click",
-      async () => {
-
-        try {
-
-          if (
-            !aceiteTermos?.checked
-          ) {
-
-            alert(
-              "Você precisa aceitar os termos de uso."
-            );
-
-            return;
-
-          }
-
-
-          const email =
-            emailInput?.value?.trim() ||
-            "";
-
-
-          const senha =
-            senhaInput?.value ||
-            "";
-
-
-          if (
-            !email ||
-            !senha
-          ) {
-
-            alert(
-              "Informe email e senha."
-            );
-
-            return;
-
-          }
-
-
-          if (
-            senha.length < 6
-          ) {
-
-            alert(
-              "A senha deve possuir pelo menos 6 caracteres."
-            );
-
-            return;
-
-          }
-
-
-          btnCadastro.disabled =
-            true;
-
-
-          btnCadastro.innerText =
-            "Criando conta...";
-
-
-          const {
-            data,
-            error
-          } =
-            await supabase.auth.signUp({
-
-              email:
-                email,
-
-              password:
-                senha,
-
-              options: {
-
-                data: {
-
-                  nome:
-                    email.split(
-                      "@"
-                    )[0]
-
-                }
-
-              }
-
-            });
-
-
-          if (error) {
-
-            console.error(
-              "Erro no cadastro:",
-              error
-            );
-
-
-            alert(
-              error.message ||
-              "Não foi possível criar a conta."
-            );
-
-            return;
-
-          }
-
-
-          console.log(
-            "Cadastro realizado:",
-            data
-          );
-
-
-          /*
-           * Se o Supabase retornar sessão imediatamente,
-           * o usuário já pode entrar.
-           */
-          if (
-            data?.session &&
-            data?.user
-          ) {
-
-            await iniciarSessao(
-              data.user,
-              data.session
-            );
-
-
-          } else {
-
-            alert(
-
-              "Conta criada com sucesso!\n\n" +
-
-              "Enviamos um email de confirmação para " +
-              email +
-              ".\n\n" +
-
-              "Confirme seu email e depois faça login."
-
-            );
-
-          }
-
-
-        } catch (erro) {
-
-          console.error(
-            "Erro inesperado no cadastro:",
-            erro
-          );
-
-
-          alert(
-            "Ocorreu um erro ao criar a conta."
-          );
-
-
-        } finally {
-
-          btnCadastro.disabled =
-            false;
-
-
-          btnCadastro.innerText =
-            "Criar conta";
-
-        }
-
-      }
-    );
-
-  }
-
-
-  /* ======================================================
-     LOGOUT
-  ====================================================== */
-
-  async function fazerLogout() {
-
-    console.log(
-      "Executando logout..."
-    );
-
-
-    try {
-
-      await supabase.auth.signOut();
-
-    } catch (erro) {
-
-      console.error(
-        "Erro ao sair:",
-        erro
-      );
-
-    }
-
-
-    usuarioAtual =
-      null;
-
-
-    sessaoAtual =
-      null;
-
-
-    sistemaInicializado =
-      false;
-
-
-    mostrarInterfaceLogin();
-
-
-    if (emailInput) {
-
-      emailInput.value =
-        "";
-
-    }
-
-
-    if (senhaInput) {
-
-      senhaInput.value =
-        "";
-
-    }
-
-
-    if (aceiteTermos) {
-
-      aceiteTermos.checked =
-        false;
-
-    }
-
-
-    fecharMenuMobile();
-
-
-    console.log(
-      "Logout concluído."
-    );
-
-  }
-
-
-  if (btnLogout) {
-
-    btnLogout.addEventListener(
-      "click",
-      fazerLogout
-    );
-
-  }
-
-
-  if (btnLogoutTop) {
-
-    btnLogoutTop.addEventListener(
-      "click",
-      fazerLogout
-    );
-
-  }
-
-
-  /* ======================================================
-     MONITORAMENTO DE AUTENTICAÇÃO
-     
-     MUITO IMPORTANTE PARA O LOGIN.
-  ====================================================== */
-
-  supabase.auth.onAuthStateChange(
-    (
-      event,
-      session
-    ) => {
-
-      console.log(
-        "AUTH EVENT:",
-        event,
-        session?.user?.email || "sem usuário"
-      );
-
-
-      /*
-       * Não executamos toda a inicialização
-       * diretamente dentro do callback do Supabase.
-       *
-       * O setTimeout evita conflitos internos
-       * com o processamento de autenticação.
-       */
-      setTimeout(
-        async () => {
-
-          try {
-
-            if (
-              event ===
-                "SIGNED_IN" &&
-              session?.user
-            ) {
-
-              sessaoAtual =
-                session;
-
-              usuarioAtual =
-                session.user;
-
-
-              if (
-                !sistemaInicializado &&
-                !processandoAutenticacao
-              ) {
-
-                await iniciarSessao(
-                  session.user,
-                  session
-                );
-
-              }
-
-
-              return;
-
-            }
-
-
-            if (
-              event ===
-                "TOKEN_REFRESHED" &&
-              session?.user
-            ) {
-
-              sessaoAtual =
-                session;
-
-              usuarioAtual =
-                session.user;
-
-
-              console.log(
-                "Token renovado automaticamente."
-              );
-
-
-              return;
-
-            }
-
-
-            if (
-              event ===
-                "SIGNED_OUT"
-            ) {
-
-              usuarioAtual =
-                null;
-
-              sessaoAtual =
-                null;
-
-              sistemaInicializado =
-                false;
-
-
-              mostrarInterfaceLogin();
-
-
-              return;
-
-            }
-
-
-            if (
-              event ===
-                "USER_UPDATED" &&
-              session?.user
-            ) {
-
-              usuarioAtual =
-                session.user;
-
-              sessaoAtual =
-                session;
-
-              return;
-
-            }
-
-          } catch (erro) {
-
-            console.error(
-              "Erro no monitoramento de autenticação:",
-              erro
-            );
-
-          }
-
-        },
-        0
-      );
-
-    }
-  );
-
-
-  /* ======================================================
-     LANÇAMENTOS
-  ====================================================== */
-
-  async function carregarDados() {
-
-    try {
+    // ======================================================
+    // CARREGAR LANÇAMENTOS
+    // ======================================================
+
+    async function carregarLancamentos() {
 
       const user =
         usuarioAtual ||
@@ -2674,506 +1527,475 @@ document.addEventListener("DOMContentLoaded", async () => {
         dados =
           [];
 
+        renderizarLista();
+
+        atualizarDashboard();
+
         return;
 
       }
 
 
-      const {
-        data,
-        error
-      } =
-        await supabase
-          .from(
-            "lancamentos"
-          )
-          .select(
-            "*"
-          )
-          .eq(
-            "user_id",
-            user.id
-          )
-          .order(
-            "data",
-            {
-              ascending:
-                false
-            }
+      try {
+
+        const {
+          data,
+          error
+        } =
+          await supabase
+            .from(
+              "lancamentos"
+            )
+            .select(
+              "*"
+            )
+            .eq(
+              "user_id",
+              user.id
+            )
+            .order(
+              "data",
+              {
+                ascending:
+                  false
+              }
+            );
+
+
+        if (error) {
+
+          console.error(
+            "Erro ao carregar lançamentos:",
+            error
           );
 
 
-      if (error) {
+          dados =
+            [];
+
+          renderizarLista();
+
+          atualizarDashboard();
+
+          return;
+
+        }
+
+
+        dados =
+          data ||
+          [];
+
+
+        renderizarLista();
+
+        atualizarDashboard();
+
+      } catch (erro) {
 
         console.error(
-          "Erro ao carregar lançamentos:",
-          error
+          "Erro inesperado ao carregar lançamentos:",
+          erro
         );
 
 
         dados =
           [];
 
+        renderizarLista();
+
+        atualizarDashboard();
+
+      }
+
+    }
+
+
+    // ======================================================
+    // FILTRO
+    // ======================================================
+
+    function obterDadosFiltrados() {
+
+      if (
+        !filtroMes?.value
+      ) {
+
+        return [
+          ...dados
+        ];
+
+      }
+
+
+      return dados.filter(
+        item =>
+          String(
+            item.data ||
+            ""
+          ).startsWith(
+            filtroMes.value
+          )
+      );
+
+    }
+
+
+    // ======================================================
+    // RENDERIZAR LISTA
+    // ======================================================
+
+    function renderizarLista() {
+
+      if (!lista) {
+
         return;
 
       }
 
 
-      dados =
-        data || [];
-
-
-    } catch (erro) {
-
-      console.error(
-        "Erro inesperado ao carregar lançamentos:",
-        erro
-      );
-
-
-      dados =
-        [];
-
-    }
-
-  }
-
-
-  function limparFormulario() {
-
-    idEmEdicao =
-      null;
-
-
-    if (tipo) {
-
-      tipo.value =
+      lista.innerHTML =
         "";
 
-    }
 
+      if (
+        !dados.length
+      ) {
 
-    if (categoria) {
+        lista.innerHTML =
+          "<li>Nenhum lançamento cadastrado.</li>";
 
-      categoria.innerHTML =
-        "<option value=''>Selecione uma categoria</option>";
-
-      categoria.disabled =
-        true;
-
-    }
-
-
-    if (descricao) {
-
-      descricao.value =
-        "";
-
-    }
-
-
-    if (valor) {
-
-      valor.value =
-        "";
-
-    }
-
-
-    if (dataInput) {
-
-      dataInput.value =
-        obterDataHoje();
-
-    }
-
-
-    if (btnSalvar) {
-
-      btnSalvar.innerText =
-        "Salvar lançamento";
-
-    }
-
-  }
-
-
-  if (tipo) {
-
-    tipo.addEventListener(
-      "change",
-      async () => {
-
-        await carregarCategoriasFinanceiras();
-
-        popularCategorias(
-          tipo.value
-        );
+        return;
 
       }
-    );
-
-  }
 
 
-  if (btnSalvar) {
-
-    btnSalvar.addEventListener(
-      "click",
-      async () => {
-
-        if (
-
-          !tipo?.value ||
-          !categoria?.value ||
-          !valor?.value ||
-          !dataInput?.value
-
-        ) {
-
-          alert(
-            "Preencha tipo, categoria, valor e data."
-          );
-
-          return;
-
-        }
+      const filtrados =
+        obterDadosFiltrados();
 
 
-        const valorNumerico =
-          Number(
-            String(
-              valor.value
-            )
-              .replace(
-                /\./g,
-                ""
-              )
-              .replace(
-                ",",
-                "."
-              )
-          );
+      if (
+        !filtrados.length
+      ) {
+
+        lista.innerHTML =
+          "<li>Nenhum lançamento encontrado para o período selecionado.</li>";
+
+        return;
+
+      }
 
 
-        if (
+      filtrados.forEach(
+        item => {
 
-          !Number.isFinite(
-            valorNumerico
-          ) ||
-          valorNumerico <= 0
-
-        ) {
-
-          alert(
-            "Informe um valor válido."
-          );
-
-          return;
-
-        }
-
-
-        if (
-
-          planoUsuario ===
-            "FREE" &&
-
-          dados.length >=
-            LIMITE_FREE &&
-
-          !idEmEdicao
-
-        ) {
-
-          alert(
-            "Limite do plano gratuito atingido."
-          );
-
-          return;
-
-        }
-
-
-        try {
-
-          const user =
-            usuarioAtual ||
-            await obterUsuarioAtual();
-
-
-          if (!user) {
-
-            alert(
-              "Sua sessão expirou. Faça login novamente."
+          const li =
+            document.createElement(
+              "li"
             );
 
-            mostrarInterfaceLogin();
+
+          li.innerHTML = `
+
+            <div>
+
+              <strong>
+                ${
+                  escapeHtml(
+                    item.descricao ||
+                    item.categoria ||
+                    "Sem descrição"
+                  )
+                }
+              </strong>
+
+              <small>
+                ${
+                  escapeHtml(
+                    item.tipo ||
+                    ""
+                  )
+                }
+
+                •
+
+                ${
+                  escapeHtml(
+                    item.categoria ||
+                    "Sem categoria"
+                  )
+                }
+
+                •
+
+                ${
+                  formatarData(
+                    item.data
+                  )
+                }
+
+              </small>
+
+            </div>
+
+            <div>
+
+              <strong>
+                ${
+                  formatarMoeda(
+                    item.valor
+                  )
+                }
+              </strong>
+
+              <button
+                type="button"
+                data-acao="editar"
+                data-id="${escapeHtml(item.id)}"
+              >
+                ✏️
+              </button>
+
+              <button
+                type="button"
+                data-acao="excluir"
+                data-id="${escapeHtml(item.id)}"
+              >
+                🗑️
+              </button>
+
+            </div>
+
+          `;
+
+
+          lista.appendChild(
+            li
+          );
+
+        }
+      );
+
+    }
+
+
+    // ======================================================
+    // EVENTOS DA LISTA
+    // ======================================================
+
+    if (lista) {
+
+      lista.addEventListener(
+        "click",
+        async event => {
+
+          const botao =
+            event.target.closest(
+              "button[data-acao]"
+            );
+
+
+          if (!botao) {
 
             return;
 
           }
 
 
-          const registro = {
-
-            user_id:
-              user.id,
-
-            tipo:
-              tipo.value,
-
-            categoria:
-              categoria.value,
-
-            descricao:
-              descricao?.value?.trim() ||
-              "",
-
-            valor:
-              valorNumerico,
-
-            data:
-              dataInput.value
-
-          };
-
-
-          let resultado;
+          const id =
+            botao.dataset.id;
 
 
           if (
-            idEmEdicao
+            botao.dataset.acao ===
+            "editar"
           ) {
 
-            resultado =
-              await supabase
-                .from(
-                  "lancamentos"
-                )
-                .update(
-                  registro
-                )
-                .eq(
-                  "id",
-                  idEmEdicao
-                )
-                .eq(
-                  "user_id",
-                  user.id
-                );
-
-          } else {
-
-            resultado =
-              await supabase
-                .from(
-                  "lancamentos"
-                )
-                .insert(
-                  registro
-                );
+            await editarLancamento(
+              id
+            );
 
           }
 
 
           if (
-            resultado.error
+            botao.dataset.acao ===
+            "excluir"
           ) {
 
-            console.error(
-              "Erro ao salvar lançamento:",
-              resultado.error
+            await excluirLancamento(
+              id
             );
-
-
-            alert(
-              `Não foi possível salvar o lançamento.\n\n${resultado.error.message}`
-            );
-
-            return;
 
           }
-
-
-          alert(
-            idEmEdicao
-
-              ? "Lançamento atualizado com sucesso!"
-
-              : "Lançamento salvo com sucesso!"
-          );
-
-
-          limparFormulario();
-
-          await carregarDados();
-
-          atualizarDashboard();
-
-          renderizarLista();
-
-
-        } catch (erro) {
-
-          console.error(
-            "Erro inesperado ao salvar lançamento:",
-            erro
-          );
-
-
-          alert(
-            "Ocorreu um erro ao salvar o lançamento."
-          );
 
         }
-
-      }
-    );
-
-  }
-
-
-  async function editarLancamento(
-    id
-  ) {
-
-    const item =
-      dados.find(
-        l =>
-          String(
-            l.id
-          ) ===
-          String(
-            id
-          )
       );
 
-
-    if (!item) {
-
-      return;
-
     }
 
 
-    idEmEdicao =
-      item.id;
+    // ======================================================
+    // EDITAR LANÇAMENTO
+    // ======================================================
 
-
-    if (tipo) {
-
-      tipo.value =
-        item.tipo ||
-        "";
-
-    }
-
-
-    await carregarCategoriasFinanceiras();
-
-
-    popularCategorias(
-      item.tipo,
-      item.categoria
-    );
-
-
-    if (descricao) {
-
-      descricao.value =
-        item.descricao ||
-        "";
-
-    }
-
-
-    if (valor) {
-
-      valor.value =
-        Number(
-          item.valor || 0
-        ).toLocaleString(
-          "pt-BR",
-          {
-            minimumFractionDigits:
-              2
-          }
-        );
-
-    }
-
-
-    if (dataInput) {
-
-      dataInput.value =
-        item.data ||
-        obterDataHoje();
-
-    }
-
-
-    if (btnSalvar) {
-
-      btnSalvar.innerText =
-        "Atualizar lançamento";
-
-    }
-
-
-    mostrarTela(
-      lancamentos
-    );
-
-
-    window.scrollTo({
-
-      top:
-        0,
-
-      behavior:
-        "smooth"
-
-    });
-
-  }
-
-
-  async function excluirLancamento(
-    id
-  ) {
-
-    const item =
-      dados.find(
-        l =>
-          String(
-            l.id
-          ) ===
-          String(
-            id
-          )
-      );
-
-
-    if (!item) {
-
-      return;
-
-    }
-
-
-    if (
-      !confirm(
-        `Deseja excluir o lançamento "${item.descricao || item.categoria || "sem descrição"}"?`
-      )
+    async function editarLancamento(
+      id
     ) {
 
-      return;
+      const item =
+        dados.find(
+          registro =>
+            String(
+              registro.id
+            ) ===
+            String(
+              id
+            )
+        );
+
+
+      if (!item) {
+
+        alert(
+          "Lançamento não encontrado."
+        );
+
+        return;
+
+      }
+
+
+      mostrarTela(
+        lancamentos
+      );
+
+
+      ativarMenu(
+        btnLancamentos
+      );
+
+
+      if (tipo) {
+
+        tipo.value =
+          normalizarTipoCategoria(
+            item.tipo
+          );
+
+      }
+
+
+      if (categoria) {
+
+        categoria.disabled =
+          false;
+
+      }
+
+
+      if (
+        categoria &&
+        item.categoria_id
+      ) {
+
+        categoria.value =
+          item.categoria_id;
+
+      }
+
+
+      if (descricao) {
+
+        descricao.value =
+          item.descricao ||
+          "";
+
+      }
+
+
+      if (valor) {
+
+        valor.value =
+          item.valor ??
+          "";
+
+      }
+
+
+      if (dataInput) {
+
+        dataInput.value =
+          item.data ||
+          obterDataHoje();
+
+      }
+
+
+      if (btnSalvar) {
+
+        btnSalvar.dataset.editando =
+          item.id;
+
+        btnSalvar.innerText =
+          "Atualizar lançamento";
+
+      }
+
+
+      if (btnCancelar) {
+
+        btnCancelar.classList.remove(
+          "hidden"
+        );
+
+      }
 
     }
 
 
-    try {
+    // ======================================================
+    // EXCLUIR LANÇAMENTO
+    // ======================================================
+
+    async function excluirLancamento(
+      id
+    ) {
+
+      const item =
+        dados.find(
+          registro =>
+            String(
+              registro.id
+            ) ===
+            String(
+              id
+            )
+        );
+
+
+      if (!item) {
+
+        return;
+
+      }
+
+
+      const confirmado =
+        confirm(
+          `Tem certeza que deseja excluir o lançamento "${
+            item.descricao ||
+            "sem descrição"
+          }"?`
+        );
+
+
+      if (!confirmado) {
+
+        return;
+
+      }
+
 
       const user =
         usuarioAtual ||
@@ -3193,77 +2015,1284 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
 
 
-      const {
-        error
-      } =
-        await supabase
-          .from(
-            "lancamentos"
-          )
-          .delete()
-          .eq(
-            "id",
-            id
-          )
-          .eq(
-            "user_id",
-            user.id
+      try {
+
+        const {
+          error
+        } =
+          await supabase
+            .from(
+              "lancamentos"
+            )
+            .delete()
+            .eq(
+              "id",
+              id
+            )
+            .eq(
+              "user_id",
+              user.id
+            );
+
+
+        if (error) {
+
+          console.error(
+            "Erro ao excluir lançamento:",
+            error
           );
 
 
-      if (error) {
+          alert(
+            `Não foi possível excluir o lançamento.\n\n${error.message}`
+          );
+
+          return;
+
+        }
+
+
+        await carregarLancamentos();
+
+      } catch (erro) {
+
+        console.error(
+          "Erro inesperado ao excluir lançamento:",
+          erro
+        );
+
 
         alert(
-          `Não foi possível excluir o lançamento.\n\n${error.message}`
+          "Ocorreu um erro ao excluir o lançamento."
         );
+
+      }
+
+    }
+
+
+    // ======================================================
+    // FORMULÁRIO DE LANÇAMENTO
+    // ======================================================
+
+    if (tipo) {
+
+      tipo.addEventListener(
+        "change",
+        () => {
+
+          if (categoria) {
+
+            categoria.disabled =
+              !tipo.value;
+
+          }
+
+
+          preencherCategoriasLancamento();
+
+        }
+      );
+
+    }
+
+
+    if (formLancamento) {
+
+      formLancamento.addEventListener(
+        "submit",
+        async event => {
+
+          event.preventDefault();
+
+
+          const user =
+            usuarioAtual ||
+            await obterUsuarioAtual();
+
+
+          if (!user) {
+
+            alert(
+              "Sua sessão expirou. Faça login novamente."
+            );
+
+            mostrarInterfaceLogin();
+
+            return;
+
+          }
+
+
+          const tipoLancamento =
+            normalizarTipoCategoria(
+              tipo?.value ||
+              ""
+            );
+
+
+          const categoriaId =
+            categoria?.value ||
+            "";
+
+
+          const descricaoLancamento =
+            descricao?.value?.trim() ||
+            "";
+
+
+          const valorLancamento =
+            Number(
+              String(
+                valor?.value ||
+                ""
+              )
+                .replace(
+                  /\./g,
+                  ""
+                )
+                .replace(
+                  ",",
+                  "."
+                )
+            );
+
+
+          const dataLancamento =
+            dataInput?.value ||
+            "";
+
+
+          if (
+            ![
+              "Receita",
+              "Despesa",
+              "Investimento"
+            ].includes(
+              tipoLancamento
+            )
+          ) {
+
+            alert(
+              "Selecione um tipo válido."
+            );
+
+            return;
+
+          }
+
+
+          if (!categoriaId) {
+
+            alert(
+              "Selecione uma categoria."
+            );
+
+            return;
+
+          }
+
+
+          if (!descricaoLancamento) {
+
+            alert(
+              "Informe uma descrição."
+            );
+
+            return;
+
+          }
+
+
+          if (
+            !Number.isFinite(
+              valorLancamento
+            ) ||
+            valorLancamento <= 0
+          ) {
+
+            alert(
+              "Informe um valor válido."
+            );
+
+            return;
+
+          }
+
+
+          if (!dataLancamento) {
+
+            alert(
+              "Informe a data."
+            );
+
+            return;
+
+          }
+
+
+          const registro = {
+
+            user_id:
+              user.id,
+
+            tipo:
+              tipoLancamento,
+
+            categoria_id:
+              categoriaId,
+
+            descricao:
+              descricaoLancamento,
+
+            valor:
+              valorLancamento,
+
+            data:
+              dataLancamento
+
+          };
+
+
+          try {
+
+            let resultado;
+
+
+            const idEdicao =
+              btnSalvar?.dataset?.editando;
+
+
+            if (idEdicao) {
+
+              resultado =
+                await supabase
+                  .from(
+                    "lancamentos"
+                  )
+                  .update(
+                    registro
+                  )
+                  .eq(
+                    "id",
+                    idEdicao
+                  )
+                  .eq(
+                    "user_id",
+                    user.id
+                  );
+
+            } else {
+
+              resultado =
+                await supabase
+                  .from(
+                    "lancamentos"
+                  )
+                  .insert(
+                    registro
+                  );
+
+            }
+
+
+            if (
+              resultado.error
+            ) {
+
+              console.error(
+                "Erro ao salvar lançamento:",
+                resultado.error
+              );
+
+
+              alert(
+                `Não foi possível salvar o lançamento.\n\n${resultado.error.message}`
+              );
+
+              return;
+
+            }
+
+
+            alert(
+              idEdicao
+                ? "Lançamento atualizado com sucesso!"
+                : "Lançamento cadastrado com sucesso!"
+            );
+
+
+            limparFormularioLancamento();
+
+            await carregarLancamentos();
+
+            mostrarTela(
+              lancamentos
+            );
+
+            ativarMenu(
+              btnLancamentos
+            );
+
+          } catch (erro) {
+
+            console.error(
+              "Erro inesperado ao salvar lançamento:",
+              erro
+            );
+
+
+            alert(
+              "Ocorreu um erro ao salvar o lançamento."
+            );
+
+          }
+
+        }
+      );
+
+    }
+
+
+    // ======================================================
+    // LIMPAR FORMULÁRIO
+    // ======================================================
+
+    function limparFormularioLancamento() {
+
+      if (formLancamento) {
+
+        formLancamento.reset();
+
+      }
+
+
+      if (dataInput) {
+
+        dataInput.value =
+          obterDataHoje();
+
+      }
+
+
+      if (categoria) {
+
+        categoria.value =
+          "";
+
+        categoria.disabled =
+          true;
+
+      }
+
+
+      if (btnSalvar) {
+
+        delete btnSalvar.dataset.editando;
+
+        btnSalvar.innerText =
+          "Salvar lançamento";
+
+      }
+
+
+      if (btnCancelar) {
+
+        btnCancelar.classList.add(
+          "hidden"
+        );
+
+      }
+
+    }
+
+
+    if (btnCancelar) {
+
+      btnCancelar.addEventListener(
+        "click",
+        limparFormularioLancamento
+      );
+
+    }
+
+
+    // ======================================================
+    // DASHBOARD
+    // ======================================================
+
+    function atualizarPeriodoDashboard() {
+
+      if (
+        dashboardPeriodo
+      ) {
+
+        dashboardPeriodo.innerText =
+          formatarPeriodo(
+            filtroMes?.value ||
+            ""
+          );
+
+      }
+
+    }
+
+
+    function atualizarDashboard() {
+
+      const filtrados =
+        obterDadosFiltrados();
+
+
+      let receita =
+        0;
+
+      let despesa =
+        0;
+
+      let investimento =
+        0;
+
+
+      filtrados.forEach(
+        item => {
+
+          const v =
+            Number(
+              item.valor
+            ) || 0;
+
+
+          const tipoItem =
+            normalizarTipoCategoria(
+              item.tipo
+            );
+
+
+          if (
+            tipoItem ===
+            "Receita"
+          ) {
+
+            receita +=
+              v;
+
+          }
+
+
+          if (
+            tipoItem ===
+            "Despesa"
+          ) {
+
+            despesa +=
+              v;
+
+          }
+
+
+          if (
+            tipoItem ===
+            "Investimento"
+          ) {
+
+            investimento +=
+              v;
+
+          }
+
+        }
+      );
+
+
+      if (totalReceitas) {
+
+        totalReceitas.innerText =
+          formatarMoeda(
+            receita
+          );
+
+      }
+
+
+      if (totalDespesas) {
+
+        totalDespesas.innerText =
+          formatarMoeda(
+            despesa
+          );
+
+      }
+
+
+      if (totalInvestimentos) {
+
+        totalInvestimentos.innerText =
+          formatarMoeda(
+            investimento
+          );
+
+      }
+
+
+      if (saldo) {
+
+        saldo.innerText =
+          formatarMoeda(
+            receita -
+            despesa
+          );
+
+      }
+
+
+      atualizarPeriodoDashboard();
+
+
+      renderizarGrafico(
+        filtrados,
+        receita,
+        despesa,
+        investimento
+      );
+
+
+      renderizarGraficoMensal(
+        filtrados
+      );
+
+
+      renderizarGraficoComparativo(
+        filtrados
+      );
+
+
+      atualizarRelatorios();
+
+    }
+
+
+    function destruirGrafico(
+      ref
+    ) {
+
+      if (ref) {
+
+        try {
+
+          ref.destroy();
+
+        } catch (_) {}
+
+      }
+
+    }
+
+
+    // ======================================================
+    // GRÁFICO PRINCIPAL
+    // ======================================================
+
+    function renderizarGrafico(
+      filtrados,
+      receita,
+      despesa,
+      investimento
+    ) {
+
+      const canvas =
+        document.getElementById(
+          "grafico"
+        );
+
+
+      if (
+        !canvas ||
+        !window.Chart
+      ) {
 
         return;
 
       }
 
 
-      await carregarDados();
-
-      atualizarDashboard();
-
-      renderizarLista();
-
-
-    } catch (erro) {
-
-      console.error(
-        "Erro ao excluir lançamento:",
-        erro
+      destruirGrafico(
+        grafico
       );
 
 
-      alert(
-        "Ocorreu um erro ao excluir o lançamento."
-      );
+      let labels = [
 
-    }
+        "Receitas",
+        "Despesas",
+        "Investimentos"
 
-  }
-
-
-  function obterDadosFiltrados() {
-
-    if (
-      !filtroMes?.value
-    ) {
-
-      return [
-        ...dados
       ];
 
+
+      let valores = [
+
+        receita,
+        despesa,
+        investimento
+
+      ];
+
+
+      if (
+        tipoGrafico?.value ===
+        "categoria"
+      ) {
+
+        const mapa =
+          {};
+
+
+        filtrados.forEach(
+          item => {
+
+            const chave =
+              item.categoria ||
+              "Sem categoria";
+
+
+            mapa[chave] =
+              (
+                mapa[chave] ||
+                0
+              ) +
+              (
+                Number(
+                  item.valor
+                ) || 0
+              );
+
+          }
+        );
+
+
+        labels =
+          Object.keys(
+            mapa
+          );
+
+
+        valores =
+          Object.values(
+            mapa
+          );
+
+      }
+
+
+      grafico =
+        new Chart(
+          canvas,
+          {
+
+            type:
+              "doughnut",
+
+            data: {
+
+              labels,
+
+              datasets: [
+
+                {
+
+                  data:
+                    valores
+
+                }
+
+              ]
+
+            },
+
+            options: {
+
+              responsive:
+                true,
+
+              maintainAspectRatio:
+                false
+
+            }
+
+          }
+        );
+
     }
 
+
+    // ======================================================
+    // GRÁFICO MENSAL
+    // ======================================================
+
+    function renderizarGraficoMensal(
+      filtrados
+    ) {
+
+      const canvas =
+        document.getElementById(
+          "graficoMensal"
+        );
+
+
+      if (
+        !canvas ||
+        !window.Chart
+      ) {
+
+        return;
+
+      }
+
+
+      destruirGrafico(
+        graficoMensal
+      );
+
+
+      const mapa =
+        {};
+
+
+      filtrados.forEach(
+        item => {
+
+          const mes =
+            String(
+              item.data ||
+              ""
+            ).slice(
+              0,
+              7
+            );
+
+
+          if (!mes) {
+
+            return;
+
+          }
+
+
+          if (
+            !mapa[mes]
+          ) {
+
+            mapa[mes] = {
+
+              receita:
+                0,
+
+              despesa:
+                0
+
+            };
+
+          }
+
+
+          const v =
+            Number(
+              item.valor
+            ) || 0;
+
+
+          const tipoItem =
+            normalizarTipoCategoria(
+              item.tipo
+            );
+
+
+          if (
+            tipoItem ===
+            "Receita"
+          ) {
+
+            mapa[mes].receita +=
+              v;
+
+          }
+
+
+          if (
+            tipoItem ===
+            "Despesa"
+          ) {
+
+            mapa[mes].despesa +=
+              v;
+
+          }
+
+        }
+      );
+
+
+      const labels =
+        Object.keys(
+          mapa
+        ).sort();
+
+
+      graficoMensal =
+        new Chart(
+          canvas,
+          {
+
+            type:
+              "bar",
+
+            data: {
+
+              labels,
+
+              datasets: [
+
+                {
+
+                  label:
+                    "Receitas",
+
+                  data:
+                    labels.map(
+                      mes =>
+                        mapa[mes].receita
+                    )
+
+                },
+
+                {
+
+                  label:
+                    "Despesas",
+
+                  data:
+                    labels.map(
+                      mes =>
+                        mapa[mes].despesa
+                    )
+
+                }
+
+              ]
+
+            },
+
+            options: {
+
+              responsive:
+                true,
+
+              maintainAspectRatio:
+                false
+
+            }
+
+          }
+        );
+
+    }
+
+
+    // ======================================================
+    // GRÁFICO COMPARATIVO
+    // ======================================================
+
+    function renderizarGraficoComparativo(
+      filtrados
+    ) {
+
+      const canvas =
+        document.getElementById(
+          "graficoComparativo"
+        );
+
+
+      if (
+        !canvas ||
+        !window.Chart
+      ) {
+
+        return;
+
+      }
+
+
+      destruirGrafico(
+        graficoComparativo
+      );
+
+
+      const mapa =
+        {};
+
+
+      filtrados.forEach(
+        item => {
+
+          const mes =
+            String(
+              item.data ||
+              ""
+            ).slice(
+              0,
+              7
+            );
+
+
+          if (!mes) {
+
+            return;
+
+          }
+
+
+          if (
+            !mapa[mes]
+          ) {
+
+            mapa[mes] = {
+
+              receita:
+                0,
+
+              despesa:
+                0
+
+            };
+
+          }
+
+
+          const v =
+            Number(
+              item.valor
+            ) || 0;
+
+
+          const tipoItem =
+            normalizarTipoCategoria(
+              item.tipo
+            );
+
+
+          if (
+            tipoItem ===
+            "Receita"
+          ) {
+
+            mapa[mes].receita +=
+              v;
+
+          }
+
+
+          if (
+            tipoItem ===
+            "Despesa"
+          ) {
+
+            mapa[mes].despesa +=
+              v;
+
+          }
+
+        }
+      );
+
+
+      const labels =
+        Object.keys(
+          mapa
+        ).sort();
+
+
+      graficoComparativo =
+        new Chart(
+          canvas,
+          {
+
+            type:
+              "line",
+
+            data: {
+
+              labels,
+
+              datasets: [
+
+                {
+
+                  label:
+                    "Receitas",
+
+                  data:
+                    labels.map(
+                      mes =>
+                        mapa[mes].receita
+                    ),
+
+                  tension:
+                    0.25
+
+                },
+
+                {
+
+                  label:
+                    "Despesas",
+
+                  data:
+                    labels.map(
+                      mes =>
+                        mapa[mes].despesa
+                    ),
+
+                  tension:
+                    0.25
+
+                }
+
+              ]
+
+            },
+
+            options: {
+
+              responsive:
+                true,
+
+              maintainAspectRatio:
+                false
+
+            }
+
+          }
+
+        );
+
+    }
+
+
+    // ======================================================
+    // EVENTOS DO DASHBOARD
+    // ======================================================
+
+    if (tipoGrafico) {
+
+      tipoGrafico.addEventListener(
+        "change",
+        atualizarDashboard
+      );
+
+    }
+
+
+    if (filtroMes) {
+
+      filtroMes.addEventListener(
+        "change",
+        () => {
+
+          atualizarDashboard();
+
+          renderizarLista();
+
+        }
+      );
+
+    }
+
+
+    if (btnLimparFiltro) {
+
+      btnLimparFiltro.addEventListener(
+        "click",
+        () => {
+
+          if (filtroMes) {
+
+            filtroMes.value =
+              "";
+
+          }
+
+
+          atualizarDashboard();
+
+          renderizarLista();
+
+        }
+      );
+
+    }
+
+
+    // ======================================================
+    // RELATÓRIOS
+    // ======================================================
+
+    function atualizarRelatorios() {
+
+      const filtrados =
+        obterDadosFiltrados();
+
+
+      let receita =
+        0;
+
+      let despesa =
+        0;
+
+      let investimento =
+        0;
+
+
+      filtrados.forEach(
+        item => {
+
+          const v =
+            Number(
+              item.valor
+            ) || 0;
+
+
+          const tipoItem =
+            normalizarTipoCategoria(
+              item.tipo
+            );
+
+
+          if (
+            tipoItem ===
+            "Receita"
+          ) {
+
+            receita +=
+              v;
+
+          }
+
+
+          if (
+            tipoItem ===
+            "Despesa"
+          ) {
+
+            despesa +=
+              v;
+
+          }
+
+
+          if (
+            tipoItem ===
+            "Investimento"
+          ) {
+
+            investimento +=
+              v;
+
+          }
+
+        }
+      );
+
+
+      const valores = {
+
+        relatorioReceitas:
+          formatarMoeda(
+            receita
+          ),
+
+        relatorioDespesas:
+          formatarMoeda(
+            despesa
+          ),
+
+        relatorioInvestimentos:
+          formatarMoeda(
+            investimento
+          ),
+
+        relatorioSaldo:
+          formatarMoeda(
+            receita -
+            despesa
+          ),
+
+        relatorioResumoReceitas:
+          formatarMoeda(
+            receita
+          ),
+
+        relatorioResumoDespesas:
+          formatarMoeda(
+            despesa
+          ),
+
+        relatorioResumoInvestimentos:
+          formatarMoeda(
+            investimento
+          ),
+
+        relatorioResumoSaldo:
+          formatarMoeda(
+            receita -
+            despesa
+          ),
+
+        relatorioPeriodo:
+          formatarPeriodo(
+            filtroMes?.value ||
+            ""
+          )
+
+      };
+
+
+      Object.entries(
+        valores
+      ).forEach(
+        (
+          [
+            id,
+            texto
+          ]
+        ) => {
+
+          const el =
+            document.getElementById(
+              id
+            );
+
+
+          if (el) {
+
+            el.innerText =
+              texto;
+
+          }
+
+        }
+      );
+
+    }
+  function obterDadosFiltrados() {
+
+    if (!filtroMes?.value) {
+      return [...dados];
+    }
 
     return dados.filter(
       item =>
-        String(
-          item.data || ""
-        ).startsWith(
+        String(item.data || "").startsWith(
           filtroMes.value
         )
     );
@@ -3274,19 +3303,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   function renderizarLista() {
 
     if (!lista) {
-
       return;
-
     }
 
+    lista.innerHTML = "";
 
-    lista.innerHTML =
-      "";
-
-
-    if (
-      !dados.length
-    ) {
+    if (!dados.length) {
 
       lista.innerHTML =
         "<li>Nenhum lançamento cadastrado.</li>";
@@ -3295,14 +3317,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     }
 
-
     const filtrados =
       obterDadosFiltrados();
 
-
-    if (
-      !filtrados.length
-    ) {
+    if (!filtrados.length) {
 
       lista.innerHTML =
         "<li>Nenhum lançamento encontrado para o período selecionado.</li>";
@@ -3311,96 +3329,86 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     }
 
+    filtrados.forEach(item => {
 
-    filtrados.forEach(
-      item => {
+      const li =
+        document.createElement("li");
 
-        const li =
-          document.createElement(
-            "li"
-          );
+      li.innerHTML = `
 
+        <div>
 
-        li.innerHTML = `
+          <strong>
+            ${
+              escapeHtml(
+                item.descricao ||
+                item.categoria ||
+                "Sem descrição"
+              )
+            }
+          </strong>
 
-          <div>
+          <small>
+            ${
+              escapeHtml(
+                item.tipo || ""
+              )
+            }
 
-            <strong>
-              ${
-                escapeHtml(
-                  item.descricao ||
-                  item.categoria ||
-                  "Sem descrição"
-                )
-              }
-            </strong>
+            •
 
-            <small>
-              ${
-                escapeHtml(
-                  item.tipo ||
-                  ""
-                )
-              }
+            ${
+              escapeHtml(
+                item.categoria ||
+                "Sem categoria"
+              )
+            }
 
-              •
+            •
 
-              ${
-                escapeHtml(
-                  item.categoria ||
-                  "Sem categoria"
-                )
-              }
+            ${
+              formatarData(
+                item.data
+              )
+            }
 
-              •
+          </small>
 
-              ${
-                formatarData(
-                  item.data
-                )
-              }
+        </div>
 
-            </small>
+        <div>
 
-          </div>
+          <strong>
+            ${
+              formatarMoeda(
+                item.valor
+              )
+            }
+          </strong>
 
-          <div>
+          <button
+            type="button"
+            data-acao="editar"
+            data-id="${escapeHtml(item.id)}"
+          >
+            ✏️
+          </button>
 
-            <strong>
-              ${
-                formatarMoeda(
-                  item.valor
-                )
-              }
-            </strong>
+          <button
+            type="button"
+            data-acao="excluir"
+            data-id="${escapeHtml(item.id)}"
+          >
+            🗑️
+          </button>
 
-            <button
-              type="button"
-              data-acao="editar"
-              data-id="${escapeHtml(item.id)}"
-            >
-              ✏️
-            </button>
+        </div>
 
-            <button
-              type="button"
-              data-acao="excluir"
-              data-id="${escapeHtml(item.id)}"
-            >
-              🗑️
-            </button>
+      `;
 
-          </div>
+      lista.appendChild(li);
 
-        `;
-
-
-        lista.appendChild(
-          li
-        );
-
-      }
-    );
+    });
 
   }
 
@@ -3416,38 +3424,28 @@ document.addEventListener("DOMContentLoaded", async () => {
             "button[data-acao]"
           );
 
-
         if (!botao) {
-
           return;
-
         }
-
 
         const id =
           botao.dataset.id;
-
 
         if (
           botao.dataset.acao ===
           "editar"
         ) {
 
-          await editarLancamento(
-            id
-          );
+          await editarLancamento(id);
 
         }
-
 
         if (
           botao.dataset.acao ===
           "excluir"
         ) {
 
-          await excluirLancamento(
-            id
-          );
+          await excluirLancamento(id);
 
         }
 
@@ -3463,14 +3461,11 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   function atualizarPeriodoDashboard() {
 
-    if (
-      dashboardPeriodo
-    ) {
+    if (dashboardPeriodo) {
 
       dashboardPeriodo.innerText =
         formatarPeriodo(
-          filtroMes?.value ||
-          ""
+          filtroMes?.value || ""
         );
 
     }
@@ -3483,74 +3478,39 @@ document.addEventListener("DOMContentLoaded", async () => {
     const filtrados =
       obterDadosFiltrados();
 
+    let receita = 0;
+    let despesa = 0;
+    let investimento = 0;
 
-    let receita =
-      0;
+    filtrados.forEach(item => {
 
-    let despesa =
-      0;
+      const v =
+        Number(item.valor) || 0;
 
-    let investimento =
-      0;
+      const tipoItem =
+        normalizarTipoCategoria(
+          item.tipo
+        );
 
-
-    filtrados.forEach(
-      item => {
-
-        const v =
-          Number(
-            item.valor
-          ) || 0;
-
-
-        const tipoItem =
-          normalizarTipoCategoria(
-            item.tipo
-          );
-
-
-        if (
-          tipoItem ===
-          "Receita"
-        ) {
-
-          receita +=
-            v;
-
-        }
-
-
-        if (
-          tipoItem ===
-          "Despesa"
-        ) {
-
-          despesa +=
-            v;
-
-        }
-
-
-        if (
-          tipoItem ===
-          "Investimento"
-        ) {
-
-          investimento +=
-            v;
-
-        }
-
+      if (tipoItem === "Receita") {
+        receita += v;
       }
-    );
+
+      if (tipoItem === "Despesa") {
+        despesa += v;
+      }
+
+      if (tipoItem === "Investimento") {
+        investimento += v;
+      }
+
+    });
 
 
     if (totalReceitas) {
 
       totalReceitas.innerText =
-        formatarMoeda(
-          receita
-        );
+        formatarMoeda(receita);
 
     }
 
@@ -3558,9 +3518,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (totalDespesas) {
 
       totalDespesas.innerText =
-        formatarMoeda(
-          despesa
-        );
+        formatarMoeda(despesa);
 
     }
 
@@ -3568,9 +3526,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (totalInvestimentos) {
 
       totalInvestimentos.innerText =
-        formatarMoeda(
-          investimento
-        );
+        formatarMoeda(investimento);
 
     }
 
@@ -3579,8 +3535,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       saldo.innerText =
         formatarMoeda(
-          receita -
-          despesa
+          receita - despesa
         );
 
     }
@@ -3588,6 +3543,12 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     atualizarPeriodoDashboard();
 
+
+    /*
+     * IMPORTANTE:
+     * Todos os gráficos recebem os mesmos
+     * dados filtrados do dashboard.
+     */
 
     renderizarGrafico(
       filtrados,
@@ -3612,19 +3573,17 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
 
-  function destruirGrafico(
-    ref
-  ) {
+  function destruirGrafico(ref) {
 
-    if (ref) {
-
-      try {
-
-        ref.destroy();
-
-      } catch (_) {}
-
+    if (!ref) {
+      return;
     }
+
+    try {
+
+      ref.destroy();
+
+    } catch (_) {}
 
   }
 
@@ -3641,7 +3600,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         "grafico"
       );
 
-
     if (
       !canvas ||
       !window.Chart
@@ -3652,26 +3610,20 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
 
-    destruirGrafico(
-      grafico
-    );
+    destruirGrafico(grafico);
 
 
     let labels = [
-
       "Receitas",
       "Despesas",
       "Investimentos"
-
     ];
 
 
     let valores = [
-
       receita,
       despesa,
       investimento
-
     ];
 
 
@@ -3680,43 +3632,33 @@ document.addEventListener("DOMContentLoaded", async () => {
       "categoria"
     ) {
 
-      const mapa =
-        {};
+      const mapa = {};
 
 
-      filtrados.forEach(
-        item => {
+      filtrados.forEach(item => {
 
-          const chave =
-            item.categoria ||
-            "Sem categoria";
+        const chave =
+          item.categoria ||
+          "Sem categoria";
 
+        mapa[chave] =
+          (
+            mapa[chave] ||
+            0
+          ) +
+          (
+            Number(item.valor) ||
+            0
+          );
 
-          mapa[chave] =
-            (
-              mapa[chave] ||
-              0
-            ) +
-            (
-              Number(
-                item.valor
-              ) || 0
-            );
-
-        }
-      );
+      });
 
 
       labels =
-        Object.keys(
-          mapa
-        );
-
+        Object.keys(mapa);
 
       valores =
-        Object.values(
-          mapa
-        );
+        Object.values(mapa);
 
     }
 
@@ -3726,8 +3668,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         canvas,
         {
 
-          type:
-            "doughnut",
+          type: "doughnut",
 
           data: {
 
@@ -3737,8 +3678,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
               {
 
-                data:
-                  valores
+                data: valores
 
               }
 
@@ -3748,11 +3688,19 @@ document.addEventListener("DOMContentLoaded", async () => {
 
           options: {
 
-            responsive:
-              true,
+            responsive: true,
 
-            maintainAspectRatio:
-              false
+            maintainAspectRatio: false,
+
+            plugins: {
+
+              legend: {
+
+                position: "bottom"
+
+              }
+
+            }
 
           }
 
@@ -3787,86 +3735,63 @@ document.addEventListener("DOMContentLoaded", async () => {
     );
 
 
-    const mapa =
-      {};
+    const mapa = {};
 
 
-    filtrados.forEach(
-      item => {
+    filtrados.forEach(item => {
 
-        const mes =
-          String(
-            item.data ||
-            ""
-          ).slice(
-            0,
-            7
-          );
+      const mes =
+        String(
+          item.data || ""
+        ).slice(0, 7);
 
 
-        if (!mes) {
-
-          return;
-
-        }
+      if (!mes) {
+        return;
+      }
 
 
-        if (
-          !mapa[mes]
-        ) {
+      if (!mapa[mes]) {
 
-          mapa[mes] = {
+        mapa[mes] = {
 
-            receita:
-              0,
+          receita: 0,
 
-            despesa:
-              0
+          despesa: 0
 
-          };
-
-        }
-
-
-        const v =
-          Number(
-            item.valor
-          ) || 0;
-
-
-        if (
-          normalizarTipoCategoria(
-            item.tipo
-          ) ===
-          "Receita"
-        ) {
-
-          mapa[mes].receita +=
-            v;
-
-        }
-
-
-        if (
-          normalizarTipoCategoria(
-            item.tipo
-          ) ===
-          "Despesa"
-        ) {
-
-          mapa[mes].despesa +=
-            v;
-
-        }
+        };
 
       }
-    );
+
+
+      const v =
+        Number(item.valor) || 0;
+
+
+      const tipo =
+        normalizarTipoCategoria(
+          item.tipo
+        );
+
+
+      if (tipo === "Receita") {
+
+        mapa[mes].receita += v;
+
+      }
+
+
+      if (tipo === "Despesa") {
+
+        mapa[mes].despesa += v;
+
+      }
+
+    });
 
 
     const labels =
-      Object.keys(
-        mapa
-      ).sort();
+      Object.keys(mapa).sort();
 
 
     graficoMensal =
@@ -3874,8 +3799,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         canvas,
         {
 
-          type:
-            "bar",
+          type: "bar",
 
           data: {
 
@@ -3885,8 +3809,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
               {
 
-                label:
-                  "Receitas",
+                label: "Receitas",
 
                 data:
                   labels.map(
@@ -3898,8 +3821,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
               {
 
-                label:
-                  "Despesas",
+                label: "Despesas",
 
                 data:
                   labels.map(
@@ -3915,11 +3837,27 @@ document.addEventListener("DOMContentLoaded", async () => {
 
           options: {
 
-            responsive:
-              true,
+            responsive: true,
 
-            maintainAspectRatio:
-              false
+            maintainAspectRatio: false,
+
+            interaction: {
+
+              mode: "index",
+
+              intersect: false
+
+            },
+
+            plugins: {
+
+              legend: {
+
+                position: "bottom"
+
+              }
+
+            }
 
           }
 
@@ -3954,86 +3892,63 @@ document.addEventListener("DOMContentLoaded", async () => {
     );
 
 
-    const mapa =
-      {};
+    const mapa = {};
 
 
-    filtrados.forEach(
-      item => {
+    filtrados.forEach(item => {
 
-        const mes =
-          String(
-            item.data ||
-            ""
-          ).slice(
-            0,
-            7
-          );
+      const mes =
+        String(
+          item.data || ""
+        ).slice(0, 7);
 
 
-        if (!mes) {
-
-          return;
-
-        }
+      if (!mes) {
+        return;
+      }
 
 
-        if (
-          !mapa[mes]
-        ) {
+      if (!mapa[mes]) {
 
-          mapa[mes] = {
+        mapa[mes] = {
 
-            receita:
-              0,
+          receita: 0,
 
-            despesa:
-              0
+          despesa: 0
 
-          };
-
-        }
-
-
-        const v =
-          Number(
-            item.valor
-          ) || 0;
-
-
-        if (
-          normalizarTipoCategoria(
-            item.tipo
-          ) ===
-          "Receita"
-        ) {
-
-          mapa[mes].receita +=
-            v;
-
-        }
-
-
-        if (
-          normalizarTipoCategoria(
-            item.tipo
-          ) ===
-          "Despesa"
-        ) {
-
-          mapa[mes].despesa +=
-            v;
-
-        }
+        };
 
       }
-    );
+
+
+      const v =
+        Number(item.valor) || 0;
+
+
+      const tipo =
+        normalizarTipoCategoria(
+          item.tipo
+        );
+
+
+      if (tipo === "Receita") {
+
+        mapa[mes].receita += v;
+
+      }
+
+
+      if (tipo === "Despesa") {
+
+        mapa[mes].despesa += v;
+
+      }
+
+    });
 
 
     const labels =
-      Object.keys(
-        mapa
-      ).sort();
+      Object.keys(mapa).sort();
 
 
     graficoComparativo =
@@ -4041,8 +3956,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         canvas,
         {
 
-          type:
-            "line",
+          type: "line",
 
           data: {
 
@@ -4052,8 +3966,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
               {
 
-                label:
-                  "Receitas",
+                label: "Receitas",
 
                 data:
                   labels.map(
@@ -4061,15 +3974,15 @@ document.addEventListener("DOMContentLoaded", async () => {
                       mapa[mes].receita
                   ),
 
-                tension:
-                  0.25
+                tension: 0.25,
+
+                fill: false
 
               },
 
               {
 
-                label:
-                  "Despesas",
+                label: "Despesas",
 
                 data:
                   labels.map(
@@ -4077,8 +3990,9 @@ document.addEventListener("DOMContentLoaded", async () => {
                       mapa[mes].despesa
                   ),
 
-                tension:
-                  0.25
+                tension: 0.25,
+
+                fill: false
 
               }
 
@@ -4088,11 +4002,27 @@ document.addEventListener("DOMContentLoaded", async () => {
 
           options: {
 
-            responsive:
-              true,
+            responsive: true,
 
-            maintainAspectRatio:
-              false
+            maintainAspectRatio: false,
+
+            interaction: {
+
+              mode: "index",
+
+              intersect: false
+
+            },
+
+            plugins: {
+
+              legend: {
+
+                position: "bottom"
+
+              }
+
+            }
 
           }
 
@@ -4102,15 +4032,27 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
 
+  /*
+   * Alteração do tipo de gráfico.
+   */
+
   if (tipoGrafico) {
 
     tipoGrafico.addEventListener(
       "change",
-      atualizarDashboard
+      () => {
+
+        atualizarDashboard();
+
+      }
     );
 
   }
 
+
+  /*
+   * Filtro mensal.
+   */
 
   if (filtroMes) {
 
@@ -4128,6 +4070,10 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
 
+  /*
+   * Limpar filtro.
+   */
+
   if (btnLimparFiltro) {
 
     btnLimparFiltro.addEventListener(
@@ -4136,11 +4082,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         if (filtroMes) {
 
-          filtroMes.value =
-            "";
+          filtroMes.value = "";
 
         }
-
 
         atualizarDashboard();
 
@@ -4162,145 +4106,94 @@ document.addEventListener("DOMContentLoaded", async () => {
       obterDadosFiltrados();
 
 
-    let receita =
-      0;
-
-    let despesa =
-      0;
-
-    let investimento =
-      0;
+    let receita = 0;
+    let despesa = 0;
+    let investimento = 0;
 
 
-    filtrados.forEach(
-      item => {
+    filtrados.forEach(item => {
 
-        const v =
-          Number(
-            item.valor
-          ) || 0;
+      const v =
+        Number(item.valor) || 0;
 
 
-        if (
-          normalizarTipoCategoria(
-            item.tipo
-          ) ===
-          "Receita"
-        ) {
-
-          receita +=
-            v;
-
-        }
+      const tipo =
+        normalizarTipoCategoria(
+          item.tipo
+        );
 
 
-        if (
-          normalizarTipoCategoria(
-            item.tipo
-          ) ===
-          "Despesa"
-        ) {
-
-          despesa +=
-            v;
-
-        }
-
-
-        if (
-          normalizarTipoCategoria(
-            item.tipo
-          ) ===
-          "Investimento"
-        ) {
-
-          investimento +=
-            v;
-
-        }
-
+      if (tipo === "Receita") {
+        receita += v;
       }
-    );
+
+
+      if (tipo === "Despesa") {
+        despesa += v;
+      }
+
+
+      if (tipo === "Investimento") {
+        investimento += v;
+      }
+
+    });
 
 
     const valores = {
 
       relatorioReceitas:
-        formatarMoeda(
-          receita
-        ),
+        formatarMoeda(receita),
 
       relatorioDespesas:
-        formatarMoeda(
-          despesa
-        ),
+        formatarMoeda(despesa),
 
       relatorioInvestimentos:
-        formatarMoeda(
-          investimento
-        ),
+        formatarMoeda(investimento),
 
       relatorioSaldo:
         formatarMoeda(
-          receita -
-          despesa
+          receita - despesa
         ),
 
       relatorioResumoReceitas:
-        formatarMoeda(
-          receita
-        ),
+        formatarMoeda(receita),
 
       relatorioResumoDespesas:
-        formatarMoeda(
-          despesa
-        ),
+        formatarMoeda(despesa),
 
       relatorioResumoInvestimentos:
-        formatarMoeda(
-          investimento
-        ),
+        formatarMoeda(investimento),
 
       relatorioResumoSaldo:
         formatarMoeda(
-          receita -
-          despesa
+          receita - despesa
         ),
 
       relatorioPeriodo:
         formatarPeriodo(
-          filtroMes?.value ||
-          ""
+          filtroMes?.value || ""
         )
 
     };
 
 
-    Object.entries(
-      valores
-    ).forEach(
-      (
-        [
-          id,
-          texto
-        ]
-      ) => {
+    Object.entries(valores)
+      .forEach(
+        ([id, texto]) => {
 
-        const el =
-          document.getElementById(
-            id
-          );
+          const el =
+            document.getElementById(id);
 
 
-        if (el) {
+          if (el) {
 
-          el.innerText =
-            texto;
+            el.innerText = texto;
+
+          }
 
         }
-
-      }
-    );
+      );
 
   }
 
@@ -4311,12 +4204,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   async function carregarRecorrencias() {
 
-    if (
-      !listaRecorrencias
-    ) {
-
+    if (!listaRecorrencias) {
       return;
-
     }
 
 
@@ -4329,8 +4218,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       if (!user) {
 
-        recorrenciasDados =
-          [];
+        recorrenciasDados = [];
 
         renderizarRecorrencias();
 
@@ -4347,9 +4235,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           .from(
             "lancamentos_recorrentes"
           )
-          .select(
-            "*"
-          )
+          .select("*")
           .eq(
             "user_id",
             user.id
@@ -4357,8 +4243,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           .order(
             "created_at",
             {
-              ascending:
-                false
+              ascending: false
             }
           );
 
@@ -4371,8 +4256,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         );
 
 
-        recorrenciasDados =
-          [];
+        recorrenciasDados = [];
 
         renderizarRecorrencias();
 
@@ -4387,7 +4271,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       renderizarRecorrencias();
 
-
     } catch (erro) {
 
       console.error(
@@ -4396,9 +4279,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       );
 
 
-      recorrenciasDados =
-        [];
-
+      recorrenciasDados = [];
 
       renderizarRecorrencias();
 
@@ -4416,22 +4297,18 @@ document.addEventListener("DOMContentLoaded", async () => {
     const ativas =
       recorrenciasDados.filter(
         item =>
-          item.ativo !==
-          false
+          item.ativo !== false
       ).length;
 
 
     const pausadas =
       recorrenciasDados.filter(
         item =>
-          item.ativo ===
-          false
+          item.ativo === false
       ).length;
 
 
-    if (
-      totalRecorrencias
-    ) {
+    if (totalRecorrencias) {
 
       totalRecorrencias.innerText =
         total;
@@ -4439,9 +4316,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
 
-    if (
-      recorrenciasAtivas
-    ) {
+    if (recorrenciasAtivas) {
 
       recorrenciasAtivas.innerText =
         ativas;
@@ -4449,9 +4324,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
 
-    if (
-      recorrenciasPausadas
-    ) {
+    if (recorrenciasPausadas) {
 
       recorrenciasPausadas.innerText =
         pausadas;
@@ -4459,9 +4332,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
 
-    if (
-      contadorRecorrencias
-    ) {
+    if (contadorRecorrencias) {
 
       contadorRecorrencias.innerText =
         `${total} ${
@@ -4477,22 +4348,15 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   function renderizarRecorrencias() {
 
-    if (
-      !listaRecorrencias
-    ) {
-
+    if (!listaRecorrencias) {
       return;
-
     }
 
 
-    listaRecorrencias.innerHTML =
-      "";
+    listaRecorrencias.innerHTML = "";
 
 
-    if (
-      !recorrenciasDados.length
-    ) {
+    if (!recorrenciasDados.length) {
 
       listaRecorrencias.innerHTML = `
 
@@ -4522,8 +4386,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       rec => {
 
         const ativa =
-          rec.ativo !==
-          false;
+          rec.ativo !== false;
 
 
         const categoriaNome =
@@ -4597,13 +4460,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
               ${
                 rec.dia_vencimento
-
                   ? ` • Dia ${escapeHtml(
                       rec.dia_vencimento
                     )}`
-
                   : ""
-
               }
 
             </small>
@@ -4705,61 +4565,46 @@ document.addEventListener("DOMContentLoaded", async () => {
 
           const tipoRec =
             normalizarTipoCategoria(
-              recTipo?.value ||
-              ""
+              recTipo?.value || ""
             );
 
 
           const categoriaId =
-            recCategoria?.value ||
-            "";
+            recCategoria?.value || "";
 
 
           const descricaoRec =
-            recDescricao?.value?.trim() ||
-            "";
+            recDescricao?.value?.trim() || "";
 
 
           const valorRec =
             Number(
               String(
-                recValor?.value ||
-                ""
+                recValor?.value || ""
               )
-                .replace(
-                  /\./g,
-                  ""
-                )
-                .replace(
-                  ",",
-                  "."
-                )
+                .replace(/\./g, "")
+                .replace(",", ".")
             );
 
 
           const frequencia =
-            recFrequencia?.value ||
-            "";
+            recFrequencia?.value || "";
 
 
           const dia =
             recDiaVencimento?.value
-
               ? Number(
                   recDiaVencimento.value
                 )
-
               : null;
 
 
           const dataInicio =
-            recDataInicio?.value ||
-            "";
+            recDataInicio?.value || "";
 
 
           const dataFim =
-            recDataFim?.value ||
-            null;
+            recDataFim?.value || null;
 
 
           if (
@@ -4767,9 +4612,7 @@ document.addEventListener("DOMContentLoaded", async () => {
               "Receita",
               "Despesa",
               "Investimento"
-            ].includes(
-              tipoRec
-            )
+            ].includes(tipoRec)
           ) {
 
             alert(
@@ -4804,12 +4647,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
           if (
-
-            !Number.isFinite(
-              valorRec
-            ) ||
+            !Number.isFinite(valorRec) ||
             valorRec <= 0
-
           ) {
 
             alert(
@@ -4836,27 +4675,19 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
           if (
-
             [
               "mensal",
               "bimestral",
               "trimestral",
               "semestral",
               "anual"
-            ].includes(
-              frequencia
-            )
-
+            ].includes(frequencia)
           ) {
 
             if (
-
-              !Number.isInteger(
-                dia
-              ) ||
+              !Number.isInteger(dia) ||
               dia < 1 ||
               dia > 31
-
             ) {
 
               alert(
@@ -4871,11 +4702,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
           if (
-
             dataFim &&
-            dataFim <
-              dataInicio
-
+            dataFim < dataInicio
           ) {
 
             alert(
@@ -4908,9 +4736,7 @@ document.addEventListener("DOMContentLoaded", async () => {
               frequencia,
 
             dia_vencimento:
-              Number.isInteger(
-                dia
-              )
+              Number.isInteger(dia)
                 ? dia
                 : null,
 
@@ -4929,18 +4755,14 @@ document.addEventListener("DOMContentLoaded", async () => {
           let resultado;
 
 
-          if (
-            recorrenciaEmEdicao
-          ) {
+          if (recorrenciaEmEdicao) {
 
             resultado =
               await supabase
                 .from(
                   "lancamentos_recorrentes"
                 )
-                .update(
-                  registro
-                )
+                .update(registro)
                 .eq(
                   "id",
                   recorrenciaEmEdicao
@@ -4957,16 +4779,12 @@ document.addEventListener("DOMContentLoaded", async () => {
                 .from(
                   "lancamentos_recorrentes"
                 )
-                .insert(
-                  registro
-                );
+                .insert(registro);
 
           }
 
 
-          if (
-            resultado.error
-          ) {
+          if (resultado.error) {
 
             console.error(
               "Erro ao salvar recorrência:",
@@ -4984,13 +4802,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
           alert(
-
             recorrenciaEmEdicao
-
               ? "Recorrência atualizada com sucesso!"
-
               : "Recorrência criada com sucesso!"
-
           );
 
 
@@ -5019,19 +4833,13 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
 
-  async function editarRecorrencia(
-    id
-  ) {
+  async function editarRecorrencia(id) {
 
     const rec =
       recorrenciasDados.find(
         item =>
-          String(
-            item.id
-          ) ===
-          String(
-            id
-          )
+          String(item.id) ===
+          String(id)
       );
 
 
@@ -5050,9 +4858,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       rec.id;
 
 
-    if (
-      tituloFormularioRecorrencia
-    ) {
+    if (tituloFormularioRecorrencia) {
 
       tituloFormularioRecorrencia.innerText =
         "Editar recorrência";
@@ -5060,9 +4866,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
 
-    if (
-      btnSalvarRecorrencia
-    ) {
+    if (btnSalvarRecorrencia) {
 
       btnSalvarRecorrencia.innerText =
         "Atualizar recorrência";
@@ -5070,9 +4874,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
 
-    if (
-      btnCancelarRecorrencia
-    ) {
+    if (btnCancelarRecorrencia) {
 
       btnCancelarRecorrencia.classList.remove(
         "hidden"
@@ -5101,8 +4903,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (recDescricao) {
 
       recDescricao.value =
-        rec.descricao ||
-        "";
+        rec.descricao || "";
 
     }
 
@@ -5110,8 +4911,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (recValor) {
 
       recValor.value =
-        rec.valor ??
-        "";
+        rec.valor ?? "";
 
     }
 
@@ -5119,8 +4919,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (recFrequencia) {
 
       recFrequencia.value =
-        rec.frequencia ||
-        "";
+        rec.frequencia || "";
 
     }
 
@@ -5128,8 +4927,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (recDiaVencimento) {
 
       recDiaVencimento.value =
-        rec.dia_vencimento ??
-        "";
+        rec.dia_vencimento ?? "";
 
     }
 
@@ -5146,8 +4944,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (recDataFim) {
 
       recDataFim.value =
-        rec.data_fim ||
-        "";
+        rec.data_fim || "";
 
     }
 
@@ -5167,11 +4964,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       formulario.scrollIntoView({
 
-        behavior:
-          "smooth",
+        behavior: "smooth",
 
-        block:
-          "start"
+        block: "start"
 
       });
 
@@ -5187,25 +4982,18 @@ document.addEventListener("DOMContentLoaded", async () => {
     const rec =
       recorrenciasDados.find(
         item =>
-          String(
-            item.id
-          ) ===
-          String(
-            id
-          )
+          String(item.id) ===
+          String(id)
       );
 
 
     if (!rec) {
-
       return;
-
     }
 
 
     const novoStatus =
-      rec.ativo !==
-      true;
+      rec.ativo !== true;
 
 
     if (
@@ -5297,26 +5085,18 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
 
-  async function excluirRecorrencia(
-    id
-  ) {
+  async function excluirRecorrencia(id) {
 
     const rec =
       recorrenciasDados.find(
         item =>
-          String(
-            item.id
-          ) ===
-          String(
-            id
-          )
+          String(item.id) ===
+          String(id)
       );
 
 
     if (!rec) {
-
       return;
-
     }
 
 
@@ -5381,15 +5161,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
       if (
-
-        String(
-          recorrenciaEmEdicao
-        ) ===
-
-        String(
-          id
-        )
-
+        String(recorrenciaEmEdicao) ===
+        String(id)
       ) {
 
         limparFormularioRecorrencia();
@@ -5425,8 +5198,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     if (recTipo) {
 
-      recTipo.value =
-        "";
+      recTipo.value = "";
 
     }
 
@@ -5441,32 +5213,28 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     if (recDescricao) {
 
-      recDescricao.value =
-        "";
+      recDescricao.value = "";
 
     }
 
 
     if (recValor) {
 
-      recValor.value =
-        "";
+      recValor.value = "";
 
     }
 
 
     if (recFrequencia) {
 
-      recFrequencia.value =
-        "";
+      recFrequencia.value = "";
 
     }
 
 
     if (recDiaVencimento) {
 
-      recDiaVencimento.value =
-        "";
+      recDiaVencimento.value = "";
 
     }
 
@@ -5481,15 +5249,12 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     if (recDataFim) {
 
-      recDataFim.value =
-        "";
+      recDataFim.value = "";
 
     }
 
 
-    if (
-      tituloFormularioRecorrencia
-    ) {
+    if (tituloFormularioRecorrencia) {
 
       tituloFormularioRecorrencia.innerText =
         "Nova recorrência";
@@ -5497,9 +5262,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
 
-    if (
-      btnSalvarRecorrencia
-    ) {
+    if (btnSalvarRecorrencia) {
 
       btnSalvarRecorrencia.innerText =
         "Criar recorrência";
@@ -5507,9 +5270,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
 
-    if (
-      btnCancelarRecorrencia
-    ) {
+    if (btnCancelarRecorrencia) {
 
       btnCancelarRecorrencia.classList.add(
         "hidden"
@@ -5520,9 +5281,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
 
-  if (
-    listaRecorrencias
-  ) {
+  if (listaRecorrencias) {
 
     listaRecorrencias.addEventListener(
       "click",
@@ -5535,9 +5294,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
         if (!botao) {
-
           return;
-
         }
 
 
@@ -5585,9 +5342,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
 
-  if (
-    btnCancelarRecorrencia
-  ) {
+  if (btnCancelarRecorrencia) {
 
     btnCancelarRecorrencia.addEventListener(
       "click",
@@ -5596,654 +5351,5 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   }
 
-
-  /* ======================================================
-     NAVEGAÇÃO
-  ====================================================== */
-
-  if (btnDashboard) {
-
-    btnDashboard.addEventListener(
-      "click",
-      () => {
-
-        mostrarTela(
-          dashboard
-        );
-
-        ativarMenu(
-          btnDashboard
-        );
-
-        atualizarDashboard();
-
-      }
-    );
-
-  }
-
-
-  if (btnLancamentos) {
-
-    btnLancamentos.addEventListener(
-      "click",
-      () => {
-
-        mostrarTela(
-          lancamentos
-        );
-
-        ativarMenu(
-          btnLancamentos
-        );
-
-        renderizarLista();
-
-      }
-    );
-
-  }
-
-
-  if (btnRecorrencias) {
-
-    btnRecorrencias.addEventListener(
-      "click",
-      async () => {
-
-        mostrarTela(
-          recorrencias
-        );
-
-        ativarMenu(
-          btnRecorrencias
-        );
-
-
-        await carregarCategoriasRecorrencia(
-          recTipo?.value ||
-          ""
-        );
-
-
-        await carregarRecorrencias();
-
-      }
-    );
-
-  }
-
-
-  if (btnRelatorios) {
-
-    btnRelatorios.addEventListener(
-      "click",
-      () => {
-
-        mostrarTela(
-          relatorios
-        );
-
-        ativarMenu(
-          btnRelatorios
-        );
-
-        atualizarRelatorios();
-
-      }
-    );
-
-  }
-
-
-  if (btnContas) {
-
-    btnContas.addEventListener(
-      "click",
-      () => {
-
-        mostrarTela(
-          contas
-        );
-
-        ativarMenu(
-          btnContas
-        );
-
-      }
-    );
-
-  }
-
-
-  /* ======================================================
-     MENU MOBILE
-  ====================================================== */
-
-  if (btnMenu) {
-
-    btnMenu.addEventListener(
-      "click",
-      () => {
-
-        if (sidebar) {
-
-          sidebar.classList.toggle(
-            "active"
-          );
-
-        }
-
-
-        if (menuOverlay) {
-
-          menuOverlay.classList.toggle(
-            "hidden"
-          );
-
-        }
-
-      }
-    );
-
-  }
-
-
-  if (menuOverlay) {
-
-    menuOverlay.addEventListener(
-      "click",
-      fecharMenuMobile
-    );
-
-  }
-
-
-  /* ======================================================
-     PDF
-  ====================================================== */
-
-  if (btnExportarPdf) {
-
-    btnExportarPdf.addEventListener(
-      "click",
-      () => {
-
-        try {
-
-          if (
-            !window.jspdf?.jsPDF
-          ) {
-
-            alert(
-              "O módulo de PDF ainda não foi carregado. Recarregue a página."
-            );
-
-            return;
-
-          }
-
-
-          const doc =
-            new window.jspdf.jsPDF();
-
-
-          doc.setFontSize(
-            18
-          );
-
-
-          doc.text(
-            "TCS Finance - Extrato Financeiro",
-            15,
-            20
-          );
-
-
-          doc.setFontSize(
-            10
-          );
-
-
-          doc.text(
-            `Período: ${formatarPeriodo(
-              filtroMes?.value ||
-              ""
-            )}`,
-            15,
-            28
-          );
-
-
-          let y =
-            40;
-
-
-          const filtrados =
-            obterDadosFiltrados();
-
-
-          filtrados.forEach(
-            item => {
-
-              const linha =
-                `${formatarData(
-                  item.data
-                )} | ${
-                  item.tipo ||
-                  ""
-                } | ${
-                  item.categoria ||
-                  ""
-                } | ${
-                  formatarMoeda(
-                    item.valor
-                  )
-                }`;
-
-
-              if (
-                y > 280
-              ) {
-
-                doc.addPage();
-
-                y =
-                  20;
-
-              }
-
-
-              doc.text(
-                linha.substring(
-                  0,
-                  105
-                ),
-                15,
-                y
-              );
-
-
-              y +=
-                7;
-
-            }
-          );
-
-
-          doc.save(
-            "extrato-financeiro.pdf"
-          );
-
-
-        } catch (erro) {
-
-          console.error(
-            "Erro ao exportar PDF:",
-            erro
-          );
-
-
-          alert(
-            "Não foi possível gerar o PDF."
-          );
-
-        }
-
-      }
-    );
-
-  }
-
-
-  /* ======================================================
-     EXPORTAR JSON
-  ====================================================== */
-
-  if (btnExportarJson) {
-
-    btnExportarJson.addEventListener(
-      "click",
-      () => {
-
-        try {
-
-          const dadosExportacao = {
-
-            sistema:
-              "TCS Finance",
-
-            versao:
-              "Auth Fix",
-
-            exportadoEm:
-              new Date().toISOString(),
-
-            usuario:
-              usuarioAtual?.email ||
-              null,
-
-            lancamentos:
-              dados,
-
-            recorrencias:
-              recorrenciasDados,
-
-            categorias:
-              categoriasFinanceiras
-
-          };
-
-
-          const blob =
-            new Blob(
-
-              [
-                JSON.stringify(
-                  dadosExportacao,
-                  null,
-                  2
-                )
-              ],
-
-              {
-                type:
-                  "application/json"
-              }
-
-            );
-
-
-          const url =
-            URL.createObjectURL(
-              blob
-            );
-
-
-          const a =
-            document.createElement(
-              "a"
-            );
-
-
-          a.href =
-            url;
-
-
-          a.download =
-            "tcs-finance-backup.json";
-
-
-          document.body.appendChild(
-            a
-          );
-
-
-          a.click();
-
-
-          a.remove();
-
-
-          URL.revokeObjectURL(
-            url
-          );
-
-
-        } catch (erro) {
-
-          console.error(
-            "Erro ao exportar JSON:",
-            erro
-          );
-
-
-          alert(
-            "Não foi possível gerar o backup JSON."
-          );
-
-        }
-
-      }
-    );
-
-  }
-
-
-  /* ======================================================
-     EXPORTAR EXCEL
-  ====================================================== */
-
-  if (btnExportarExcel) {
-
-    btnExportarExcel.addEventListener(
-      "click",
-      () => {
-
-        try {
-
-          if (
-            !window.XLSX
-          ) {
-
-            alert(
-              "A biblioteca Excel não foi carregada no HTML."
-            );
-
-            return;
-
-          }
-
-
-          const dadosExcel =
-            obterDadosFiltrados().map(
-              item => ({
-
-                Data:
-                  formatarData(
-                    item.data
-                  ),
-
-                Tipo:
-                  item.tipo,
-
-                Categoria:
-                  item.categoria,
-
-                Descrição:
-                  item.descricao,
-
-                Valor:
-                  Number(
-                    item.valor
-                  ) || 0
-
-              })
-            );
-
-
-          const worksheet =
-            XLSX.utils.json_to_sheet(
-              dadosExcel
-            );
-
-
-          const workbook =
-            XLSX.utils.book_new();
-
-
-          XLSX.utils.book_append_sheet(
-            workbook,
-            worksheet,
-            "Lançamentos"
-          );
-
-
-          XLSX.writeFile(
-            workbook,
-            "tcs-finance.xlsx"
-          );
-
-
-        } catch (erro) {
-
-          console.error(
-            "Erro ao exportar Excel:",
-            erro
-          );
-
-
-          alert(
-            "Não foi possível gerar o arquivo Excel."
-          );
-
-        }
-
-      }
-    );
-
-  }
-
-
-  /* ======================================================
-     INICIALIZAÇÃO
-  ====================================================== */
-
-  if (filtroMes) {
-
-    filtroMes.value =
-      obterMesAtual();
-
-  }
-
-
-  if (dataInput) {
-
-    dataInput.value =
-      obterDataHoje();
-
-  }
-
-
-  if (recDataInicio) {
-
-    recDataInicio.value =
-      obterDataHoje();
-
-  }
-
-
-  if (categoria) {
-
-    categoria.disabled =
-      true;
-
-  }
-
-
-  /* ======================================================
-     RECUPERAÇÃO DA SESSÃO
      
-     ESTE É O PONTO PRINCIPAL DA CORREÇÃO.
-  ====================================================== */
-
-  console.log(
-    "Verificando sessão existente..."
-  );
-
-
-  try {
-
-    /*
-     * Primeiro verificamos a sessão persistida.
-     */
-    const {
-      data:
-        sessionData,
-      error:
-        sessionError
-    } =
-      await supabase.auth.getSession();
-
-
-    if (sessionError) {
-
-      console.error(
-        "Erro ao recuperar sessão:",
-        sessionError
-      );
-
-      mostrarInterfaceLogin();
-
-    } else if (
-      sessionData?.session?.user
-    ) {
-
-      console.log(
-        "========================================"
-      );
-
-      console.log(
-        "SESSÃO EXISTENTE ENCONTRADA"
-      );
-
-      console.log(
-        "Usuário:",
-        sessionData.session.user.email
-      );
-
-      console.log(
-        "========================================"
-      );
-
-
-      sessaoAtual =
-        sessionData.session;
-
-
-      usuarioAtual =
-        sessionData.session.user;
-
-
-      await iniciarSessao(
-
-        sessionData.session.user,
-
-        sessionData.session
-
-      );
-
-
-    } else {
-
-      console.log(
-        "Nenhuma sessão encontrada."
-      );
-
-
-      mostrarInterfaceLogin();
-
-    }
-
-
-  } catch (erro) {
-
-    console.error(
-      "Erro ao inicializar autenticação:",
-      erro
-    );
-
-
-    mostrarInterfaceLogin();
-
-  }
-
-
-  atualizarPeriodoDashboard();
-
-
-  console.log(
-    "TCS Finance finalizado."
-  );
-
-});
+   
