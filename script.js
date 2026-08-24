@@ -34,40 +34,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   /* ======================================================
      CATEGORIAS
+     AGORA CARREGADAS DO SUPABASE
   ====================================================== */
 
-  const categoriasPorTipo = {
-
-    Receita: [
-      "Salário",
-      "Renda Extra",
-      "Mesada",
-      "Freelance",
-      "Vendas",
-      "Outros"
-    ],
-
-    Despesa: [
-      "Moradia",
-      "Saúde",
-      "Cartão de Crédito",
-      "Alimentação",
-      "Transporte",
-      "Educação",
-      "Empréstimos",
-      "Compras diversas",
-      "Lazer",
-      "Outros"
-    ],
-
-    Investimento: [
-      "Renda Fixa",
-      "Ações",
-      "Criptomoedas",
-      "Outros"
-    ]
-
-  };
+  let categoriasFinanceiras = [];
 
   /* ======================================================
      ELEMENTOS DO DOM
@@ -96,27 +66,29 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   const btnDashboard = document.getElementById("btnDashboard");
   const btnLancamentos = document.getElementById("btnLancamentos");
+
   /* ======================================================
    RELATÓRIOS
 ====================================================== */
 
-if (btnRelatorios) {
+  if (btnRelatorios) {
 
     btnRelatorios.onclick = () => {
 
-        dashboard.classList.add("hidden");
-        lancamentos.classList.add("hidden");
+      dashboard.classList.add("hidden");
+      lancamentos.classList.add("hidden");
 
-        if (relatorios) {
-            relatorios.classList.remove("hidden");
-        }
+      if (relatorios) {
+        relatorios.classList.remove("hidden");
+      }
 
-        fecharMenuMobile();
+      fecharMenuMobile();
 
-        atualizarRelatorios();
+      atualizarRelatorios();
+
     };
 
-}
+  }
 
   const btnSalvar = document.getElementById("btnSalvar");
 
@@ -143,11 +115,12 @@ if (btnRelatorios) {
   const menuOverlay = document.getElementById("menuOverlay");
 
   const dashboardPeriodo = document.getElementById("dashboardPeriodo");
+
   /* ======================================================
    ATUALIZAR RELATÓRIOS
 ====================================================== */
 
-function atualizarRelatorios() {
+  function atualizarRelatorios() {
 
     const filtrados = obterDadosFiltrados();
 
@@ -157,72 +130,73 @@ function atualizarRelatorios() {
 
     filtrados.forEach(l => {
 
-        const valorLancamento =
-            Number(l.valor) || 0;
+      const valorLancamento =
+        Number(l.valor) || 0;
 
-        if (l.tipo === "Receita") {
-            receita += valorLancamento;
-        }
+      if (l.tipo === "Receita") {
+        receita += valorLancamento;
+      }
 
-        if (l.tipo === "Despesa") {
-            despesa += valorLancamento;
-        }
+      if (l.tipo === "Despesa") {
+        despesa += valorLancamento;
+      }
 
-        if (l.tipo === "Investimento") {
-            investimento += valorLancamento;
-        }
+      if (l.tipo === "Investimento") {
+        investimento += valorLancamento;
+      }
 
     });
 
     const saldoAtual =
-        receita - despesa;
+      receita - despesa;
 
     const elementos = {
 
-        relatorioReceitas:
-            formatarMoeda(receita),
+      relatorioReceitas:
+        formatarMoeda(receita),
 
-        relatorioDespesas:
-            formatarMoeda(despesa),
+      relatorioDespesas:
+        formatarMoeda(despesa),
 
-        relatorioInvestimentos:
-            formatarMoeda(investimento),
+      relatorioInvestimentos:
+        formatarMoeda(investimento),
 
-        relatorioSaldo:
-            formatarMoeda(saldoAtual),
+      relatorioSaldo:
+        formatarMoeda(saldoAtual),
 
-        relatorioResumoReceitas:
-            formatarMoeda(receita),
+      relatorioResumoReceitas:
+        formatarMoeda(receita),
 
-        relatorioResumoDespesas:
-            formatarMoeda(despesa),
+      relatorioResumoDespesas:
+        formatarMoeda(despesa),
 
-        relatorioResumoInvestimentos:
-            formatarMoeda(investimento),
+      relatorioResumoInvestimentos:
+        formatarMoeda(investimento),
 
-        relatorioResumoSaldo:
-            formatarMoeda(saldoAtual),
+      relatorioResumoSaldo:
+        formatarMoeda(saldoAtual),
 
-        relatorioPeriodo:
-            formatarPeriodo(
-                filtroMes?.value || ""
-            )
+      relatorioPeriodo:
+        formatarPeriodo(
+          filtroMes?.value || ""
+        )
 
     };
 
     Object.entries(elementos).forEach(
-        ([id, valor]) => {
+      ([id, valor]) => {
 
-            const elemento =
-                document.getElementById(id);
+        const elemento =
+          document.getElementById(id);
 
-            if (elemento) {
-                elemento.innerText = valor;
-            }
-
+        if (elemento) {
+          elemento.innerText = valor;
         }
+
+      }
     );
-}
+
+  }
 
   /* ======================================================
      FORMATAÇÃO
@@ -230,23 +204,31 @@ function atualizarRelatorios() {
 
   function formatarMoeda(valorNumerico) {
 
-    const numero = Number(valorNumerico) || 0;
+    const numero =
+      Number(valorNumerico) || 0;
 
-    return numero.toLocaleString("pt-BR", {
-      style: "currency",
-      currency: "BRL"
-    });
+    return numero.toLocaleString(
+      "pt-BR",
+      {
+        style: "currency",
+        currency: "BRL"
+      }
+    );
 
   }
 
   function formatarNumero(valorNumerico) {
 
-    const numero = Number(valorNumerico) || 0;
+    const numero =
+      Number(valorNumerico) || 0;
 
-    return numero.toLocaleString("pt-BR", {
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    });
+    return numero.toLocaleString(
+      "pt-BR",
+      {
+        minimumFractionDigits: 2,
+        maximumFractionDigits: 2
+      }
+    );
 
   }
 
@@ -254,9 +236,12 @@ function atualizarRelatorios() {
 
     if (!data) return "";
 
-    const partes = data.split("-");
+    const partes =
+      data.split("-");
 
-    if (partes.length !== 3) return data;
+    if (partes.length !== 3) {
+      return data;
+    }
 
     return `${partes[2]}/${partes[1]}/${partes[0]}`;
 
@@ -264,11 +249,19 @@ function atualizarRelatorios() {
 
   function obterMesAtual() {
 
-    const agora = new Date();
+    const agora =
+      new Date();
 
-    const ano = agora.getFullYear();
+    const ano =
+      agora.getFullYear();
 
-    const mes = String(agora.getMonth() + 1).padStart(2, "0");
+    const mes =
+      String(
+        agora.getMonth() + 1
+      ).padStart(
+        2,
+        "0"
+      );
 
     return `${ano}-${mes}`;
 
@@ -276,22 +269,37 @@ function atualizarRelatorios() {
 
   function formatarPeriodo(mes) {
 
-    if (!mes) return "Todos os períodos";
+    if (!mes) {
+      return "Todos os períodos";
+    }
 
-    const partes = mes.split("-");
+    const partes =
+      mes.split("-");
 
-    if (partes.length !== 2) return mes;
+    if (partes.length !== 2) {
+      return mes;
+    }
 
-    const ano = Number(partes[0]);
+    const ano =
+      Number(partes[0]);
 
-    const numeroMes = Number(partes[1]);
+    const numeroMes =
+      Number(partes[1]);
 
-    const data = new Date(ano, numeroMes - 1, 1);
+    const data =
+      new Date(
+        ano,
+        numeroMes - 1,
+        1
+      );
 
-    return data.toLocaleDateString("pt-BR", {
-      month: "long",
-      year: "numeric"
-    });
+    return data.toLocaleDateString(
+      "pt-BR",
+      {
+        month: "long",
+        year: "numeric"
+      }
+    );
 
   }
 
@@ -319,21 +327,38 @@ function atualizarRelatorios() {
 
   }
 
-  if (btnMenu && sidebar && menuOverlay) {
+  if (
+    btnMenu &&
+    sidebar &&
+    menuOverlay
+  ) {
 
     btnMenu.onclick = () => {
 
-      const aberto = sidebar.classList.contains("active");
+      const aberto =
+        sidebar.classList.contains(
+          "active"
+        );
 
       if (aberto) {
 
-        sidebar.classList.remove("active");
-        menuOverlay.classList.add("hidden");
+        sidebar.classList.remove(
+          "active"
+        );
+
+        menuOverlay.classList.add(
+          "hidden"
+        );
 
       } else {
 
-        sidebar.classList.add("active");
-        menuOverlay.classList.remove("hidden");
+        sidebar.classList.add(
+          "active"
+        );
+
+        menuOverlay.classList.remove(
+          "hidden"
+        );
 
       }
 
@@ -351,32 +376,45 @@ function atualizarRelatorios() {
      NAVEGAÇÃO
   ====================================================== */
 
- if (btnDashboard) {
+  if (btnDashboard) {
 
     btnDashboard.onclick = () => {
 
-        dashboard.classList.remove("hidden");
+      dashboard.classList.remove(
+        "hidden"
+      );
 
-        lancamentos.classList.add("hidden");
+      lancamentos.classList.add(
+        "hidden"
+      );
 
-        if (relatorios) {
-            relatorios.classList.add("hidden");
-        }
+      if (relatorios) {
 
-        fecharMenuMobile();
+        relatorios.classList.add(
+          "hidden"
+        );
 
-        atualizarDashboard();
+      }
+
+      fecharMenuMobile();
+
+      atualizarDashboard();
+
     };
 
-}
+  }
 
   if (btnLancamentos) {
 
     btnLancamentos.onclick = () => {
 
-      dashboard.classList.add("hidden");
+      dashboard.classList.add(
+        "hidden"
+      );
 
-      lancamentos.classList.remove("hidden");
+      lancamentos.classList.remove(
+        "hidden"
+      );
 
       fecharMenuMobile();
 
@@ -396,15 +434,19 @@ function atualizarRelatorios() {
 
     if (app) {
 
-      app.classList.add("hidden");
+      app.classList.add(
+        "hidden"
+      );
 
-      app.style.display = "none";
+      app.style.display =
+        "none";
 
     }
 
     if (loginContainer) {
 
-      loginContainer.style.display = "flex";
+      loginContainer.style.display =
+        "flex";
 
     }
 
@@ -412,28 +454,121 @@ function atualizarRelatorios() {
 
   if (btnLogoutTop) {
 
-    btnLogoutTop.onclick = async () => {
+    btnLogoutTop.onclick =
+      async () => {
 
-      await fazerLogout();
+        await fazerLogout();
 
-    };
+      };
 
   }
 
   if (btnLogout) {
 
-    btnLogout.onclick = async () => {
+    btnLogout.onclick =
+      async () => {
 
-      fecharMenuMobile();
+        fecharMenuMobile();
 
-      await fazerLogout();
+        await fazerLogout();
 
-    };
+      };
 
   }
 
   /* ======================================================
      CATEGORIAS
+     BUSCA DINÂMICA NO SUPABASE
+  ====================================================== */
+
+  async function carregarCategoriasFinanceiras() {
+
+    try {
+
+      const {
+        data: userData,
+        error: userError
+      } =
+        await supabase.auth.getUser();
+
+      if (
+        userError ||
+        !userData?.user
+      ) {
+
+        console.error(
+          "Usuário não autenticado para carregar categorias:",
+          userError
+        );
+
+        categoriasFinanceiras = [];
+
+        return;
+
+      }
+
+      const {
+        data,
+        error
+      } =
+        await supabase
+          .from(
+            "categorias_financeiras"
+          )
+          .select(
+            "id,user_id,nome,tipo,ativa"
+          )
+          .eq(
+            "user_id",
+            userData.user.id
+          )
+          .eq(
+            "ativa",
+            true
+          )
+          .order(
+            "nome",
+            {
+              ascending: true
+            }
+          );
+
+      if (error) {
+
+        console.error(
+          "Erro ao carregar categorias financeiras:",
+          error
+        );
+
+        categoriasFinanceiras = [];
+
+        return;
+
+      }
+
+      categoriasFinanceiras =
+        data || [];
+
+      console.log(
+        "Categorias financeiras carregadas:",
+        categoriasFinanceiras
+      );
+
+    } catch (erro) {
+
+      console.error(
+        "Erro inesperado ao carregar categorias:",
+        erro
+      );
+
+      categoriasFinanceiras = [];
+
+    }
+
+  }
+
+  /* ======================================================
+     POPULAR CATEGORIAS
   ====================================================== */
 
   function popularCategorias(
@@ -441,34 +576,106 @@ function atualizarRelatorios() {
     categoriaSelecionada = ""
   ) {
 
-    if (!categoria) return;
+    if (!categoria) {
+      return;
+    }
 
     categoria.innerHTML =
       "<option value=''>Categoria</option>";
 
-    if (!categoriasPorTipo[tipoSelecionado]) {
-
+    if (!tipoSelecionado) {
       return;
-
     }
 
-    categoriasPorTipo[tipoSelecionado].forEach(cat => {
+    const tipoNormalizado =
+      String(
+        tipoSelecionado
+      )
+        .trim()
+        .toLowerCase();
 
-      const option = document.createElement("option");
+    const categoriasFiltradas =
+      categoriasFinanceiras.filter(
+        cat => {
 
-      option.value = cat;
+          if (
+            cat.ativa === false
+          ) {
 
-      option.textContent = cat;
+            return false;
 
-      if (cat === categoriaSelecionada) {
+          }
 
-        option.selected = true;
+          const tipoCategoria =
+            String(
+              cat.tipo || ""
+            )
+              .trim()
+              .toLowerCase();
+
+          return (
+            tipoCategoria ===
+            tipoNormalizado
+          );
+
+        }
+      );
+
+    categoriasFiltradas.forEach(
+      cat => {
+
+        const option =
+          document.createElement(
+            "option"
+          );
+
+        option.value =
+          cat.id;
+
+        option.textContent =
+          cat.nome;
+
+        if (
+          String(cat.id) ===
+          String(categoriaSelecionada)
+        ) {
+
+          option.selected =
+            true;
+
+        }
+
+        categoria.appendChild(
+          option
+        );
 
       }
+    );
 
-      categoria.appendChild(option);
+    if (
+      categoriasFiltradas.length ===
+      0
+    ) {
 
-    });
+      const option =
+        document.createElement(
+          "option"
+        );
+
+      option.value =
+        "";
+
+      option.textContent =
+        "Nenhuma categoria cadastrada";
+
+      option.disabled =
+        true;
+
+      categoria.appendChild(
+        option
+      );
+
+    }
 
   }
 
@@ -476,7 +683,9 @@ function atualizarRelatorios() {
 
     tipo.onchange = () => {
 
-      popularCategorias(tipo.value);
+      popularCategorias(
+        tipo.value
+      );
 
     };
 
@@ -488,17 +697,648 @@ function atualizarRelatorios() {
 
   if (btnLogin) {
 
-    btnLogin.onclick = async () => {
+    btnLogin.onclick =
+      async () => {
 
-      if (!aceiteTermos.checked) {
+        if (
+          !aceiteTermos.checked
+        ) {
 
-        alert("Você precisa aceitar os termos.");
+          alert(
+            "Você precisa aceitar os termos."
+          );
+
+          return;
+
+        }
+
+        if (
+          !emailInput.value ||
+          !senhaInput.value
+        ) {
+
+          alert(
+            "Informe seu email e senha."
+          );
+
+          return;
+
+        }
+
+        const {
+          data,
+          error
+        } =
+          await supabase.auth
+            .signInWithPassword({
+
+              email:
+                emailInput.value.trim(),
+
+              password:
+                senhaInput.value
+
+            });
+
+        if (error) {
+
+          alert(
+            error.message
+          );
+
+          return;
+
+        }
+
+        await iniciarSessao(
+          data.user
+        );
+
+      };
+
+  }
+
+  /* ======================================================
+     CADASTRO
+  ====================================================== */
+
+  if (btnCadastro) {
+
+    btnCadastro.onclick =
+      async () => {
+
+        if (
+          !aceiteTermos.checked
+        ) {
+
+          alert(
+            "Você precisa aceitar os termos."
+          );
+
+          return;
+
+        }
+
+        if (
+          !emailInput.value ||
+          !senhaInput.value
+        ) {
+
+          alert(
+            "Informe email e senha."
+          );
+
+          return;
+
+        }
+
+        if (
+          senhaInput.value.length < 6
+        ) {
+
+          alert(
+            "A senha deve possuir pelo menos 6 caracteres."
+          );
+
+          return;
+
+        }
+
+        const {
+          error
+        } =
+          await supabase.auth
+            .signUp({
+
+              email:
+                emailInput.value.trim(),
+
+              password:
+                senhaInput.value,
+
+              options: {
+
+                data: {
+
+                  nome:
+                    emailInput.value
+                      .split("@")[0]
+
+                }
+
+              }
+
+            });
+
+        if (error) {
+
+          alert(
+            error.message
+          );
+
+          return;
+
+        }
+
+        alert(
+          "Conta criada com sucesso! Confirme seu email para continuar."
+        );
+
+      };
+
+  }
+
+  /* ======================================================
+     INICIAR SESSÃO
+  ====================================================== */
+
+  async function iniciarSessao(
+    user
+  ) {
+
+    if (!user) {
+      return;
+    }
+
+    const topbarUser =
+      document.getElementById(
+        "topbarUser"
+      );
+
+    const topbarPlano =
+      document.getElementById(
+        "topbarPlano"
+      );
+
+    const nomeUsuario =
+      user.user_metadata?.nome ||
+      user.email?.split("@")[0] ||
+      "Usuário";
+
+    if (topbarUser) {
+
+      topbarUser.innerText =
+        nomeUsuario;
+
+    }
+
+    if (topbarPlano) {
+
+      topbarPlano.innerText =
+        planoUsuario;
+
+    }
+
+    if (loginContainer) {
+
+      loginContainer.style.display =
+        "none";
+
+    }
+
+    if (app) {
+
+      app.style.display =
+        "flex";
+
+      app.classList.remove(
+        "hidden"
+      );
+
+    }
+
+    if (dashboard) {
+
+      dashboard.classList.remove(
+        "hidden"
+      );
+
+    }
+
+    if (lancamentos) {
+
+      lancamentos.classList.add(
+        "hidden"
+      );
+
+    }
+
+    if (nomeCliente) {
+
+      nomeCliente.innerText =
+        `Olá, ${nomeUsuario}!`;
+
+    }
+
+    /*
+      PRIMEIRO CARREGAMOS AS CATEGORIAS
+      DO USUÁRIO.
+    */
+
+    await carregarCategoriasFinanceiras();
+
+    /*
+      DEPOIS CARREGAMOS OS LANÇAMENTOS.
+    */
+
+    await carregarDados();
+
+    if (
+      filtroMes &&
+      !filtroMes.value
+    ) {
+
+      filtroMes.value =
+        obterMesAtual();
+
+    }
+
+    atualizarPeriodoDashboard();
+
+    atualizarDashboard();
+
+    renderizarLista();
+
+  }
+
+  /* ======================================================
+     CARREGAR DADOS
+  ====================================================== */
+
+  async function carregarDados() {
+
+    try {
+
+      const {
+        data,
+        error
+      } =
+        await supabase
+          .from("lancamentos")
+          .select("*")
+          .order(
+            "data",
+            {
+              ascending: false
+            }
+          );
+
+      if (error) {
+
+        console.error(
+          "Erro ao carregar lançamentos:",
+          error
+        );
+
+        alert(
+          "Não foi possível carregar seus lançamentos."
+        );
+
+        dados = [];
 
         return;
 
       }
 
-      if (!emailInput.value || !senhaInput.value) {
+      dados =
+        data || [];
+
+    } catch (erro) {
+
+      console.error(
+        "Erro inesperado ao carregar dados:",
+        erro
+      );
+
+      dados = [];
+
+    }
+
+  }
+
+  /* ======================================================
+     SALVAR LANÇAMENTO
+  ====================================================== */
+
+  if (btnSalvar) {
+
+    btnSalvar.onclick =
+      async () => {
+
+        if (
+          !tipo.value ||
+          !categoria.value ||
+          !valor.value ||
+          !dataInput.value
+        ) {
+
+          alert(
+            "Preencha tipo, categoria, valor e data."
+          );
+
+          return;
+
+        }
+
+        const valorNumerico =
+          Number(
+            String(
+              valor.value
+            )
+              .replace(
+                ",",
+                "."
+              )
+          );
+
+        if (
+          !Number.isFinite(
+            valorNumerico
+          ) ||
+          valorNumerico <= 0
+        ) {
+
+          alert(
+            "Informe um valor válido."
+          );
+
+          return;
+
+        }
+
+        if (
+          planoUsuario === "FREE" &&
+          dados.length >=
+            LIMITE_FREE &&
+          !idEmEdicao
+        ) {
+
+          alert(
+            "Limite do plano gratuito atingido."
+          );
+
+          return;
+
+        }
+
+        try {
+
+          const {
+            data: userData,
+            error: userError
+          } =
+            await supabase.auth
+              .getUser();
+
+          if (
+            userError ||
+            !userData?.user
+          ) {
+
+            alert(
+              "Sua sessão expirou. Faça login novamente."
+            );
+
+            return;
+
+          }
+
+          let erroOperacao =
+            null;
+
+          if (idEmEdicao) {
+
+            const resultado =
+              await supabase
+                .from(
+                  "lancamentos"
+                )
+                .update({
+
+                  tipo:
+                    tipo.value,
+
+                  categoria:
+                    categoria.value,
+
+                  descricao:
+                    descricao.value.trim(),
+
+                  valor:
+                    valorNumerico,
+
+                  data:
+                    dataInput.value
+
+                })
+                .eq(
+                  "id",
+                  idEmEdicao
+                );
+
+            erroOperacao =
+              resultado.error;
+
+          } else {
+
+            const resultado =
+              await supabase
+                .from(
+                  "lancamentos"
+                )
+                .insert({
+
+                  user_id:
+                    userData.user.id,
+
+                  tipo:
+                    tipo.value,
+
+                  categoria:
+                    categoria.value,
+
+                  descricao:
+                    descricao.value.trim(),
+
+                  valor:
+                    valorNumerico,
+
+                  data:
+                    dataInput.value
+
+                });
+
+            erroOperacao =
+              resultado.error;
+
+          }
+
+          if (erroOperacao) {
+
+            console.error(
+              "Erro ao salvar:",
+              erroOperacao
+            );
+
+            alert(
+              "Não foi possível salvar o lançamento."
+            );
+
+            return;
+
+          }
+
+          idEmEdicao =
+            null;
+
+          await carregarDados();
+
+          atualizarDashboard();
+
+          renderizarLista();
+
+          limparFormulario();
+
+          alert(
+            "Lançamento salvo com sucesso!"
+          );
+
+        } catch (erro) {
+
+          console.error(
+            "Erro inesperado:",
+            erro
+          );
+
+          alert(
+            "Ocorreu um erro ao salvar o lançamento."
+          );
+
+        }
+
+      };
+
+  }
+
+  /* ======================================================
+     LIMPAR FORMULÁRIO
+  ====================================================== */
+
+  function limparFormulario() {
+
+    idEmEdicao =
+      null;
+
+    if (tipo) {
+
+      tipo.value =
+        "";
+
+    }
+
+    if (categoria) {
+
+      categoria.innerHTML =
+        "<option value=''>Categoria</option>";
+
+    }
+
+    if (descricao) {
+
+      descricao.value =
+        "";
+
+    }
+
+    if (valor) {
+
+      valor.value =
+        "";
+
+    }
+
+    if (dataInput) {
+
+      dataInput.value =
+        "";
+
+    }
+
+    if (btnSalvar) {
+
+      btnSalvar.innerText =
+        "Salvar";
+
+    }
+
+  }
+
+  /* ======================================================
+     FILTRO
+  ====================================================== */
+
+  function obterDadosFiltrados() {
+
+    let filtrados =
+      [...dados];
+
+    if (
+      filtroMes &&
+      filtroMes.value
+    ) {
+
+      filtrados =
+        filtrados.filter(
+          l => {
+
+            if (!l.data) {
+              return false;
+            }
+
+            return l.data.startsWith(
+              filtroMes.value
+            );
+
+          }
+        );
+
+    }
+
+    return filtrados;
+
+  }
+
+  if (filtroMes) {
+
+    filtroMes.addEventListener(
+      "change",
+      () => {
+
+        atualizarPeriodoDashboard();
+
+        atualizarDashboard();
+
+      }
+    );
+
+  }
+
+  if (btnLimparFiltro) {
+
+    btnLimparFiltro.onclick =
+      () => {
+
+        filtroMes.value =
+          "";
+
+        atualizarPeriodoDashboard();
+
+        atualizarDashboard();
+
+      };
+
+  }
+       if (!emailInput.value || !senhaInput.value) {
 
         alert("Informe seu email e senha.");
 
@@ -555,7 +1395,9 @@ function atualizarRelatorios() {
 
       if (senhaInput.value.length < 6) {
 
-        alert("A senha deve possuir pelo menos 6 caracteres.");
+        alert(
+          "A senha deve possuir pelo menos 6 caracteres."
+        );
 
         return;
 
@@ -999,8 +1841,7 @@ function atualizarRelatorios() {
     };
 
   }
-
-  /* ======================================================
+   /* ======================================================
      PERÍODO DO DASHBOARD
   ====================================================== */
 
@@ -1100,6 +1941,7 @@ function atualizarRelatorios() {
     );
 
     // renderizarGraficoComparativo(filtrados);
+
     renderizarGraficoComparativo(
       filtrados
     );
@@ -1529,6 +2371,466 @@ function atualizarRelatorios() {
           }
 
         }
+      );
+
+  }
+
+  /* ======================================================
+     GRÁFICO COMPARATIVO
+  ====================================================== */
+
+  function renderizarGraficoComparativo(
+    dadosFiltrados
+  ) {
+
+    const canvas =
+      document.getElementById(
+        "graficoComparativo"
+      );
+
+    if (!canvas) return;
+
+    if (graficoComparativo) {
+
+      graficoComparativo.destroy();
+
+      graficoComparativo = null;
+
+    }
+
+    const meses = {};
+
+    dadosFiltrados.forEach(l => {
+
+      if (!l.data) return;
+
+      const mes =
+        l.data.slice(0, 7);
+
+      if (!meses[mes]) {
+
+        meses[mes] = {
+
+          receita: 0,
+
+          despesa: 0,
+
+          investimento: 0
+
+        };
+
+      }
+
+      const valorLancamento =
+        Number(l.valor) || 0;
+
+      if (l.tipo === "Receita") {
+
+        meses[mes].receita +=
+          valorLancamento;
+
+      }
+
+      if (l.tipo === "Despesa") {
+
+        meses[mes].despesa +=
+          valorLancamento;
+
+      }
+
+      if (l.tipo === "Investimento") {
+
+        meses[mes].investimento +=
+          valorLancamento;
+
+      }
+
+    });
+
+    const labels =
+      Object.keys(meses).sort();
+
+    if (labels.length === 0) {
+
+      return;
+
+    }
+
+    graficoComparativo =
+      new Chart(
+        canvas,
+        {
+
+          type: "line",
+
+          data: {
+
+            labels,
+
+            datasets: [
+
+              {
+
+                label: "Receitas",
+
+                data:
+                  labels.map(
+                    mes =>
+                      meses[mes].receita
+                  ),
+
+                tension: 0.3,
+
+                borderWidth: 2
+
+              },
+
+              {
+
+                label: "Despesas",
+
+                data:
+                  labels.map(
+                    mes =>
+                      meses[mes].despesa
+                  ),
+
+                tension: 0.3,
+
+                borderWidth: 2
+
+              },
+
+              {
+
+                label: "Investimentos",
+
+                data:
+                  labels.map(
+                    mes =>
+                      meses[mes].investimento
+                  ),
+
+                tension: 0.3,
+
+                borderWidth: 2
+
+              }
+
+            ]
+
+          },
+
+          options: {
+
+            responsive: true,
+
+            maintainAspectRatio: false,
+
+            plugins: {
+
+              legend: {
+
+                position: "bottom"
+
+              }
+
+            },
+
+            scales: {
+
+              y: {
+
+                beginAtZero: true
+
+              }
+
+            }
+
+          }
+
+        }
+      );
+
+  }
+
+  /* ======================================================
+     ALTERAÇÃO DO TIPO DE GRÁFICO
+  ====================================================== */
+
+  if (tipoGrafico) {
+
+    tipoGrafico.addEventListener(
+      "change",
+      () => {
+
+        atualizarDashboard();
+
+      }
+    );
+
+  }
+
+  /* ======================================================
+     RENDERIZAR LISTA DE LANÇAMENTOS
+  ====================================================== */
+
+  function renderizarLista() {
+
+    if (!lista) return;
+
+    const filtrados =
+      obterDadosFiltrados();
+
+    lista.innerHTML = "";
+
+    if (
+      filtrados.length === 0
+    ) {
+
+      lista.innerHTML = `
+        <div class="sem-lancamentos">
+          Nenhum lançamento encontrado.
+        </div>
+      `;
+
+      return;
+
+    }
+
+    filtrados.forEach(l => {
+
+      const item =
+        document.createElement("div");
+
+      item.className =
+        "lancamento-item";
+
+      const valorFormatado =
+        formatarMoeda(l.valor);
+
+      const dataFormatada =
+        formatarData(l.data);
+
+      item.innerHTML = `
+
+        <div class="lancamento-info">
+
+          <strong>
+            ${l.descricao || "Sem descrição"}
+          </strong>
+
+          <span>
+            ${l.tipo}
+          </span>
+
+          <small>
+            ${dataFormatada}
+          </small>
+
+        </div>
+
+        <div class="lancamento-categoria">
+
+          ${l.categoria || "Sem categoria"}
+
+        </div>
+
+        <div class="lancamento-valor">
+
+          ${valorFormatado}
+
+        </div>
+
+        <div class="lancamento-acoes">
+
+          <button
+            class="btn-editar"
+            data-id="${l.id}"
+          >
+            Editar
+          </button>
+
+          <button
+            class="btn-excluir"
+            data-id="${l.id}"
+          >
+            Excluir
+          </button>
+
+        </div>
+
+      `;
+
+      lista.appendChild(item);
+
+    });
+
+    configurarAcoesLancamentos();
+
+  }
+
+  /* ======================================================
+     AÇÕES DOS LANÇAMENTOS
+  ====================================================== */
+
+  function configurarAcoesLancamentos() {
+
+    const botoesEditar =
+      document.querySelectorAll(
+        ".btn-editar"
+      );
+
+    botoesEditar.forEach(
+      botao => {
+
+        botao.onclick = () => {
+
+          const id =
+            botao.dataset.id;
+
+          editarLancamento(id);
+
+        };
+
+      }
+    );
+
+    const botoesExcluir =
+      document.querySelectorAll(
+        ".btn-excluir"
+      );
+
+    botoesExcluir.forEach(
+      botao => {
+
+        botao.onclick = () => {
+
+          const id =
+            botao.dataset.id;
+
+          excluirLancamento(id);
+
+        };
+
+      }
+    );
+
+  }
+
+  /* ======================================================
+     EDITAR LANÇAMENTO
+  ====================================================== */
+
+  async function editarLancamento(id) {
+
+    const lancamento =
+      dados.find(
+        l =>
+          String(l.id) ===
+          String(id)
+      );
+
+    if (!lancamento) {
+
+      return;
+
+    }
+
+    idEmEdicao =
+      lancamento.id;
+
+    if (tipo) {
+
+      tipo.value =
+        lancamento.tipo;
+
+    }
+
+    /*
+      Recarrega as categorias do tipo
+      selecionado antes de selecionar
+      a categoria do lançamento.
+    */
+
+    popularCategorias(
+      lancamento.tipo,
+      lancamento.categoria
+    );
+
+    if (descricao) {
+
+      descricao.value =
+        lancamento.descricao || "";
+
+    }
+
+    if (valor) {
+
+      valor.value =
+        lancamento.valor;
+
+    }
+
+    if (dataInput) {
+
+      dataInput.value =
+        lancamento.data || "";
+
+    }
+
+    if (btnSalvar) {
+
+      btnSalvar.innerText =
+        "Atualizar";
+
+    }
+
+    dashboard.classList.add(
+      "hidden"
+    );
+
+    lancamentos.classList.remove(
+      "hidden"
+    );
+
+    window.scrollTo({
+      top: 0,
+      behavior: "smooth"
+    });
+
+  }
+            },
+
+          options: {
+
+            responsive: true,
+
+            maintainAspectRatio: false,
+
+            plugins: {
+
+              legend: {
+
+                position: "bottom"
+
+              }
+
+            },
+
+            scales: {
+
+              y: {
+
+                beginAtZero: true
+
+              }
+
+            }
+
+          }
+
+        }
 
       );
 
@@ -1683,6 +2985,7 @@ function renderizarGraficoComparativo() {
   });
 
 }
+
   /* ======================================================
      MUDANÇA DO TIPO DE GRÁFICO
   ====================================================== */
@@ -1744,9 +3047,11 @@ function renderizarGraficoComparativo() {
           ${l.tipo}
 
           •
+
           ${l.categoria || "Sem categoria"}
 
           •
+
           ${valorFormatado}
 
           ${
@@ -2000,43 +3305,41 @@ function renderizarGraficoComparativo() {
       const pdf =
         new jsPDF();
 
-      pdf.setFontSize(16);
+      pdf.setFontSize(18);
 
       pdf.text(
-        "TCS Finance – Extrato Financeiro",
-        10,
-        15
+        "TCS Finance",
+        20,
+        20
       );
 
-      pdf.setFontSize(10);
+      pdf.setFontSize(12);
 
       pdf.text(
-        `Período: ${
-          formatarPeriodo(
-            filtroMes?.value || ""
-          )
-        }`,
-        10,
-        23
+        `Relatório - ${formatarPeriodo(
+          filtroMes?.value || ""
+        )}`,
+        20,
+        30
       );
 
-      let y = 35;
+      let y = 45;
 
-      dados.forEach(l => {
+      const filtrados =
+        obterDadosFiltrados();
+
+      filtrados.forEach(l => {
 
         const linha =
-          `${formatarData(l.data)} | ` +
-          `${l.tipo} | ` +
-          `${l.categoria || ""} | ` +
-          `${formatarMoeda(l.valor)}`;
+          `${formatarData(l.data)} - ${l.tipo} - ${l.categoria || "Sem categoria"} - ${formatarMoeda(l.valor)}`;
 
         pdf.text(
           linha,
-          10,
+          20,
           y
         );
 
-        y += 7;
+        y += 8;
 
         if (y > 280) {
 
@@ -2049,7 +3352,7 @@ function renderizarGraficoComparativo() {
       });
 
       pdf.save(
-        "extrato-financeiro.pdf"
+        "relatorio-tcs-finance.pdf"
       );
 
     };
@@ -2057,39 +3360,340 @@ function renderizarGraficoComparativo() {
   }
 
   /* ======================================================
-     FILTRO INICIAL
+     EXPORTAÇÃO EXCEL
   ====================================================== */
 
-  if (filtroMes) {
+  const btnExportarExcel =
+    document.getElementById(
+      "btnExportarExcel"
+    );
 
-    filtroMes.value =
-      obterMesAtual();
+  if (btnExportarExcel) {
+
+    btnExportarExcel.onclick = () => {
+
+      if (!window.XLSX) {
+
+        alert(
+          "Biblioteca Excel não carregada."
+        );
+
+        return;
+
+      }
+
+      const dadosExcel =
+        obterDadosFiltrados()
+          .map(l => ({
+
+            Data:
+              formatarData(l.data),
+
+            Tipo:
+              l.tipo,
+
+            Categoria:
+              l.categoria || "",
+
+            Descrição:
+              l.descricao || "",
+
+            Valor:
+              Number(l.valor) || 0
+
+          }));
+
+      const worksheet =
+        XLSX.utils.json_to_sheet(
+          dadosExcel
+        );
+
+      const workbook =
+        XLSX.utils.book_new();
+
+      XLSX.utils.book_append_sheet(
+        workbook,
+        worksheet,
+        "Lançamentos"
+      );
+
+      XLSX.writeFile(
+        workbook,
+        "tcs-finance-lancamentos.xlsx"
+      );
+
+    };
 
   }
 
-  atualizarPeriodoDashboard();
-
   /* ======================================================
-     SESSÃO EXISTENTE
+     BACKUP JSON
   ====================================================== */
 
-  try {
+  const btnExportarJson =
+    document.getElementById(
+      "btnExportarJson"
+    );
 
-    const {
-      data: sessionData
-    } =
-      await supabase.auth.getSession();
+  if (btnExportarJson) {
 
-    const usuario =
-      sessionData?.session?.user;
+    btnExportarJson.onclick = () => {
 
-    if (usuario) {
+      const dadosBackup =
+        obterDadosFiltrados();
 
-      window.__USER_SESSION__ =
-        usuario;
+      const blob =
+        new Blob(
+          [
+            JSON.stringify(
+              dadosBackup,
+              null,
+              2
+            )
+          ],
+          {
+            type:
+              "application/json"
+          }
+        );
 
-      await iniciarSessao(
-        usuario
+      const url =
+        URL.createObjectURL(
+          blob
+        );
+
+      const a =
+        document.createElement("a");
+
+      a.href = url;
+
+      a.download =
+        "tcs-finance-backup.json";
+
+      document.body.appendChild(a);
+
+      a.click();
+
+      a.remove();
+
+      URL.revokeObjectURL(url);
+
+    };
+
+  }
+
+  /* ======================================================
+     IMPORTAÇÃO JSON
+  ====================================================== */
+
+  const inputImportarJson =
+    document.getElementById(
+      "inputImportarJson"
+    );
+
+  if (inputImportarJson) {
+
+    inputImportarJson.addEventListener(
+      "change",
+      event => {
+
+        const arquivo =
+          event.target.files?.[0];
+
+        if (!arquivo) return;
+
+        const leitor =
+          new FileReader();
+
+        leitor.onload = async e => {
+
+          try {
+
+            const dadosImportados =
+              JSON.parse(
+                e.target.result
+              );
+
+            if (
+              !Array.isArray(
+                dadosImportados
+              )
+            ) {
+
+              alert(
+                "Arquivo JSON inválido."
+              );
+
+              return;
+
+            }
+
+            const {
+              data: userData,
+              error: userError
+            } =
+              await supabase.auth.getUser();
+
+            if (
+              userError ||
+              !userData?.user
+            ) {
+
+              alert(
+                "Usuário não autenticado."
+              );
+
+              return;
+
+            }
+
+            const registros =
+              dadosImportados.map(
+                item => ({
+
+                  user_id:
+                    userData.user.id,
+
+                  tipo:
+                    item.tipo ||
+                    item.Tipo,
+
+                  categoria:
+                    item.categoria ||
+                    item.Categoria ||
+                    "",
+
+                  descricao:
+                    item.descricao ||
+                    item.Descrição ||
+                    "",
+
+                  valor:
+                    Number(
+                      item.valor ||
+                      item.Valor ||
+                      0
+                    ),
+
+                  data:
+                    item.data ||
+                    item.Data
+
+                })
+              );
+
+            const {
+              error
+            } =
+              await supabase
+                .from("lancamentos")
+                .insert(
+                  registros
+                );
+
+            if (error) {
+
+              console.error(
+                "Erro ao importar:",
+                error
+              );
+
+              alert(
+                "Erro ao importar dados."
+              );
+
+              return;
+
+            }
+
+            await carregarDados();
+
+            atualizarDashboard();
+
+            renderizarLista();
+
+            alert(
+              "Backup importado com sucesso!"
+            );
+
+          } catch (erro) {
+
+            console.error(
+              "Erro ao processar JSON:",
+              erro
+            );
+
+            alert(
+              "Não foi possível processar o arquivo."
+            );
+
+          }
+
+        };
+
+        leitor.readAsText(
+          arquivo
+        );
+
+      }
+    );
+
+  }
+      /* --------------------------------------------------
+       ADICIONAR CATEGORIAS AO SELECT
+    -------------------------------------------------- */
+
+    categorias.forEach(cat => {
+
+      const option =
+        document.createElement("option");
+
+      option.value =
+        cat.id;
+
+      option.textContent =
+        cat.nome;
+
+      if (
+        String(cat.id) ===
+        String(categoriaSelecionada)
+      ) {
+
+        option.selected =
+          true;
+
+      }
+
+      recCategoria.appendChild(
+        option
+      );
+
+    });
+
+    /* --------------------------------------------------
+       NENHUMA CATEGORIA
+    -------------------------------------------------- */
+
+    if (
+      categorias.length === 0
+    ) {
+
+      const option =
+        document.createElement(
+          "option"
+        );
+
+      option.value =
+        "";
+
+      option.textContent =
+        "Nenhuma categoria cadastrada";
+
+      option.disabled =
+        true;
+
+      recCategoria.appendChild(
+        option
       );
 
     }
@@ -2097,334 +3701,58 @@ function renderizarGraficoComparativo() {
   } catch (erro) {
 
     console.error(
-      "Erro ao recuperar sessão:",
+      "Erro inesperado ao carregar categorias:",
       erro
     );
 
+    recCategoria.innerHTML =
+      "<option value=''>Erro ao carregar categorias</option>";
+
   }
+
+}
+
+
 /* ======================================================
-   TCS FINANCE
-   MÓDULO DE RECORRÊNCIAS
+   ALTERAÇÃO DO TIPO DA RECORRÊNCIA
 ====================================================== */
 
-const btnRecorrencias =
-  document.getElementById("btnRecorrencias");
+if (recTipo) {
 
-const recorrencias =
-  document.getElementById("recorrencias");
+  recTipo.addEventListener(
+    "change",
+    () => {
 
-const recTipo =
-  document.getElementById("recTipo");
+      carregarCategoriasRecorrencia(
+        recTipo.value
+      );
 
-const recCategoria =
-  document.getElementById("recCategoria");
-
-const recDescricao =
-  document.getElementById("recDescricao");
-
-const recValor =
-  document.getElementById("recValor");
-
-const recFrequencia =
-  document.getElementById("recFrequencia");
-
-const recDiaVencimento =
-  document.getElementById("recDiaVencimento");
-
-const recDataInicio =
-  document.getElementById("recDataInicio");
-
-const recDataFim =
-  document.getElementById("recDataFim");
-
-const btnSalvarRecorrencia =
-  document.getElementById("btnSalvarRecorrencia");
-
-const btnCancelarRecorrencia =
-  document.getElementById("btnCancelarRecorrencia");
-
-const listaRecorrencias =
-  document.getElementById("listaRecorrencias");
-
-const totalRecorrencias =
-  document.getElementById("totalRecorrencias");
-
-const recorrenciasAtivas =
-  document.getElementById("recorrenciasAtivas");
-
-const recorrenciasPausadas =
-  document.getElementById("recorrenciasPausadas");
-
-const contadorRecorrencias =
-  document.getElementById("contadorRecorrencias");
-
-const tituloFormularioRecorrencia =
-  document.getElementById(
-    "tituloFormularioRecorrencia"
+    }
   );
 
-
-let recorrenciasDados = [];
-
-let recorrenciaEmEdicao = null;
-
-
-/* ======================================================
-   FREQUÊNCIAS
-====================================================== */
-
-const nomesFrequencia = {
-  diaria: "Diária",
-  semanal: "Semanal",
-  quinzenal: "Quinzenal",
-  mensal: "Mensal",
-  bimestral: "Bimestral",
-  trimestral: "Trimestral",
-  semestral: "Semestral",
-  anual: "Anual"
-};
-
-
-/* ======================================================
-   NAVEGAÇÃO — RECORRÊNCIAS
-====================================================== */
-
-if (btnRecorrencias) {
-
-  btnRecorrencias.onclick = async () => {
-
-    dashboard?.classList.add("hidden");
-
-    lancamentos?.classList.add("hidden");
-
-    if (relatorios) {
-      relatorios.classList.add("hidden");
-    }
-
-    if (document.getElementById("contas")) {
-      document
-        .getElementById("contas")
-        .classList.add("hidden");
-    }
-
-    if (recorrencias) {
-      recorrencias.classList.remove("hidden");
-    }
-
-    fecharMenuMobile();
-
-    ativarMenu(
-      btnRecorrencias
-    );
-
-    await carregarRecorrencias();
-
-  };
-
 }
 
 
 /* ======================================================
-   FUNÇÃO PARA ATIVAR MENU
+   CARREGAR RECORRÊNCIAS
 ====================================================== */
 
-function ativarMenu(botaoAtivo) {
+async function carregarRecorrencias() {
 
-  const botoes =
-    document.querySelectorAll(
-      ".sidebar .nav-item"
-    );
-
-  botoes.forEach(botao => {
-    botao.classList.remove("active");
-  });
-
-  if (botaoAtivo) {
-    botaoAtivo.classList.add("active");
-  }
-
-}
-
-
-/* ======================================================
-   AJUSTAR DASHBOARD
-====================================================== */
-
-if (btnDashboard) {
-
-  const cliqueOriginalDashboard =
-    btnDashboard.onclick;
-
-  btnDashboard.onclick = () => {
-
-    dashboard?.classList.remove("hidden");
-
-    lancamentos?.classList.add("hidden");
-
-    recorrencias?.classList.add("hidden");
-
-    if (relatorios) {
-      relatorios.classList.add("hidden");
-    }
-
-    if (document.getElementById("contas")) {
-      document
-        .getElementById("contas")
-        .classList.add("hidden");
-    }
-
-    fecharMenuMobile();
-
-    ativarMenu(
-      btnDashboard
-    );
-
-    atualizarDashboard();
-
-  };
-
-}
-
-
-/* ======================================================
-   AJUSTAR LANÇAMENTOS
-====================================================== */
-
-if (btnLancamentos) {
-
-  btnLancamentos.onclick = () => {
-
-    dashboard?.classList.add("hidden");
-
-    lancamentos?.classList.remove("hidden");
-
-    recorrencias?.classList.add("hidden");
-
-    if (relatorios) {
-      relatorios.classList.add("hidden");
-    }
-
-    if (document.getElementById("contas")) {
-      document
-        .getElementById("contas")
-        .classList.add("hidden");
-    }
-
-    fecharMenuMobile();
-
-    ativarMenu(
-      btnLancamentos
-    );
-
-    renderizarLista();
-
-  };
-
-}
-
-
-/* ======================================================
-   AJUSTAR RELATÓRIOS
-====================================================== */
-
-if (btnRelatorios) {
-
-  btnRelatorios.onclick = () => {
-
-    dashboard?.classList.add("hidden");
-
-    lancamentos?.classList.add("hidden");
-
-    recorrencias?.classList.add("hidden");
-
-    if (document.getElementById("contas")) {
-      document
-        .getElementById("contas")
-        .classList.add("hidden");
-    }
-
-    if (relatorios) {
-      relatorios.classList.remove("hidden");
-    }
-
-    fecharMenuMobile();
-
-    ativarMenu(
-      btnRelatorios
-    );
-
-    atualizarRelatorios();
-
-  };
-
-}
-
-
-/* ======================================================
-   CARREGAR CATEGORIAS PARA RECORRÊNCIA
-   CORREÇÃO: COMPARAÇÃO DE TIPO SEM DIFERENÇA DE MAIÚSCULAS
-====================================================== */
-
-async function carregarCategoriasRecorrencia(
-  tipoSelecionado = "",
-  categoriaSelecionada = ""
-) {
-
-  if (!recCategoria) {
+  if (!listaRecorrencias) {
     return;
   }
 
-  recCategoria.innerHTML =
-    "<option value=''>Carregando categorias...</option>";
-
   try {
-
-    /* --------------------------------------------------
-       USUÁRIO LOGADO
-    -------------------------------------------------- */
-
-    const {
-      data: userData,
-      error: userError
-    } = await supabase.auth.getUser();
-
-    if (
-      userError ||
-      !userData?.user
-    ) {
-
-      recCategoria.innerHTML =
-        "<option value=''>Sessão expirada</option>";
-
-      console.error(
-        "Erro ao identificar usuário:",
-        userError
-      );
-
-      return;
-
-    }
-
-    /* --------------------------------------------------
-       BUSCAR CATEGORIAS
-    -------------------------------------------------- */
 
     const {
       data,
       error
     } = await supabase
-      .from("categorias_financeiras")
-      .select("id,user_id,nome,tipo,ativa")
-      .eq(
-        "user_id",
-        userData.user.id
-      )
-      .eq(
-        "ativa",
-        true
-      )
+      .from("lancamentos_recorrentes")
+      .select("*")
       .order(
-        "nome",
+        "data_inicio",
         {
           ascending: true
         }
@@ -2433,71 +3761,769 @@ async function carregarCategoriasRecorrencia(
     if (error) {
 
       console.error(
-        "Erro ao carregar categorias:",
+        "Erro ao carregar recorrências:",
         error
       );
 
-      recCategoria.innerHTML =
-        "<option value=''>Erro ao carregar categorias</option>";
+      recorrenciasDados = [];
+
+      renderizarRecorrencias();
 
       return;
 
     }
 
-    /* --------------------------------------------------
-       RESET DO SELECT
-    -------------------------------------------------- */
+    recorrenciasDados =
+      data || [];
+
+    renderizarRecorrencias();
+
+  } catch (erro) {
+
+    console.error(
+      "Erro inesperado ao carregar recorrências:",
+      erro
+    );
+
+    recorrenciasDados = [];
+
+    renderizarRecorrencias();
+
+  }
+
+}
+
+
+/* ======================================================
+   RENDERIZAR RECORRÊNCIAS
+====================================================== */
+
+function renderizarRecorrencias() {
+
+  if (!listaRecorrencias) {
+    return;
+  }
+
+  listaRecorrencias.innerHTML =
+    "";
+
+  const total =
+    recorrenciasDados.length;
+
+  const ativas =
+    recorrenciasDados.filter(
+      r => r.ativo === true
+    ).length;
+
+  const pausadas =
+    recorrenciasDados.filter(
+      r => r.ativo === false
+    ).length;
+
+  if (totalRecorrencias) {
+
+    totalRecorrencias.innerText =
+      total;
+
+  }
+
+  if (recorrenciasAtivas) {
+
+    recorrenciasAtivas.innerText =
+      ativas;
+
+  }
+
+  if (recorrenciasPausadas) {
+
+    recorrenciasPausadas.innerText =
+      pausadas;
+
+  }
+
+  if (contadorRecorrencias) {
+
+    contadorRecorrencias.innerText =
+      `${total} recorrência${total === 1 ? "" : "s"}`;
+
+  }
+
+  if (total === 0) {
+
+    listaRecorrencias.innerHTML = `
+
+      <div class="sem-recorrencias">
+
+        <div class="sem-recorrencias-icon">
+          🔄
+        </div>
+
+        <strong>
+          Nenhuma recorrência cadastrada
+        </strong>
+
+        <span>
+          Cadastre uma receita, despesa ou investimento recorrente.
+        </span>
+
+      </div>
+
+    `;
+
+    return;
+
+  }
+
+  recorrenciasDados.forEach(
+    recorrencia => {
+
+      const card =
+        document.createElement(
+          "div"
+        );
+
+      card.className =
+        "recorrencia-card";
+
+      if (
+        recorrencia.ativo === false
+      ) {
+
+        card.classList.add(
+          "pausada"
+        );
+
+      }
+
+      const valor =
+        formatarMoeda(
+          recorrencia.valor
+        );
+
+      const tipo =
+        recorrencia.tipo ||
+        "";
+
+      const categoria =
+        recorrencia.categoria_nome ||
+        recorrencia.categoria ||
+        "Sem categoria";
+
+      const frequencia =
+        nomesFrequencia[
+          recorrencia.frequencia
+        ] ||
+        recorrencia.frequencia ||
+        "";
+
+      const descricao =
+        recorrencia.descricao ||
+        "Sem descrição";
+
+      const dia =
+        recorrencia.dia_vencimento ||
+        "";
+
+      const ativo =
+        recorrencia.ativo !== false;
+
+      card.innerHTML = `
+
+        <div class="recorrencia-card-top">
+
+          <div class="recorrencia-tipo">
+
+            <span class="recorrencia-tipo-label">
+              ${tipo}
+            </span>
+
+            <span class="recorrencia-status ${
+              ativo
+                ? "ativo"
+                : "pausado"
+            }">
+
+              ${
+                ativo
+                  ? "Ativa"
+                  : "Pausada"
+              }
+
+            </span>
+
+          </div>
+
+          <div class="recorrencia-valor">
+
+            ${valor}
+
+          </div>
+
+        </div>
+
+
+        <div class="recorrencia-descricao">
+
+          ${descricao}
+
+        </div>
+
+
+        <div class="recorrencia-detalhes">
+
+          <div>
+
+            <small>
+              Categoria
+            </small>
+
+            <strong>
+              ${categoria}
+            </strong>
+
+          </div>
+
+
+          <div>
+
+            <small>
+              Frequência
+            </small>
+
+            <strong>
+              ${frequencia}
+            </strong>
+
+          </div>
+
+
+          <div>
+
+            <small>
+              Dia
+            </small>
+
+            <strong>
+              ${dia || "-"}
+            </strong>
+
+          </div>
+
+        </div>
+
+
+        <div class="recorrencia-acoes">
+
+          <button
+            type="button"
+            class="btn-rec-editar"
+            data-id="${recorrencia.id}"
+          >
+            ✏️ Editar
+          </button>
+
+
+          <button
+            type="button"
+            class="btn-rec-toggle"
+            data-id="${recorrencia.id}"
+          >
+
+            ${
+              ativo
+                ? "⏸ Pausar"
+                : "▶ Ativar"
+            }
+
+          </button>
+
+
+          <button
+            type="button"
+            class="btn-rec-excluir"
+            data-id="${recorrencia.id}"
+          >
+            🗑 Excluir
+          </button>
+
+        </div>
+
+      `;
+
+      listaRecorrencias.appendChild(
+        card
+      );
+
+    }
+  );
+
+  configurarAcoesRecorrencias();
+
+}
+
+
+/* ======================================================
+   AÇÕES DAS RECORRÊNCIAS
+====================================================== */
+
+function configurarAcoesRecorrencias() {
+
+  const botoesEditar =
+    document.querySelectorAll(
+      ".btn-rec-editar"
+    );
+
+  botoesEditar.forEach(
+    botao => {
+
+      botao.onclick = () => {
+
+        editarRecorrencia(
+          botao.dataset.id
+        );
+
+      };
+
+    }
+  );
+
+
+  const botoesToggle =
+    document.querySelectorAll(
+      ".btn-rec-toggle"
+    );
+
+  botoesToggle.forEach(
+    botao => {
+
+      botao.onclick = () => {
+
+        alternarRecorrencia(
+          botao.dataset.id
+        );
+
+      };
+
+    }
+  );
+
+
+  const botoesExcluir =
+    document.querySelectorAll(
+      ".btn-rec-excluir"
+    );
+
+  botoesExcluir.forEach(
+    botao => {
+
+      botao.onclick = () => {
+
+        excluirRecorrencia(
+          botao.dataset.id
+        );
+
+      };
+
+    }
+  );
+
+}
+
+
+/* ======================================================
+   EDITAR RECORRÊNCIA
+====================================================== */
+
+async function editarRecorrencia(id) {
+
+  const recorrencia =
+    recorrenciasDados.find(
+      r =>
+        String(r.id) ===
+        String(id)
+    );
+
+  if (!recorrencia) {
+
+    alert(
+      "Recorrência não encontrada."
+    );
+
+    return;
+
+  }
+
+  recorrenciaEmEdicao =
+    recorrencia.id;
+
+  if (tituloFormularioRecorrencia) {
+
+    tituloFormularioRecorrencia.innerText =
+      "Editar recorrência";
+
+  }
+
+  if (recTipo) {
+
+    recTipo.value =
+      recorrencia.tipo || "";
+
+  }
+
+  await carregarCategoriasRecorrencia(
+    recorrencia.tipo,
+    recorrencia.categoria_id ||
+    recorrencia.categoria
+  );
+
+  if (recDescricao) {
+
+    recDescricao.value =
+      recorrencia.descricao || "";
+
+  }
+
+  if (recValor) {
+
+    recValor.value =
+      recorrencia.valor || "";
+
+  }
+
+  if (recFrequencia) {
+
+    recFrequencia.value =
+      recorrencia.frequencia || "";
+
+  }
+
+  if (recDiaVencimento) {
+
+    recDiaVencimento.value =
+      recorrencia.dia_vencimento || "";
+
+  }
+
+  if (recDataInicio) {
+
+    recDataInicio.value =
+      recorrencia.data_inicio || "";
+
+  }
+
+  if (recDataFim) {
+
+    recDataFim.value =
+      recorrencia.data_fim || "";
+
+  }
+
+  if (btnSalvarRecorrencia) {
+
+    btnSalvarRecorrencia.innerText =
+      "Atualizar recorrência";
+
+  }
+
+  window.scrollTo({
+
+    top: 0,
+
+    behavior: "smooth"
+
+  });
+
+}
+
+
+/* ======================================================
+   CANCELAR EDIÇÃO
+====================================================== */
+
+function cancelarEdicaoRecorrencia() {
+
+  recorrenciaEmEdicao =
+    null;
+
+  if (tituloFormularioRecorrencia) {
+
+    tituloFormularioRecorrencia.innerText =
+      "Nova recorrência";
+
+  }
+
+  if (recTipo) {
+
+    recTipo.value =
+      "";
+
+  }
+
+  if (recCategoria) {
 
     recCategoria.innerHTML =
       "<option value=''>Selecione uma categoria</option>";
 
-    /* --------------------------------------------------
-       NORMALIZAR TIPO
-       
-       Banco:
-       investimento
+  }
 
-       HTML:
-       Investimento
+  if (recDescricao) {
 
-       Ambos passam a ser:
-       investimento
-    -------------------------------------------------- */
+    recDescricao.value =
+      "";
 
-    const tipoNormalizado =
-      String(
-        tipoSelecionado || ""
-      )
-        .trim()
-        .toLowerCase();
+  }
 
-    /* --------------------------------------------------
-       FILTRAR CATEGORIAS
-    -------------------------------------------------- */
+  if (recValor) {
 
-    const categorias =
-      (data || []).filter(
-        cat => {
+    recValor.value =
+      "";
 
-          const tipoCategoria =
-            String(
-              cat.tipo || ""
-            )
-              .trim()
-              .toLowerCase();
+  }
 
-          if (!tipoNormalizado) {
-            return true;
-          }
+  if (recFrequencia) {
 
-          return (
-            !tipoCategoria ||
-            tipoCategoria === tipoNormalizado
+    recFrequencia.value =
+      "mensal";
+
+  }
+
+  if (recDiaVencimento) {
+
+    recDiaVencimento.value =
+      "";
+
+  }
+
+  if (recDataInicio) {
+
+    recDataInicio.value =
+      "";
+
+  }
+
+  if (recDataFim) {
+
+    recDataFim.value =
+      "";
+
+  }
+
+  if (btnSalvarRecorrencia) {
+
+    btnSalvarRecorrencia.innerText =
+      "Salvar recorrência";
+
+  }
+
+}
+
+
+if (btnCancelarRecorrencia) {
+
+  btnCancelarRecorrencia.onclick =
+    () => {
+
+      cancelarEdicaoRecorrencia();
+
+    };
+
+}
+
+
+/* ======================================================
+   SALVAR RECORRÊNCIA
+====================================================== */
+
+if (btnSalvarRecorrencia) {
+
+  btnSalvarRecorrencia.onclick =
+    async () => {
+
+      if (
+        !recTipo?.value ||
+        !recCategoria?.value ||
+        !recDescricao?.value ||
+        !recValor?.value ||
+        !recFrequencia?.value ||
+        !recDataInicio?.value
+      ) {
+
+        alert(
+          "Preencha todos os campos obrigatórios."
+        );
+
+        return;
+
+      }
+
+      const valorNumerico =
+        Number(
+          String(
+            recValor.value
+          )
+            .replace(",", ".")
+        );
+
+      if (
+        !Number.isFinite(
+          valorNumerico
+        ) ||
+        valorNumerico <= 0
+      ) {
+
+        alert(
+          "Informe um valor válido."
+        );
+
+        return;
+
+      }
+
+      try {
+
+        const {
+          data: userData,
+          error: userError
+        } =
+          await supabase.auth.getUser();
+
+        if (
+          userError ||
+          !userData?.user
+        ) {
+
+          alert(
+            "Sua sessão expirou. Faça login novamente."
           );
 
-        }
-      );
+          return;
 
+        }
+
+        const categoriaSelecionada =
+          categoriasFinanceiras.find(
+            cat =>
+              String(cat.id) ===
+              String(recCategoria.value)
+          );
+
+        const dadosRecorrencia = {
+
+          user_id:
+            userData.user.id,
+
+          tipo:
+            recTipo.value,
+
+          categoria_id:
+            recCategoria.value,
+
+          categoria:
+            categoriaSelecionada?.nome ||
+            "",
+
+          descricao:
+            recDescricao.value.trim(),
+
+          valor:
+            valorNumerico,
+
+          frequencia:
+            recFrequencia.value,
+
+          dia_vencimento:
+            recDiaVencimento.value
+              ? Number(
+                  recDiaVencimento.value
+                )
+              : null,
+
+          data_inicio:
+            recDataInicio.value,
+
+          data_fim:
+            recDataFim.value ||
+            null
+
+        };
+
+        let erroOperacao = null;
+
+        if (recorrenciaEmEdicao) {
+
+          const resultado =
+            await supabase
+              .from(
+                "lancamentos_recorrentes"
+              )
+              .update(
+                dadosRecorrencia
+              )
+              .eq(
+                "id",
+                recorrenciaEmEdicao
+              );
+
+          erroOperacao =
+            resultado.error;
+
+        } else {
+
+          const resultado =
+            await supabase
+              .from(
+                "lancamentos_recorrentes"
+              )
+              .insert(
+                dadosRecorrencia
+              );
+
+          erroOperacao =
+            resultado.error;
+
+        }
+
+        if (erroOperacao) {
+
+          console.error(
+            "Erro ao salvar recorrência:",
+            erroOperacao
+          );
+
+          alert(
+            "Não foi possível salvar a recorrência."
+          );
+
+          return;
+
+        }
+
+        alert(
+          recorrenciaEmEdicao
+            ? "Recorrência atualizada com sucesso!"
+            : "Recorrência criada com sucesso!"
+        );
+
+        cancelarEdicaoRecorrencia();
+
+        await carregarRecorrencias();
+
+      } catch (erro) {
+
+        console.error(
+          "Erro inesperado:",
+          erro
+        );
+
+        alert(
+          "Ocorreu um erro ao salvar a recorrência."
+        );
+
+      }
+
+    };
+
+}
     /* --------------------------------------------------
        CRIAR OPTIONS
     -------------------------------------------------- */
@@ -2836,9 +4862,11 @@ function calcularProximoLancamento(
     if (
       data < hoje
     ) {
+
       data.setDate(
         data.getDate() + 1
       );
+
     }
 
   } else if (
@@ -2942,7 +4970,9 @@ function calcularProximoLancamento(
     if (
       data > dataFim
     ) {
+
       return null;
+
     }
 
   }
@@ -2997,7 +5027,6 @@ function criarDataSegura(
 /* ======================================================
    RENDERIZAR RECORRÊNCIAS
 ====================================================== */
-
 function renderizarRecorrencias() {
 
   if (!listaRecorrencias) {
@@ -3499,7 +5528,7 @@ if (btnSalvarRecorrencia) {
             recDataFim.value ||
             null,
 
-          ativo:
+                      ativo:
             true
 
         };
@@ -4007,6 +6036,259 @@ async function excluirRecorrencia(
 
 
     if (
+      recorrenciaEmEdicao ===
+      recorrencia.id
+    ) {
+
+      limparFormularioRecorrencia();
+
+    }
+
+
+    await carregarRecorrencias();
+
+
+    alert(
+      "Recorrência excluída com sucesso!"
+    );
+
+
+  } catch (erro) {
+
+    console.error(
+      "Erro inesperado ao excluir recorrência:",
+      erro
+    );
+
+    alert(
+      "Ocorreu um erro ao excluir a recorrência."
+    );
+
+  }
+
+}
+
+
+/* ======================================================
+   LIMPAR FORMULÁRIO DE RECORRÊNCIA
+====================================================== */
+
+function limparFormularioRecorrencia() {
+
+  recorrenciaEmEdicao =
+    null;
+
+
+  if (tituloFormularioRecorrencia) {
+
+    tituloFormularioRecorrencia.innerText =
+      "Nova recorrência";
+
+  }
+
+
+  if (btnSalvarRecorrencia) {
+
+    btnSalvarRecorrencia.innerText =
+      "Salvar recorrência";
+
+  }
+
+
+  if (btnCancelarRecorrencia) {
+
+    btnCancelarRecorrencia.classList.add(
+      "hidden"
+    );
+
+  }
+
+
+  if (recTipo) {
+
+    recTipo.value =
+      "";
+
+  }
+
+
+  if (recCategoria) {
+
+    recCategoria.innerHTML =
+      `
+        <option value="">
+          Selecione uma categoria
+        </option>
+      `;
+
+  }
+
+
+  if (recDescricao) {
+
+    recDescricao.value =
+      "";
+
+  }
+
+
+  if (recValor) {
+
+    recValor.value =
+      "";
+
+  }
+
+
+  if (recFrequencia) {
+
+    recFrequencia.value =
+      "mensal";
+
+  }
+
+
+  if (recDiaVencimento) {
+
+    recDiaVencimento.value =
+      "";
+
+  }
+
+
+  if (recDataInicio) {
+
+    recDataInicio.value =
+      "";
+
+  }
+
+
+  if (recDataFim) {
+
+    recDataFim.value =
+      "";
+
+  }
+
+}
+
+
+/* ======================================================
+   NAVEGAÇÃO — DASHBOARD
+====================================================== */
+
+if (navDashboard) {
+
+  navDashboard.onclick =
+    async () => {
+
+      dashboard.classList.remove(
+        "hidden"
+      );
+
+      lancamentos.classList.add(
+        "hidden"
+      );
+
+      if (recorrencias) {
+
+        recorrencias.classList.add(
+          "hidden"
+        );
+
+      }
+
+      fecharMenuMobile();
+
+      await carregarDados();
+
+      atualizarDashboard();
+
+      renderizarLista();
+
+    };
+
+}
+
+
+/* ======================================================
+   NAVEGAÇÃO — LANÇAMENTOS
+====================================================== */
+
+if (navLancamentos) {
+
+  navLancamentos.onclick =
+    async () => {
+
+      dashboard.classList.add(
+        "hidden"
+      );
+
+      lancamentos.classList.remove(
+        "hidden"
+      );
+
+      if (recorrencias) {
+
+        recorrencias.classList.add(
+          "hidden"
+        );
+
+      }
+
+      fecharMenuMobile();
+
+      await carregarDados();
+
+      renderizarLista();
+
+    };
+
+}
+
+
+/* ======================================================
+   NAVEGAÇÃO — RECORRÊNCIAS
+====================================================== */
+
+if (navRecorrencias) {
+
+  navRecorrencias.onclick =
+    async () => {
+
+      dashboard.classList.add(
+        "hidden"
+      );
+
+      lancamentos.classList.add(
+        "hidden"
+      );
+
+      if (recorrencias) {
+
+        recorrencias.classList.remove(
+          "hidden"
+        );
+
+      }
+
+      fecharMenuMobile();
+
+      await carregarRecorrencias();
+
+    };
+
+}
+        `Não foi possível excluir a recorrência.\n\n${error.message}`
+      );
+
+      return;
+
+    }
+
+
+    if (
       String(
         recorrenciaEmEdicao
       ) ===
@@ -4194,4 +6476,5 @@ if (recTipo) {
   carregarCategoriasRecorrencia();
 
 }
+
 });
