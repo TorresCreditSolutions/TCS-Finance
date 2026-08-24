@@ -1,36 +1,146 @@
 /* ======================================================
-   TCS FINANCE - SCRIPT PRINCIPAL
-   VERSÃO LIMPA / ESTÁVEL
-   CORREÇÃO:
-   - Removidas declarações duplicadas
-   - Mantida recuperação automática da sessão
-   - Login não é solicitado novamente ao recarregar
+   TCS FINANCE
+   SCRIPT PRINCIPAL
+   VERSÃO CORRIGIDA - AUTENTICAÇÃO SUPABASE
+
+   CORREÇÕES PRINCIPAIS:
+   - Sessão persistente no navegador
+   - Auto refresh do token
+   - Recuperação automática da sessão
+   - onAuthStateChange
+   - Login sem solicitar novamente após reload
+   - Proteção contra inicialização duplicada
+   - Logout completo
+   - Tratamento de sessão expirada
+   - Mantidas funções financeiras
 ====================================================== */
 
-console.log("SCRIPT CARREGADO");
+console.log("========================================");
+console.log("TCS FINANCE - SCRIPT CARREGADO");
+console.log("========================================");
+
 
 document.addEventListener("DOMContentLoaded", async () => {
 
-  /* ========================= SUPABASE ========================= */
+  /* ======================================================
+     CONTROLE DE INICIALIZAÇÃO
+  ====================================================== */
+
+  let sistemaInicializado = false;
+  let processandoAutenticacao = false;
+
+
+  /* ======================================================
+     SUPABASE
+  ====================================================== */
 
   if (!window.supabase) {
-    console.error("Supabase não foi carregado no HTML.");
-    alert("Não foi possível iniciar o sistema. Recarregue a página.");
+
+    console.error(
+      "Supabase não foi carregado no HTML."
+    );
+
+    alert(
+      "Não foi possível iniciar o sistema.\n\n" +
+      "A biblioteca do Supabase não foi carregada.\n\n" +
+      "Verifique o HTML e recarregue a página."
+    );
+
     return;
+
   }
 
-  const supabase = window.supabase.createClient(
-    "https://figkamlmpangolnasaby.supabase.co",
-    "sb_publishable_qkDLfEnWNNXyqQVdogQzBQ_Sre7CVBL"
-  );
+
+  let supabase;
 
 
-  /* ========================= ESTADO ========================= */
+  try {
+
+    supabase =
+      window.supabase.createClient(
+
+        "https://figkamlmpangolnasaby.supabase.co",
+
+        "sb_publishable_qkDLfEnWNNXyqQVdogQzBQ_Sre7CVBL",
+
+        {
+
+          auth: {
+
+            /*
+             * Mantém a sessão salva no navegador.
+             */
+            persistSession:
+              true,
+
+            /*
+             * Renova automaticamente o access token.
+             */
+            autoRefreshToken:
+              true,
+
+            /*
+             * Permite detectar sessões vindas
+             * de confirmação de email / URL.
+             */
+            detectSessionInUrl:
+              true,
+
+            /*
+             * Usa localStorage para persistência.
+             */
+            storage:
+              window.localStorage,
+
+            /*
+             * Chave própria do TCS Finance.
+             */
+            storageKey:
+              "tcs-finance-auth"
+
+          }
+
+        }
+
+      );
+
+
+    console.log(
+      "Cliente Supabase inicializado corretamente."
+    );
+
+
+  } catch (erro) {
+
+    console.error(
+      "Erro ao criar cliente Supabase:",
+      erro
+    );
+
+    alert(
+      "Erro ao conectar ao sistema.\n\n" +
+      "Verifique a configuração do Supabase."
+    );
+
+    return;
+
+  }
+
+
+  /* ======================================================
+     ESTADO
+  ====================================================== */
+
+  let usuarioAtual = null;
+
+  let sessaoAtual = null;
 
   let dados = [];
 
   let grafico = null;
+
   let graficoMensal = null;
+
   let graficoComparativo = null;
 
   let idEmEdicao = null;
@@ -40,12 +150,24 @@ document.addEventListener("DOMContentLoaded", async () => {
   const LIMITE_FREE = 30;
 
   let recorrenciasDados = [];
+
   let recorrenciaEmEdicao = null;
 
   let categoriasFinanceiras = [];
+
   let categoriaEmEdicao = null;
 
   let categoriaSelecionadaEdicao = null;
+
+  let categoriasPorTipo = {
+
+    Receita: [],
+
+    Despesa: [],
+
+    Investimento: []
+
+  };
 
 
   /* ======================================================
@@ -112,25 +234,35 @@ document.addEventListener("DOMContentLoaded", async () => {
   };
 
 
-  let categoriasPorTipo = {
-
-    Receita: [],
-    Despesa: [],
-    Investimento: []
-
-  };
-
+  /* ======================================================
+     FREQUÊNCIAS
+  ====================================================== */
 
   const nomesFrequencia = {
 
-    diaria: "Diária",
-    semanal: "Semanal",
-    quinzenal: "Quinzenal",
-    mensal: "Mensal",
-    bimestral: "Bimestral",
-    trimestral: "Trimestral",
-    semestral: "Semestral",
-    anual: "Anual"
+    diaria:
+      "Diária",
+
+    semanal:
+      "Semanal",
+
+    quinzenal:
+      "Quinzenal",
+
+    mensal:
+      "Mensal",
+
+    bimestral:
+      "Bimestral",
+
+    trimestral:
+      "Trimestral",
+
+    semestral:
+      "Semestral",
+
+    anual:
+      "Anual"
 
   };
 
@@ -139,195 +271,290 @@ document.addEventListener("DOMContentLoaded", async () => {
      ELEMENTOS DO DOM
   ====================================================== */
 
-
-  /* ------------------------------------------------------
-     ÁREA PRINCIPAL
-  ------------------------------------------------------ */
-
   const loginContainer =
-    document.getElementById("login-container");
+    document.getElementById(
+      "login-container"
+    );
 
   const app =
-    document.getElementById("app");
+    document.getElementById(
+      "app"
+    );
 
   const dashboard =
-    document.getElementById("dashboard");
+    document.getElementById(
+      "dashboard"
+    );
 
   const lancamentos =
-    document.getElementById("lancamentos");
+    document.getElementById(
+      "lancamentos"
+    );
 
   const recorrencias =
-    document.getElementById("recorrencias");
+    document.getElementById(
+      "recorrencias"
+    );
 
   const relatorios =
-    document.getElementById("relatorios");
+    document.getElementById(
+      "relatorios"
+    );
 
   const contas =
-    document.getElementById("contas");
-
-
-  /* ------------------------------------------------------
-     LOGIN
-  ------------------------------------------------------ */
-
-  const emailInput =
-    document.getElementById("email");
-
-  const senhaInput =
-    document.getElementById("senha");
-
-  const aceiteTermos =
-    document.getElementById("aceiteTermos");
-
-  const btnLogin =
-    document.getElementById("btnLogin");
-
-  const btnCadastro =
-    document.getElementById("btnCadastro");
-
-  const btnLogout =
-    document.getElementById("btnLogout");
-
-  const btnLogoutTop =
-    document.getElementById("btnLogoutTop");
-
-
-  /* ------------------------------------------------------
-     NAVEGAÇÃO
-  ------------------------------------------------------ */
-
-  const btnDashboard =
-    document.getElementById("btnDashboard");
-
-  const btnLancamentos =
-    document.getElementById("btnLancamentos");
-
-  const btnRecorrencias =
-    document.getElementById("btnRecorrencias");
-
-  const btnContas =
-    document.getElementById("btnContas");
-
-  const btnRelatorios =
-    document.getElementById("btnRelatorios");
-
-
-  /* ------------------------------------------------------
-     MENU MOBILE
-  ------------------------------------------------------ */
-
-  const btnMenu =
-    document.getElementById("btnMenu");
-
-  const sidebar =
-    document.querySelector(".sidebar");
-
-  const menuOverlay =
-    document.getElementById("menuOverlay");
-
-
-  /* ------------------------------------------------------
-     USUÁRIO / TOPBAR
-  ------------------------------------------------------ */
-
-  const nomeCliente =
-    document.getElementById("nomeCliente");
-
-  const topbarUser =
-    document.getElementById("topbarUser");
-
-  const topbarPlano =
-    document.getElementById("topbarPlano");
-
-
-  /* ------------------------------------------------------
-     LANÇAMENTOS
-  ------------------------------------------------------ */
-
-  const tipo =
-    document.getElementById("tipo");
-
-  const categoria =
-    document.getElementById("categoria");
-
-  const descricao =
-    document.getElementById("descricao");
-
-  const valor =
-    document.getElementById("valor");
-
-  const dataInput =
-    document.getElementById("data");
-
-  const btnSalvar =
-    document.getElementById("btnSalvar");
-
-
-  /* ------------------------------------------------------
-     FILTRO / DASHBOARD
-  ------------------------------------------------------ */
-
-  const filtroMes =
-    document.getElementById("filtroMes");
-
-  const btnLimparFiltro =
-    document.getElementById("btnLimparFiltro");
-
-  const dashboardPeriodo =
-    document.getElementById("dashboardPeriodo");
-
-  const totalReceitas =
-    document.getElementById("totalReceitas");
-
-  const totalDespesas =
-    document.getElementById("totalDespesas");
-
-  const totalInvestimentos =
-    document.getElementById("totalInvestimentos");
-
-  const saldo =
-    document.getElementById("saldo");
-
-  const lista =
-    document.getElementById("listaLancamentos");
-
-  const tipoGrafico =
-    document.getElementById("tipoGrafico");
+    document.getElementById(
+      "contas"
+    );
 
 
   /* ======================================================
-     CATEGORIAS FINANCEIRAS
+     LOGIN
+  ====================================================== */
+
+  const emailInput =
+    document.getElementById(
+      "email"
+    );
+
+  const senhaInput =
+    document.getElementById(
+      "senha"
+    );
+
+  const aceiteTermos =
+    document.getElementById(
+      "aceiteTermos"
+    );
+
+  const btnLogin =
+    document.getElementById(
+      "btnLogin"
+    );
+
+  const btnCadastro =
+    document.getElementById(
+      "btnCadastro"
+    );
+
+  const btnLogout =
+    document.getElementById(
+      "btnLogout"
+    );
+
+  const btnLogoutTop =
+    document.getElementById(
+      "btnLogoutTop"
+    );
+
+
+  /* ======================================================
+     NAVEGAÇÃO
+  ====================================================== */
+
+  const btnDashboard =
+    document.getElementById(
+      "btnDashboard"
+    );
+
+  const btnLancamentos =
+    document.getElementById(
+      "btnLancamentos"
+    );
+
+  const btnRecorrencias =
+    document.getElementById(
+      "btnRecorrencias"
+    );
+
+  const btnContas =
+    document.getElementById(
+      "btnContas"
+    );
+
+  const btnRelatorios =
+    document.getElementById(
+      "btnRelatorios"
+    );
+
+
+  /* ======================================================
+     MENU MOBILE
+  ====================================================== */
+
+  const btnMenu =
+    document.getElementById(
+      "btnMenu"
+    );
+
+  const sidebar =
+    document.querySelector(
+      ".sidebar"
+    );
+
+  const menuOverlay =
+    document.getElementById(
+      "menuOverlay"
+    );
+
+
+  /* ======================================================
+     USUÁRIO
+  ====================================================== */
+
+  const nomeCliente =
+    document.getElementById(
+      "nomeCliente"
+    );
+
+  const topbarUser =
+    document.getElementById(
+      "topbarUser"
+    );
+
+  const topbarPlano =
+    document.getElementById(
+      "topbarPlano"
+    );
+
+
+  /* ======================================================
+     LANÇAMENTOS
+  ====================================================== */
+
+  const tipo =
+    document.getElementById(
+      "tipo"
+    );
+
+  const categoria =
+    document.getElementById(
+      "categoria"
+    );
+
+  const descricao =
+    document.getElementById(
+      "descricao"
+    );
+
+  const valor =
+    document.getElementById(
+      "valor"
+    );
+
+  const dataInput =
+    document.getElementById(
+      "data"
+    );
+
+  const btnSalvar =
+    document.getElementById(
+      "btnSalvar"
+    );
+
+
+  /* ======================================================
+     DASHBOARD
+  ====================================================== */
+
+  const filtroMes =
+    document.getElementById(
+      "filtroMes"
+    );
+
+  const btnLimparFiltro =
+    document.getElementById(
+      "btnLimparFiltro"
+    );
+
+  const dashboardPeriodo =
+    document.getElementById(
+      "dashboardPeriodo"
+    );
+
+  const totalReceitas =
+    document.getElementById(
+      "totalReceitas"
+    );
+
+  const totalDespesas =
+    document.getElementById(
+      "totalDespesas"
+    );
+
+  const totalInvestimentos =
+    document.getElementById(
+      "totalInvestimentos"
+    );
+
+  const saldo =
+    document.getElementById(
+      "saldo"
+    );
+
+  const lista =
+    document.getElementById(
+      "listaLancamentos"
+    );
+
+  const tipoGrafico =
+    document.getElementById(
+      "tipoGrafico"
+    );
+
+
+  /* ======================================================
+     CATEGORIAS
   ====================================================== */
 
   const categorias =
-    document.getElementById("categorias");
+    document.getElementById(
+      "categorias"
+    );
 
   const catTipo =
-    document.getElementById("catTipo");
+    document.getElementById(
+      "catTipo"
+    );
 
   const catNome =
-    document.getElementById("catNome");
+    document.getElementById(
+      "catNome"
+    );
 
   const catDescricao =
-    document.getElementById("catDescricao");
+    document.getElementById(
+      "catDescricao"
+    );
 
   const catIcone =
-    document.getElementById("catIcone");
+    document.getElementById(
+      "catIcone"
+    );
 
   const btnSalvarCategoria =
-    document.getElementById("btnSalvarCategoria");
+    document.getElementById(
+      "btnSalvarCategoria"
+    );
 
   const btnCancelarCategoria =
-    document.getElementById("btnCancelarCategoria");
+    document.getElementById(
+      "btnCancelarCategoria"
+    );
 
   const listaCategorias =
-    document.getElementById("listaCategorias");
+    document.getElementById(
+      "listaCategorias"
+    );
 
   const filtroCategoriaTipo =
-    document.getElementById("filtroCategoriaTipo");
+    document.getElementById(
+      "filtroCategoriaTipo"
+    );
 
   const contadorCategorias =
-    document.getElementById("contadorCategorias");
+    document.getElementById(
+      "contadorCategorias"
+    );
 
 
   /* ======================================================
@@ -335,51 +562,79 @@ document.addEventListener("DOMContentLoaded", async () => {
   ====================================================== */
 
   const recTipo =
-    document.getElementById("recTipo");
+    document.getElementById(
+      "recTipo"
+    );
 
   const recCategoria =
-    document.getElementById("recCategoria");
+    document.getElementById(
+      "recCategoria"
+    );
 
   const recDescricao =
-    document.getElementById("recDescricao");
+    document.getElementById(
+      "recDescricao"
+    );
 
   const recValor =
-    document.getElementById("recValor");
+    document.getElementById(
+      "recValor"
+    );
 
   const recFrequencia =
-    document.getElementById("recFrequencia");
+    document.getElementById(
+      "recFrequencia"
+    );
 
   const recDiaVencimento =
-    document.getElementById("recDiaVencimento");
+    document.getElementById(
+      "recDiaVencimento"
+    );
 
   const recDataInicio =
-    document.getElementById("recDataInicio");
+    document.getElementById(
+      "recDataInicio"
+    );
 
   const recDataFim =
-    document.getElementById("recDataFim");
-
+    document.getElementById(
+      "recDataFim"
+    );
 
   const btnSalvarRecorrencia =
-    document.getElementById("btnSalvarRecorrencia");
+    document.getElementById(
+      "btnSalvarRecorrencia"
+    );
 
   const btnCancelarRecorrencia =
-    document.getElementById("btnCancelarRecorrencia");
-
+    document.getElementById(
+      "btnCancelarRecorrencia"
+    );
 
   const listaRecorrencias =
-    document.getElementById("listaRecorrencias");
+    document.getElementById(
+      "listaRecorrencias"
+    );
 
   const totalRecorrencias =
-    document.getElementById("totalRecorrencias");
+    document.getElementById(
+      "totalRecorrencias"
+    );
 
   const recorrenciasAtivas =
-    document.getElementById("recorrenciasAtivas");
+    document.getElementById(
+      "recorrenciasAtivas"
+    );
 
   const recorrenciasPausadas =
-    document.getElementById("recorrenciasPausadas");
+    document.getElementById(
+      "recorrenciasPausadas"
+    );
 
   const contadorRecorrencias =
-    document.getElementById("contadorRecorrencias");
+    document.getElementById(
+      "contadorRecorrencias"
+    );
 
   const tituloFormularioRecorrencia =
     document.getElementById(
@@ -392,34 +647,48 @@ document.addEventListener("DOMContentLoaded", async () => {
   ====================================================== */
 
   const listaContas =
-    document.getElementById("listaContas");
+    document.getElementById(
+      "listaContas"
+    );
 
   const btnSalvarConta =
-    document.getElementById("btnSalvarConta");
+    document.getElementById(
+      "btnSalvarConta"
+    );
 
   const btnCancelarConta =
-    document.getElementById("btnCancelarConta");
+    document.getElementById(
+      "btnCancelarConta"
+    );
 
 
   /* ======================================================
-     RELATÓRIOS / EXPORTAÇÃO
+     EXPORTAÇÃO
   ====================================================== */
 
   const btnExportarPdf =
-    document.getElementById("btnExportarPdf");
+    document.getElementById(
+      "btnExportarPdf"
+    );
 
   const btnExportarExcel =
-    document.getElementById("btnExportarExcel");
+    document.getElementById(
+      "btnExportarExcel"
+    );
 
   const btnExportarJson =
-    document.getElementById("btnExportarJson");
+    document.getElementById(
+      "btnExportarJson"
+    );
 
 
   /* ======================================================
      UTILITÁRIOS
   ====================================================== */
 
-  function normalizarTipoCategoria(tipoSelecionado) {
+  function normalizarTipoCategoria(
+    tipoSelecionado
+  ) {
 
     const valorNormalizado =
       String(
@@ -430,7 +699,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
     if (
-      valorNormalizado === "receita"
+      valorNormalizado ===
+      "receita"
     ) {
 
       return "Receita";
@@ -439,7 +709,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
     if (
-      valorNormalizado === "despesa"
+      valorNormalizado ===
+      "despesa"
     ) {
 
       return "Despesa";
@@ -448,7 +719,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
     if (
-      valorNormalizado === "investimento"
+      valorNormalizado ===
+      "investimento"
     ) {
 
       return "Investimento";
@@ -463,7 +735,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
 
-  function escapeHtml(valor) {
+  function escapeHtml(
+    valor
+  ) {
 
     return String(
       valor ?? ""
@@ -503,11 +777,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     ).toLocaleString(
       "pt-BR",
       {
+
         style:
           "currency",
 
         currency:
           "BRL"
+
       }
     );
 
@@ -549,13 +825,23 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
     return (
+
       `${agora.getFullYear()}-` +
+
       `${String(
         agora.getMonth() + 1
-      ).padStart(2, "0")}-` +
+      ).padStart(
+        2,
+        "0"
+      )}-` +
+
       `${String(
         agora.getDate()
-      ).padStart(2, "0")}`
+      ).padStart(
+        2,
+        "0"
+      )}`
+
     );
 
   }
@@ -568,10 +854,16 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
     return (
+
       `${agora.getFullYear()}-` +
+
       `${String(
         agora.getMonth() + 1
-      ).padStart(2, "0")}`
+      ).padStart(
+        2,
+        "0"
+      )}`
+
     );
 
   }
@@ -607,8 +899,12 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const data =
       new Date(
-        Number(partes[0]),
-        Number(partes[1]) - 1,
+        Number(
+          partes[0]
+        ),
+        Number(
+          partes[1]
+        ) - 1,
         1
       );
 
@@ -616,11 +912,13 @@ document.addEventListener("DOMContentLoaded", async () => {
     return data.toLocaleDateString(
       "pt-BR",
       {
+
         month:
           "long",
 
         year:
           "numeric"
+
       }
     );
 
@@ -684,11 +982,13 @@ document.addEventListener("DOMContentLoaded", async () => {
   ) {
 
     [
+
       dashboard,
       lancamentos,
       recorrencias,
       relatorios,
       contas
+
     ].forEach(
       elemento => {
 
@@ -719,24 +1019,133 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
   /* ======================================================
-     CATEGORIAS
+     INTERFACE DE LOGIN
+  ====================================================== */
+
+  function mostrarInterfaceLogin() {
+
+    console.log(
+      "Mostrando tela de login."
+    );
+
+
+    if (app) {
+
+      app.classList.add(
+        "hidden"
+      );
+
+      app.style.display =
+        "none";
+
+    }
+
+
+    if (loginContainer) {
+
+      loginContainer.style.display =
+        "flex";
+
+      loginContainer.classList.remove(
+        "hidden"
+      );
+
+    }
+
+  }
+
+
+  function mostrarInterfaceApp() {
+
+    console.log(
+      "Mostrando aplicação."
+    );
+
+
+    if (loginContainer) {
+
+      loginContainer.style.display =
+        "none";
+
+      loginContainer.classList.add(
+        "hidden"
+      );
+
+    }
+
+
+    if (app) {
+
+      app.style.display =
+        "flex";
+
+      app.classList.remove(
+        "hidden"
+      );
+
+    }
+
+  }
+
+
+  /* ======================================================
+     OBTÉM USUÁRIO ATUAL
+  ====================================================== */
+
+  async function obterUsuarioAtual() {
+
+    try {
+
+      const {
+        data,
+        error
+      } =
+        await supabase.auth.getUser();
+
+
+      if (error) {
+
+        console.error(
+          "Erro ao obter usuário:",
+          error
+        );
+
+        return null;
+
+      }
+
+
+      return data?.user || null;
+
+
+    } catch (erro) {
+
+      console.error(
+        "Erro inesperado ao obter usuário:",
+        erro
+      );
+
+      return null;
+
+    }
+
+  }
+
+
+  /* ======================================================
+     CATEGORIAS PADRÃO
   ====================================================== */
 
   async function garantirCategoriasPadrao() {
 
     try {
 
-      const {
-        data: userData,
-        error: userError
-      } =
-        await supabase.auth.getUser();
+      const user =
+        usuarioAtual ||
+        await obterUsuarioAtual();
 
 
-      if (
-        userError ||
-        !userData?.user
-      ) {
+      if (!user) {
 
         return;
 
@@ -744,7 +1153,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
       const userId =
-        userData.user.id;
+        user.id;
 
 
       const {
@@ -889,17 +1298,12 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     try {
 
-      const {
-        data: userData,
-        error: userError
-      } =
-        await supabase.auth.getUser();
+      const user =
+        usuarioAtual ||
+        await obterUsuarioAtual();
 
 
-      if (
-        userError ||
-        !userData?.user
-      ) {
+      if (!user) {
 
         return;
 
@@ -922,7 +1326,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           )
           .eq(
             "user_id",
-            userData.user.id
+            user.id
           )
           .eq(
             "ativa",
@@ -949,10 +1353,16 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
 
 
+      categoriasFinanceiras =
+        data || [];
+
+
       categoriasPorTipo = {
 
         Receita: [],
+
         Despesa: [],
+
         Investimento: []
 
       };
@@ -1025,13 +1435,13 @@ document.addEventListener("DOMContentLoaded", async () => {
       );
 
 
-    const listaCategorias =
+    const listaCategoriasTipo =
       categoriasPorTipo[
         tipoNormalizado
       ] || [];
 
 
-    listaCategorias.forEach(
+    listaCategoriasTipo.forEach(
       cat => {
 
         const option =
@@ -1053,18 +1463,23 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
         if (
+
           String(
             categoriaSelecionada
           ) ===
-            String(
-              cat.nome
-            ) ||
+          String(
+            cat.nome
+          )
+
+          ||
+
           String(
             categoriaSelecionada
           ) ===
-            String(
-              cat.id
-            )
+          String(
+            cat.id
+          )
+
         ) {
 
           option.selected =
@@ -1082,8 +1497,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
     if (
-      !listaCategorias.length &&
+
+      !listaCategoriasTipo.length &&
       tipoSelecionado
+
     ) {
 
       const option =
@@ -1131,17 +1548,12 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     try {
 
-      const {
-        data: userData,
-        error: userError
-      } =
-        await supabase.auth.getUser();
+      const user =
+        usuarioAtual ||
+        await obterUsuarioAtual();
 
 
-      if (
-        userError ||
-        !userData?.user
-      ) {
+      if (!user) {
 
         recCategoria.innerHTML =
           "<option value=''>Sessão expirada</option>";
@@ -1167,7 +1579,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           )
           .eq(
             "user_id",
-            userData.user.id
+            user.id
           )
           .eq(
             "ativa",
@@ -1192,7 +1604,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         recCategoria.innerHTML =
           "<option value=''>Erro ao carregar categorias</option>";
-
 
         return;
 
@@ -1221,10 +1632,12 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
             return (
+
               normalizarTipoCategoria(
                 cat.tipo
               ) ===
               tipoNormalizado
+
             );
 
           }
@@ -1253,18 +1666,23 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
           if (
+
             String(
               cat.id
             ) ===
-              String(
-                categoriaSelecionada
-              ) ||
+            String(
+              categoriaSelecionada
+            )
+
+            ||
+
             String(
               cat.nome
             ) ===
-              String(
-                categoriaSelecionada
-              )
+            String(
+              categoriaSelecionada
+            )
+
           ) {
 
             option.selected =
@@ -1326,132 +1744,187 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
   /* ======================================================
-     SESSÃO / LOGIN
+     INICIAR SESSÃO
   ====================================================== */
 
   async function iniciarSessao(
-    user
+    user,
+    session = null
   ) {
 
     if (!user) {
+
+      console.warn(
+        "iniciarSessao chamada sem usuário."
+      );
 
       return;
 
     }
 
 
-    const nomeUsuario =
-      user.user_metadata?.nome ||
-      user.email?.split("@")[0] ||
-      "Usuário";
-
-
-    if (topbarUser) {
-
-      topbarUser.innerText =
-        nomeUsuario;
-
-    }
-
-
-    if (topbarPlano) {
-
-      topbarPlano.innerText =
-        planoUsuario;
-
-    }
-
-
-    if (nomeCliente) {
-
-      nomeCliente.innerText =
-        `Olá, ${nomeUsuario}!`;
-
-    }
-
-
     /*
-     * IMPORTANTE:
-     * Aqui apenas restauramos a sessão existente.
-     * Não fazemos novo login.
+     * Evita inicializações simultâneas.
      */
+    if (
+      processandoAutenticacao
+    ) {
 
-    if (loginContainer) {
-
-      loginContainer.style.display =
-        "none";
-
-    }
-
-
-    if (app) {
-
-      app.style.display =
-        "flex";
-
-      app.classList.remove(
-        "hidden"
+      console.log(
+        "Inicialização de autenticação já está em andamento."
       );
 
-    }
-
-
-    mostrarTela(
-      dashboard
-    );
-
-
-    if (
-      filtroMes &&
-      !filtroMes.value
-    ) {
-
-      filtroMes.value =
-        obterMesAtual();
+      return;
 
     }
 
 
-    if (
-      dataInput &&
-      !dataInput.value
-    ) {
+    processandoAutenticacao =
+      true;
 
-      dataInput.value =
-        obterDataHoje();
+
+    try {
+
+      usuarioAtual =
+        user;
+
+
+      if (session) {
+
+        sessaoAtual =
+          session;
+
+      }
+
+
+      console.log(
+        "Usuário autenticado:",
+        user.email
+      );
+
+
+      const nomeUsuario =
+        user.user_metadata?.nome ||
+        user.user_metadata?.name ||
+        user.email?.split("@")[0] ||
+        "Usuário";
+
+
+      if (topbarUser) {
+
+        topbarUser.innerText =
+          nomeUsuario;
+
+      }
+
+
+      if (topbarPlano) {
+
+        topbarPlano.innerText =
+          planoUsuario;
+
+      }
+
+
+      if (nomeCliente) {
+
+        nomeCliente.innerText =
+          `Olá, ${nomeUsuario}!`;
+
+      }
+
+
+      mostrarInterfaceApp();
+
+
+      mostrarTela(
+        dashboard
+      );
+
+
+      if (
+        filtroMes &&
+        !filtroMes.value
+      ) {
+
+        filtroMes.value =
+          obterMesAtual();
+
+      }
+
+
+      if (
+        dataInput &&
+        !dataInput.value
+      ) {
+
+        dataInput.value =
+          obterDataHoje();
+
+      }
+
+
+      if (
+        recDataInicio &&
+        !recDataInicio.value
+      ) {
+
+        recDataInicio.value =
+          obterDataHoje();
+
+      }
+
+
+      /*
+       * Carregamentos principais.
+       */
+      await carregarCategoriasFinanceiras();
+
+      await carregarDados();
+
+      atualizarDashboard();
+
+      renderizarLista();
+
+      sistemaInicializado =
+        true;
+
+
+      console.log(
+        "TCS Finance inicializado com sucesso."
+      );
+
+
+    } catch (erro) {
+
+      console.error(
+        "Erro ao iniciar sessão:",
+        erro
+      );
+
+      alert(
+        "O login foi realizado, mas ocorreu um erro ao carregar seus dados.\n\n" +
+        "Verifique o console para mais detalhes."
+      );
+
+    } finally {
+
+      processandoAutenticacao =
+        false;
 
     }
-
-
-    if (
-      recDataInicio &&
-      !recDataInicio.value
-    ) {
-
-      recDataInicio.value =
-        obterDataHoje();
-
-    }
-
-
-    await carregarCategoriasFinanceiras();
-
-    await carregarDados();
-
-    atualizarDashboard();
-
-    renderizarLista();
 
   }
 
 
-  /* ------------------------------------------------------
-     LOGIN MANUAL
-  ------------------------------------------------------ */
+  /* ======================================================
+     LOGIN
+  ====================================================== */
 
   if (btnLogin) {
 
-    btnLogin.onclick =
+    btnLogin.addEventListener(
+      "click",
       async () => {
 
         try {
@@ -1461,7 +1934,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           ) {
 
             alert(
-              "Você precisa aceitar os termos."
+              "Você precisa aceitar os termos de uso."
             );
 
             return;
@@ -1479,14 +1952,26 @@ document.addEventListener("DOMContentLoaded", async () => {
             "";
 
 
-          if (
-            !email ||
-            !senha
-          ) {
+          if (!email) {
 
             alert(
-              "Informe seu email e senha."
+              "Informe seu email."
             );
+
+            emailInput?.focus();
+
+            return;
+
+          }
+
+
+          if (!senha) {
+
+            alert(
+              "Informe sua senha."
+            );
+
+            senhaInput?.focus();
 
             return;
 
@@ -1501,6 +1986,30 @@ document.addEventListener("DOMContentLoaded", async () => {
             "Entrando...";
 
 
+          console.log(
+            "Tentando autenticar:",
+            email
+          );
+
+
+          /*
+           * Antes do login, encerramos qualquer
+           * estado de sessão inconsistente.
+           */
+          try {
+
+            await supabase.auth.signOut();
+
+          } catch (_) {
+
+            /*
+             * Não interrompe o login caso
+             * não exista sessão anterior.
+             */
+
+          }
+
+
           const {
             data,
             error
@@ -1508,11 +2017,9 @@ document.addEventListener("DOMContentLoaded", async () => {
             await supabase.auth.signInWithPassword({
 
               email:
-
                 email,
 
               password:
-
                 senha
 
             });
@@ -1521,24 +2028,131 @@ document.addEventListener("DOMContentLoaded", async () => {
           if (error) {
 
             console.error(
-              "Erro no login:",
+              "Erro retornado pelo Supabase:",
               error
             );
 
 
-            alert(
+            let mensagem =
               error.message ||
-              "Não foi possível fazer login."
-            );
+              "Não foi possível fazer login.";
 
+
+            if (
+              error.message?.toLowerCase().includes(
+                "invalid login credentials"
+              )
+            ) {
+
+              mensagem =
+                "Email ou senha incorretos.";
+
+            }
+
+
+            if (
+              error.message?.toLowerCase().includes(
+                "email not confirmed"
+              )
+            ) {
+
+              mensagem =
+                "Seu email ainda não foi confirmado.\n\n" +
+                "Verifique sua caixa de entrada e confirme seu cadastro antes de entrar.";
+
+            }
+
+
+            if (
+              error.message?.toLowerCase().includes(
+                "too many requests"
+              )
+            ) {
+
+              mensagem =
+                "Muitas tentativas de login.\n\n" +
+                "Aguarde alguns minutos e tente novamente.";
+
+            }
+
+
+            alert(
+              mensagem
+            );
 
             return;
 
           }
 
 
+          console.log(
+            "Resposta do login:",
+            data
+          );
+
+
+          /*
+           * O ponto mais importante:
+           * precisamos ter uma SESSION válida.
+           */
+          if (
+            !data?.session ||
+            !data?.user
+          ) {
+
+            console.error(
+              "Supabase não retornou sessão após login.",
+              data
+            );
+
+
+            alert(
+              "O Supabase aceitou a solicitação, mas não retornou uma sessão autenticada.\n\n" +
+              "Isso normalmente indica que o email ainda precisa ser confirmado."
+            );
+
+            return;
+
+          }
+
+
+          sessaoAtual =
+            data.session;
+
+
+          usuarioAtual =
+            data.user;
+
+
+          /*
+           * O Supabase já persiste a sessão automaticamente,
+           * mas garantimos também que o estado local esteja correto.
+           */
+          try {
+
+            await supabase.auth.setSession({
+
+              access_token:
+                data.session.access_token,
+
+              refresh_token:
+                data.session.refresh_token
+
+            });
+
+          } catch (erroSessao) {
+
+            console.warn(
+              "Não foi necessário redefinir a sessão:",
+              erroSessao
+            );
+
+          }
+
+
           await iniciarSessao(
-            data?.user
+            data.user,
+            data.session
           );
 
 
@@ -1551,7 +2165,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
           alert(
-            "Ocorreu um erro ao fazer login. Verifique o console para detalhes."
+            "Ocorreu um erro ao fazer login.\n\n" +
+            "Verifique sua conexão e tente novamente."
           );
 
 
@@ -1566,18 +2181,70 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         }
 
-      };
+      }
+    );
 
   }
 
 
-  /* ------------------------------------------------------
+  /* ======================================================
+     ENTER NO LOGIN
+  ====================================================== */
+
+  if (emailInput) {
+
+    emailInput.addEventListener(
+      "keydown",
+      event => {
+
+        if (
+          event.key ===
+          "Enter"
+        ) {
+
+          event.preventDefault();
+
+          btnLogin?.click();
+
+        }
+
+      }
+    );
+
+  }
+
+
+  if (senhaInput) {
+
+    senhaInput.addEventListener(
+      "keydown",
+      event => {
+
+        if (
+          event.key ===
+          "Enter"
+        ) {
+
+          event.preventDefault();
+
+          btnLogin?.click();
+
+        }
+
+      }
+    );
+
+  }
+
+
+  /* ======================================================
      CADASTRO
-  ------------------------------------------------------ */
+  ====================================================== */
 
   if (btnCadastro) {
 
-    btnCadastro.onclick =
+    btnCadastro.addEventListener(
+      "click",
       async () => {
 
         try {
@@ -1587,7 +2254,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           ) {
 
             alert(
-              "Você precisa aceitar os termos."
+              "Você precisa aceitar os termos de uso."
             );
 
             return;
@@ -1632,13 +2299,22 @@ document.addEventListener("DOMContentLoaded", async () => {
           }
 
 
+          btnCadastro.disabled =
+            true;
+
+
+          btnCadastro.innerText =
+            "Criando conta...";
+
+
           const {
             data,
             error
           } =
             await supabase.auth.signUp({
 
-              email,
+              email:
+                email,
 
               password:
                 senha,
@@ -1648,7 +2324,9 @@ document.addEventListener("DOMContentLoaded", async () => {
                 data: {
 
                   nome:
-                    email.split("@")[0]
+                    email.split(
+                      "@"
+                    )[0]
 
                 }
 
@@ -1659,8 +2337,15 @@ document.addEventListener("DOMContentLoaded", async () => {
 
           if (error) {
 
+            console.error(
+              "Erro no cadastro:",
+              error
+            );
+
+
             alert(
-              error.message
+              error.message ||
+              "Não foi possível criar a conta."
             );
 
             return;
@@ -1668,27 +2353,48 @@ document.addEventListener("DOMContentLoaded", async () => {
           }
 
 
+          console.log(
+            "Cadastro realizado:",
+            data
+          );
+
+
+          /*
+           * Se o Supabase retornar sessão imediatamente,
+           * o usuário já pode entrar.
+           */
           if (
             data?.session &&
             data?.user
           ) {
 
             await iniciarSessao(
-              data.user
+              data.user,
+              data.session
             );
+
 
           } else {
 
             alert(
-              "Conta criada com sucesso! Confirme seu email para continuar."
+
+              "Conta criada com sucesso!\n\n" +
+
+              "Enviamos um email de confirmação para " +
+              email +
+              ".\n\n" +
+
+              "Confirme seu email e depois faça login."
+
             );
 
           }
 
+
         } catch (erro) {
 
           console.error(
-            "Erro no cadastro:",
+            "Erro inesperado no cadastro:",
             erro
           );
 
@@ -1697,18 +2403,34 @@ document.addEventListener("DOMContentLoaded", async () => {
             "Ocorreu um erro ao criar a conta."
           );
 
+
+        } finally {
+
+          btnCadastro.disabled =
+            false;
+
+
+          btnCadastro.innerText =
+            "Criar conta";
+
         }
 
-      };
+      }
+    );
 
   }
 
 
-  /* ------------------------------------------------------
+  /* ======================================================
      LOGOUT
-  ------------------------------------------------------ */
+  ====================================================== */
 
   async function fazerLogout() {
+
+    console.log(
+      "Executando logout..."
+    );
+
 
     try {
 
@@ -1724,24 +2446,51 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
 
-    if (app) {
+    usuarioAtual =
+      null;
 
-      app.classList.add(
-        "hidden"
-      );
 
-      app.style.display =
-        "none";
+    sessaoAtual =
+      null;
+
+
+    sistemaInicializado =
+      false;
+
+
+    mostrarInterfaceLogin();
+
+
+    if (emailInput) {
+
+      emailInput.value =
+        "";
 
     }
 
 
-    if (loginContainer) {
+    if (senhaInput) {
 
-      loginContainer.style.display =
-        "flex";
+      senhaInput.value =
+        "";
 
     }
+
+
+    if (aceiteTermos) {
+
+      aceiteTermos.checked =
+        false;
+
+    }
+
+
+    fecharMenuMobile();
+
+
+    console.log(
+      "Logout concluído."
+    );
 
   }
 
@@ -1767,12 +2516,168 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
   /* ======================================================
+     MONITORAMENTO DE AUTENTICAÇÃO
+     
+     MUITO IMPORTANTE PARA O LOGIN.
+  ====================================================== */
+
+  supabase.auth.onAuthStateChange(
+    (
+      event,
+      session
+    ) => {
+
+      console.log(
+        "AUTH EVENT:",
+        event,
+        session?.user?.email || "sem usuário"
+      );
+
+
+      /*
+       * Não executamos toda a inicialização
+       * diretamente dentro do callback do Supabase.
+       *
+       * O setTimeout evita conflitos internos
+       * com o processamento de autenticação.
+       */
+      setTimeout(
+        async () => {
+
+          try {
+
+            if (
+              event ===
+                "SIGNED_IN" &&
+              session?.user
+            ) {
+
+              sessaoAtual =
+                session;
+
+              usuarioAtual =
+                session.user;
+
+
+              if (
+                !sistemaInicializado &&
+                !processandoAutenticacao
+              ) {
+
+                await iniciarSessao(
+                  session.user,
+                  session
+                );
+
+              }
+
+
+              return;
+
+            }
+
+
+            if (
+              event ===
+                "TOKEN_REFRESHED" &&
+              session?.user
+            ) {
+
+              sessaoAtual =
+                session;
+
+              usuarioAtual =
+                session.user;
+
+
+              console.log(
+                "Token renovado automaticamente."
+              );
+
+
+              return;
+
+            }
+
+
+            if (
+              event ===
+                "SIGNED_OUT"
+            ) {
+
+              usuarioAtual =
+                null;
+
+              sessaoAtual =
+                null;
+
+              sistemaInicializado =
+                false;
+
+
+              mostrarInterfaceLogin();
+
+
+              return;
+
+            }
+
+
+            if (
+              event ===
+                "USER_UPDATED" &&
+              session?.user
+            ) {
+
+              usuarioAtual =
+                session.user;
+
+              sessaoAtual =
+                session;
+
+              return;
+
+            }
+
+          } catch (erro) {
+
+            console.error(
+              "Erro no monitoramento de autenticação:",
+              erro
+            );
+
+          }
+
+        },
+        0
+      );
+
+    }
+  );
+
+
+  /* ======================================================
      LANÇAMENTOS
   ====================================================== */
 
   async function carregarDados() {
 
     try {
+
+      const user =
+        usuarioAtual ||
+        await obterUsuarioAtual();
+
+
+      if (!user) {
+
+        dados =
+          [];
+
+        return;
+
+      }
+
 
       const {
         data,
@@ -1784,6 +2689,10 @@ document.addEventListener("DOMContentLoaded", async () => {
           )
           .select(
             "*"
+          )
+          .eq(
+            "user_id",
+            user.id
           )
           .order(
             "data",
@@ -1804,7 +2713,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         dados =
           [];
-
 
         return;
 
@@ -1849,7 +2757,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       categoria.innerHTML =
         "<option value=''>Selecione uma categoria</option>";
-
 
       categoria.disabled =
         true;
@@ -1911,14 +2818,17 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   if (btnSalvar) {
 
-    btnSalvar.onclick =
+    btnSalvar.addEventListener(
+      "click",
       async () => {
 
         if (
+
           !tipo?.value ||
           !categoria?.value ||
           !valor?.value ||
           !dataInput?.value
+
         ) {
 
           alert(
@@ -1947,10 +2857,12 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
         if (
+
           !Number.isFinite(
             valorNumerico
           ) ||
           valorNumerico <= 0
+
         ) {
 
           alert(
@@ -1963,9 +2875,15 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
         if (
-          planoUsuario === "FREE" &&
-          dados.length >= LIMITE_FREE &&
+
+          planoUsuario ===
+            "FREE" &&
+
+          dados.length >=
+            LIMITE_FREE &&
+
           !idEmEdicao
+
         ) {
 
           alert(
@@ -1979,21 +2897,18 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         try {
 
-          const {
-            data: userData,
-            error: userError
-          } =
-            await supabase.auth.getUser();
+          const user =
+            usuarioAtual ||
+            await obterUsuarioAtual();
 
 
-          if (
-            userError ||
-            !userData?.user
-          ) {
+          if (!user) {
 
             alert(
               "Sua sessão expirou. Faça login novamente."
             );
+
+            mostrarInterfaceLogin();
 
             return;
 
@@ -2003,7 +2918,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           const registro = {
 
             user_id:
-              userData.user.id,
+              user.id,
 
             tipo:
               tipo.value,
@@ -2045,7 +2960,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 )
                 .eq(
                   "user_id",
-                  userData.user.id
+                  user.id
                 );
 
           } else {
@@ -2076,7 +2991,6 @@ document.addEventListener("DOMContentLoaded", async () => {
               `Não foi possível salvar o lançamento.\n\n${resultado.error.message}`
             );
 
-
             return;
 
           }
@@ -2084,7 +2998,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
           alert(
             idEmEdicao
+
               ? "Lançamento atualizado com sucesso!"
+
               : "Lançamento salvo com sucesso!"
           );
 
@@ -2112,7 +3028,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         }
 
-      };
+      }
+    );
 
   }
 
@@ -2124,8 +3041,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     const item =
       dados.find(
         l =>
-          String(l.id) ===
-          String(id)
+          String(
+            l.id
+          ) ===
+          String(
+            id
+          )
       );
 
 
@@ -2225,8 +3146,12 @@ document.addEventListener("DOMContentLoaded", async () => {
     const item =
       dados.find(
         l =>
-          String(l.id) ===
-          String(id)
+          String(
+            l.id
+          ) ===
+          String(
+            id
+          )
       );
 
 
@@ -2250,21 +3175,18 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     try {
 
-      const {
-        data: userData,
-        error: userError
-      } =
-        await supabase.auth.getUser();
+      const user =
+        usuarioAtual ||
+        await obterUsuarioAtual();
 
 
-      if (
-        userError ||
-        !userData?.user
-      ) {
+      if (!user) {
 
         alert(
           "Sua sessão expirou. Faça login novamente."
         );
+
+        mostrarInterfaceLogin();
 
         return;
 
@@ -2285,7 +3207,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           )
           .eq(
             "user_id",
-            userData.user.id
+            user.id
           );
 
 
@@ -2374,7 +3296,23 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
 
-    dados.forEach(
+    const filtrados =
+      obterDadosFiltrados();
+
+
+    if (
+      !filtrados.length
+    ) {
+
+      lista.innerHTML =
+        "<li>Nenhum lançamento encontrado para o período selecionado.</li>";
+
+      return;
+
+    }
+
+
+    filtrados.forEach(
       item => {
 
         const li =
@@ -2404,23 +3342,27 @@ document.addEventListener("DOMContentLoaded", async () => {
                   ""
                 )
               }
+
               •
+
               ${
                 escapeHtml(
                   item.categoria ||
                   "Sem categoria"
                 )
               }
+
               •
+
               ${
                 formatarData(
                   item.data
                 )
               }
+
             </small>
 
           </div>
-
 
           <div>
 
@@ -2432,7 +3374,6 @@ document.addEventListener("DOMContentLoaded", async () => {
               }
             </strong>
 
-
             <button
               type="button"
               data-acao="editar"
@@ -2440,7 +3381,6 @@ document.addEventListener("DOMContentLoaded", async () => {
             >
               ✏️
             </button>
-
 
             <button
               type="button"
@@ -2666,6 +3606,9 @@ document.addEventListener("DOMContentLoaded", async () => {
       filtrados
     );
 
+
+    atualizarRelatorios();
+
   }
 
 
@@ -2675,7 +3618,11 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     if (ref) {
 
-      ref.destroy();
+      try {
+
+        ref.destroy();
+
+      } catch (_) {}
 
     }
 
@@ -3169,7 +4116,13 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     filtroMes.addEventListener(
       "change",
-      atualizarDashboard
+      () => {
+
+        atualizarDashboard();
+
+        renderizarLista();
+
+      }
     );
 
   }
@@ -3177,15 +4130,24 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   if (btnLimparFiltro) {
 
-    btnLimparFiltro.onclick =
+    btnLimparFiltro.addEventListener(
+      "click",
       () => {
 
-        filtroMes.value =
-          "";
+        if (filtroMes) {
+
+          filtroMes.value =
+            "";
+
+        }
+
 
         atualizarDashboard();
 
-      };
+        renderizarLista();
+
+      }
+    );
 
   }
 
@@ -3360,17 +4322,12 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     try {
 
-      const {
-        data: userData,
-        error: userError
-      } =
-        await supabase.auth.getUser();
+      const user =
+        usuarioAtual ||
+        await obterUsuarioAtual();
 
 
-      if (
-        userError ||
-        !userData?.user
-      ) {
+      if (!user) {
 
         recorrenciasDados =
           [];
@@ -3395,7 +4352,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           )
           .eq(
             "user_id",
-            userData.user.id
+            user.id
           )
           .order(
             "created_at",
@@ -3607,12 +4564,15 @@ document.addEventListener("DOMContentLoaded", async () => {
                   )
                 )
               }
+
               •
+
               ${
                 escapeHtml(
                   categoriaNome
                 )
               }
+
             </span>
 
             <span>
@@ -3624,6 +4584,7 @@ document.addEventListener("DOMContentLoaded", async () => {
             </span>
 
             <small>
+
               ${
                 escapeHtml(
                   nomesFrequencia[
@@ -3636,10 +4597,13 @@ document.addEventListener("DOMContentLoaded", async () => {
 
               ${
                 rec.dia_vencimento
+
                   ? ` • Dia ${escapeHtml(
                       rec.dia_vencimento
                     )}`
+
                   : ""
+
               }
 
             </small>
@@ -3715,26 +4679,24 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   if (btnSalvarRecorrencia) {
 
-    btnSalvarRecorrencia.onclick =
+    btnSalvarRecorrencia.addEventListener(
+      "click",
       async () => {
 
         try {
 
-          const {
-            data: userData,
-            error: userError
-          } =
-            await supabase.auth.getUser();
+          const user =
+            usuarioAtual ||
+            await obterUsuarioAtual();
 
 
-          if (
-            userError ||
-            !userData?.user
-          ) {
+          if (!user) {
 
             alert(
               "Sua sessão expirou. Faça login novamente."
             );
+
+            mostrarInterfaceLogin();
 
             return;
 
@@ -3782,9 +4744,11 @@ document.addEventListener("DOMContentLoaded", async () => {
 
           const dia =
             recDiaVencimento?.value
+
               ? Number(
                   recDiaVencimento.value
                 )
+
               : null;
 
 
@@ -3817,9 +4781,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           }
 
 
-          if (
-            !categoriaId
-          ) {
+          if (!categoriaId) {
 
             alert(
               "Selecione uma categoria."
@@ -3830,9 +4792,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           }
 
 
-          if (
-            !descricaoRec
-          ) {
+          if (!descricaoRec) {
 
             alert(
               "Informe uma descrição."
@@ -3844,10 +4804,12 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
           if (
+
             !Number.isFinite(
               valorRec
             ) ||
             valorRec <= 0
+
           ) {
 
             alert(
@@ -3874,6 +4836,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
           if (
+
             [
               "mensal",
               "bimestral",
@@ -3883,14 +4846,17 @@ document.addEventListener("DOMContentLoaded", async () => {
             ].includes(
               frequencia
             )
+
           ) {
 
             if (
+
               !Number.isInteger(
                 dia
               ) ||
               dia < 1 ||
               dia > 31
+
             ) {
 
               alert(
@@ -3905,9 +4871,11 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
           if (
+
             dataFim &&
             dataFim <
               dataInicio
+
           ) {
 
             alert(
@@ -3922,7 +4890,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           const registro = {
 
             user_id:
-              userData.user.id,
+              user.id,
 
             tipo:
               tipoRec,
@@ -3979,7 +4947,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                 )
                 .eq(
                   "user_id",
-                  userData.user.id
+                  user.id
                 );
 
           } else {
@@ -4010,16 +4978,19 @@ document.addEventListener("DOMContentLoaded", async () => {
               `Não foi possível salvar a recorrência.\n\n${resultado.error.message}`
             );
 
-
             return;
 
           }
 
 
           alert(
+
             recorrenciaEmEdicao
+
               ? "Recorrência atualizada com sucesso!"
+
               : "Recorrência criada com sucesso!"
+
           );
 
 
@@ -4042,7 +5013,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         }
 
-      };
+      }
+    );
 
   }
 
@@ -4253,21 +5225,18 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     try {
 
-      const {
-        data: userData,
-        error: userError
-      } =
-        await supabase.auth.getUser();
+      const user =
+        usuarioAtual ||
+        await obterUsuarioAtual();
 
 
-      if (
-        userError ||
-        !userData?.user
-      ) {
+      if (!user) {
 
         alert(
           "Sua sessão expirou. Faça login novamente."
         );
+
+        mostrarInterfaceLogin();
 
         return;
 
@@ -4293,7 +5262,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           )
           .eq(
             "user_id",
-            userData.user.id
+            user.id
           );
 
 
@@ -4364,21 +5333,18 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     try {
 
-      const {
-        data: userData,
-        error: userError
-      } =
-        await supabase.auth.getUser();
+      const user =
+        usuarioAtual ||
+        await obterUsuarioAtual();
 
 
-      if (
-        userError ||
-        !userData?.user
-      ) {
+      if (!user) {
 
         alert(
           "Sua sessão expirou. Faça login novamente."
         );
+
+        mostrarInterfaceLogin();
 
         return;
 
@@ -4399,7 +5365,7 @@ document.addEventListener("DOMContentLoaded", async () => {
           )
           .eq(
             "user_id",
-            userData.user.id
+            user.id
           );
 
 
@@ -4415,12 +5381,15 @@ document.addEventListener("DOMContentLoaded", async () => {
 
 
       if (
+
         String(
           recorrenciaEmEdicao
         ) ===
+
         String(
           id
         )
+
       ) {
 
         limparFormularioRecorrencia();
@@ -4747,9 +5716,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
 
-  /* ------------------------------------------------------
+  /* ======================================================
      MENU MOBILE
-  ------------------------------------------------------ */
+  ====================================================== */
 
   if (btnMenu) {
 
@@ -4796,7 +5765,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   if (btnExportarPdf) {
 
-    btnExportarPdf.onclick =
+    btnExportarPdf.addEventListener(
+      "click",
       () => {
 
         try {
@@ -4920,7 +5890,217 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         }
 
-      };
+      }
+    );
+
+  }
+
+
+  /* ======================================================
+     EXPORTAR JSON
+  ====================================================== */
+
+  if (btnExportarJson) {
+
+    btnExportarJson.addEventListener(
+      "click",
+      () => {
+
+        try {
+
+          const dadosExportacao = {
+
+            sistema:
+              "TCS Finance",
+
+            versao:
+              "Auth Fix",
+
+            exportadoEm:
+              new Date().toISOString(),
+
+            usuario:
+              usuarioAtual?.email ||
+              null,
+
+            lancamentos:
+              dados,
+
+            recorrencias:
+              recorrenciasDados,
+
+            categorias:
+              categoriasFinanceiras
+
+          };
+
+
+          const blob =
+            new Blob(
+
+              [
+                JSON.stringify(
+                  dadosExportacao,
+                  null,
+                  2
+                )
+              ],
+
+              {
+                type:
+                  "application/json"
+              }
+
+            );
+
+
+          const url =
+            URL.createObjectURL(
+              blob
+            );
+
+
+          const a =
+            document.createElement(
+              "a"
+            );
+
+
+          a.href =
+            url;
+
+
+          a.download =
+            "tcs-finance-backup.json";
+
+
+          document.body.appendChild(
+            a
+          );
+
+
+          a.click();
+
+
+          a.remove();
+
+
+          URL.revokeObjectURL(
+            url
+          );
+
+
+        } catch (erro) {
+
+          console.error(
+            "Erro ao exportar JSON:",
+            erro
+          );
+
+
+          alert(
+            "Não foi possível gerar o backup JSON."
+          );
+
+        }
+
+      }
+    );
+
+  }
+
+
+  /* ======================================================
+     EXPORTAR EXCEL
+  ====================================================== */
+
+  if (btnExportarExcel) {
+
+    btnExportarExcel.addEventListener(
+      "click",
+      () => {
+
+        try {
+
+          if (
+            !window.XLSX
+          ) {
+
+            alert(
+              "A biblioteca Excel não foi carregada no HTML."
+            );
+
+            return;
+
+          }
+
+
+          const dadosExcel =
+            obterDadosFiltrados().map(
+              item => ({
+
+                Data:
+                  formatarData(
+                    item.data
+                  ),
+
+                Tipo:
+                  item.tipo,
+
+                Categoria:
+                  item.categoria,
+
+                Descrição:
+                  item.descricao,
+
+                Valor:
+                  Number(
+                    item.valor
+                  ) || 0
+
+              })
+            );
+
+
+          const worksheet =
+            XLSX.utils.json_to_sheet(
+              dadosExcel
+            );
+
+
+          const workbook =
+            XLSX.utils.book_new();
+
+
+          XLSX.utils.book_append_sheet(
+            workbook,
+            worksheet,
+            "Lançamentos"
+          );
+
+
+          XLSX.writeFile(
+            workbook,
+            "tcs-finance.xlsx"
+          );
+
+
+        } catch (erro) {
+
+          console.error(
+            "Erro ao exportar Excel:",
+            erro
+          );
+
+
+          alert(
+            "Não foi possível gerar o arquivo Excel."
+          );
+
+        }
+
+      }
+    );
 
   }
 
@@ -4961,107 +6141,109 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
 
-  /* ------------------------------------------------------
-     RECUPERAR SESSÃO EXISTENTE
+  /* ======================================================
+     RECUPERAÇÃO DA SESSÃO
      
-     IMPORTANTE:
-     Este trecho NÃO faz login.
-     
-     Ele apenas pergunta ao Supabase se já existe
-     uma sessão autenticada salva no navegador.
-  ------------------------------------------------------ */
+     ESTE É O PONTO PRINCIPAL DA CORREÇÃO.
+  ====================================================== */
+
+  console.log(
+    "Verificando sessão existente..."
+  );
+
 
   try {
 
+    /*
+     * Primeiro verificamos a sessão persistida.
+     */
     const {
-      data: sessionData,
-      error
+      data:
+        sessionData,
+      error:
+        sessionError
     } =
       await supabase.auth.getSession();
 
 
-    if (error) {
+    if (sessionError) {
 
       console.error(
         "Erro ao recuperar sessão:",
-        error
+        sessionError
       );
 
-    }
+      mostrarInterfaceLogin();
 
-
-    if (
+    } else if (
       sessionData?.session?.user
     ) {
 
       console.log(
-        "Sessão existente encontrada. Restaurando usuário..."
+        "========================================"
+      );
+
+      console.log(
+        "SESSÃO EXISTENTE ENCONTRADA"
+      );
+
+      console.log(
+        "Usuário:",
+        sessionData.session.user.email
+      );
+
+      console.log(
+        "========================================"
       );
 
 
+      sessaoAtual =
+        sessionData.session;
+
+
+      usuarioAtual =
+        sessionData.session.user;
+
+
       await iniciarSessao(
-        sessionData.session.user
+
+        sessionData.session.user,
+
+        sessionData.session
+
       );
 
 
     } else {
 
       console.log(
-        "Nenhuma sessão ativa encontrada."
+        "Nenhuma sessão encontrada."
       );
 
 
-      if (app) {
-
-        app.classList.add(
-          "hidden"
-        );
-
-        app.style.display =
-          "none";
-
-      }
-
-
-      if (loginContainer) {
-
-        loginContainer.style.display =
-          "flex";
-
-      }
+      mostrarInterfaceLogin();
 
     }
+
 
   } catch (erro) {
 
     console.error(
-      "Erro ao inicializar sessão:",
+      "Erro ao inicializar autenticação:",
       erro
     );
 
 
-    if (app) {
-
-      app.classList.add(
-        "hidden"
-      );
-
-      app.style.display =
-        "none";
-
-    }
-
-
-    if (loginContainer) {
-
-      loginContainer.style.display =
-        "flex";
-
-    }
+    mostrarInterfaceLogin();
 
   }
 
 
   atualizarPeriodoDashboard();
+
+
+  console.log(
+    "TCS Finance finalizado."
+  );
 
 });
