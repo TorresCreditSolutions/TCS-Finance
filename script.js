@@ -117,194 +117,357 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   };
 
-  /* ========================= DOM ========================= */
 
-  const loginContainer =
-    document.getElementById("login-container");
+/* ======================================================
+   ELEMENTOS DO DOM
+====================================================== */
 
-  const app =
-    document.getElementById("app");
+/* ------------------------------------------------------
+   ÁREA PRINCIPAL
+------------------------------------------------------ */
 
-  const dashboard =
-    document.getElementById("dashboard");
+const loginContainer =
+  document.getElementById("login-container");
 
-  const lancamentos =
-    document.getElementById("lancamentos");
+const app =
+  document.getElementById("app");
 
-  const recorrencias =
-    document.getElementById("recorrencias");
+const dashboard =
+  document.getElementById("dashboard");
 
-  const relatorios =
-    document.getElementById("relatorios");
+const lancamentos =
+  document.getElementById("lancamentos");
 
-  const contas =
-    document.getElementById("contas");
+const recorrencias =
+  document.getElementById("recorrencias");
 
+const relatorios =
+  document.getElementById("relatorios");
 
-  const emailInput =
-    document.getElementById("email");
+const contas =
+  document.getElementById("contas");
 
-  const senhaInput =
-    document.getElementById("senha");
 
-  const aceiteTermos =
-    document.getElementById("aceiteTermos");
+/* ------------------------------------------------------
+   LOGIN
+------------------------------------------------------ */
 
-  const btnLogin =
-    document.getElementById("btnLogin");
+const emailInput =
+  document.getElementById("email");
 
-  const btnCadastro =
-    document.getElementById("btnCadastro");
+const senhaInput =
+  document.getElementById("senha");
 
-  const btnLogout =
-    document.getElementById("btnLogout");
+const aceiteTermos =
+  document.getElementById("aceiteTermos");
 
-  const btnLogoutTop =
-    document.getElementById("btnLogoutTop");
+const btnLogin =
+  document.getElementById("btnLogin");
 
+const btnCadastro =
+  document.getElementById("btnCadastro");
 
-  const btnDashboard =
-    document.getElementById("btnDashboard");
+const btnLogout =
+  document.getElementById("btnLogout");
 
-  const btnLancamentos =
-    document.getElementById("btnLancamentos");
+const btnLogoutTop =
+  document.getElementById("btnLogoutTop");
 
-  const btnRecorrencias =
-    document.getElementById("btnRecorrencias");
 
-  const btnContas =
-    document.getElementById("btnContas");
+/* ------------------------------------------------------
+   NAVEGAÇÃO
+------------------------------------------------------ */
 
-  const btnRelatorios =
-    document.getElementById("btnRelatorios");
+const btnDashboard =
+  document.getElementById("btnDashboard");
 
+const btnLancamentos =
+  document.getElementById("btnLancamentos");
 
-  const btnMenu =
-    document.getElementById("btnMenu");
+const btnRecorrencias =
+  document.getElementById("btnRecorrencias");
 
-  const sidebar =
-    document.querySelector(".sidebar");
+const btnContas =
+  document.getElementById("btnContas");
 
-  const menuOverlay =
-    document.getElementById("menuOverlay");
+const btnRelatorios =
+  document.getElementById("btnRelatorios");
 
 
-  const nomeCliente =
-    document.getElementById("nomeCliente");
+/* ------------------------------------------------------
+   MENU MOBILE
+------------------------------------------------------ */
 
-  const topbarUser =
-    document.getElementById("topbarUser");
+const btnMenu =
+  document.getElementById("btnMenu");
 
-  const topbarPlano =
-    document.getElementById("topbarPlano");
+const sidebar =
+  document.querySelector(".sidebar");
 
+const menuOverlay =
+  document.getElementById("menuOverlay");
 
-  const tipo =
-    document.getElementById("tipo");
 
-  const categoria =
-    document.getElementById("categoria");
+/* ------------------------------------------------------
+   USUÁRIO / TOPBAR
+------------------------------------------------------ */
 
-  const descricao =
-    document.getElementById("descricao");
+const nomeCliente =
+  document.getElementById("nomeCliente");
 
-  const valor =
-    document.getElementById("valor");
+const topbarUser =
+  document.getElementById("topbarUser");
 
-  const dataInput =
-    document.getElementById("data");
+const topbarPlano =
+  document.getElementById("topbarPlano");
 
-  const btnSalvar =
-    document.getElementById("btnSalvar");
 
+/* ------------------------------------------------------
+   LANÇAMENTOS
+------------------------------------------------------ */
 
-  const filtroMes =
-    document.getElementById("filtroMes");
+const tipo =
+  document.getElementById("tipo");
 
-  const btnLimparFiltro =
-    document.getElementById("btnLimparFiltro");
+const categoria =
+  document.getElementById("categoria");
 
-  const dashboardPeriodo =
-    document.getElementById("dashboardPeriodo");
+const descricao =
+  document.getElementById("descricao");
 
+const valor =
+  document.getElementById("valor");
 
-  const totalReceitas =
-    document.getElementById("totalReceitas");
+const dataInput =
+  document.getElementById("data");
 
-  const totalDespesas =
-    document.getElementById("totalDespesas");
+const btnSalvar =
+  document.getElementById("btnSalvar");
 
-  const totalInvestimentos =
-    document.getElementById("totalInvestimentos");
 
-  const saldo =
-    document.getElementById("saldo");
+/* ------------------------------------------------------
+   FILTRO / DASHBOARD
+------------------------------------------------------ */
 
-  const lista =
-    document.getElementById("listaLancamentos");
+const filtroMes =
+  document.getElementById("filtroMes");
 
+const btnLimparFiltro =
+  document.getElementById("btnLimparFiltro");
 
-  const tipoGrafico =
-    document.getElementById("tipoGrafico");
+const dashboardPeriodo =
+  document.getElementById("dashboardPeriodo");
 
 
-  const recTipo =
-    document.getElementById("recTipo");
+const totalReceitas =
+  document.getElementById("totalReceitas");
 
-  const recCategoria =
-    document.getElementById("recCategoria");
+const totalDespesas =
+  document.getElementById("totalDespesas");
 
-  const recDescricao =
-    document.getElementById("recDescricao");
+const totalInvestimentos =
+  document.getElementById("totalInvestimentos");
 
-  const recValor =
-    document.getElementById("recValor");
+const saldo =
+  document.getElementById("saldo");
 
-  const recFrequencia =
-    document.getElementById("recFrequencia");
+const lista =
+  document.getElementById("listaLancamentos");
 
-  const recDiaVencimento =
-    document.getElementById("recDiaVencimento");
 
-  const recDataInicio =
-    document.getElementById("recDataInicio");
+const tipoGrafico =
+  document.getElementById("tipoGrafico");
 
-  const recDataFim =
-    document.getElementById("recDataFim");
 
+/* ======================================================
+   CATEGORIAS FINANCEIRAS
+====================================================== */
 
-  const btnSalvarRecorrencia =
-    document.getElementById("btnSalvarRecorrencia");
+const categorias =
+  document.getElementById("categorias");
 
-  const btnCancelarRecorrencia =
-    document.getElementById("btnCancelarRecorrencia");
+const catTipo =
+  document.getElementById("catTipo");
 
+const catNome =
+  document.getElementById("catNome");
 
-  const listaRecorrencias =
-    document.getElementById("listaRecorrencias");
+const catDescricao =
+  document.getElementById("catDescricao");
 
-  const totalRecorrencias =
-    document.getElementById("totalRecorrencias");
+const catIcone =
+  document.getElementById("catIcone");
 
-  const recorrenciasAtivas =
-    document.getElementById("recorrenciasAtivas");
+const btnSalvarCategoria =
+  document.getElementById("btnSalvarCategoria");
 
-  const recorrenciasPausadas =
-    document.getElementById("recorrenciasPausadas");
+const btnCancelarCategoria =
+  document.getElementById("btnCancelarCategoria");
 
-  const contadorRecorrencias =
-    document.getElementById("contadorRecorrencias");
+const listaCategorias =
+  document.getElementById("listaCategorias");
 
-  const tituloFormularioRecorrencia =
-    document.getElementById(
-      "tituloFormularioRecorrencia"
-    );
 
+/* ------------------------------------------------------
+   ESTADO DAS CATEGORIAS
+------------------------------------------------------ */
 
-  const btnExportarPdf =
-    document.getElementById("btnExportarPdf");
+let categoriasFinanceiras = [];
 
+let categoriaEmEdicao = null;
 
+
+/* ------------------------------------------------------
+   ELEMENTOS AUXILIARES DE CATEGORIAS
+------------------------------------------------------ */
+
+const filtroCategoriaTipo =
+  document.getElementById("filtroCategoriaTipo");
+
+const contadorCategorias =
+  document.getElementById("contadorCategorias");
+
+
+/* ======================================================
+   RECORRÊNCIAS
+====================================================== */
+
+const recTipo =
+  document.getElementById("recTipo");
+
+const recCategoria =
+  document.getElementById("recCategoria");
+
+const recDescricao =
+  document.getElementById("recDescricao");
+
+const recValor =
+  document.getElementById("recValor");
+
+const recFrequencia =
+  document.getElementById("recFrequencia");
+
+const recDiaVencimento =
+  document.getElementById("recDiaVencimento");
+
+const recDataInicio =
+  document.getElementById("recDataInicio");
+
+const recDataFim =
+  document.getElementById("recDataFim");
+
+
+/* ------------------------------------------------------
+   BOTÕES DE RECORRÊNCIA
+------------------------------------------------------ */
+
+const btnSalvarRecorrencia =
+  document.getElementById("btnSalvarRecorrencia");
+
+const btnCancelarRecorrencia =
+  document.getElementById("btnCancelarRecorrencia");
+
+
+/* ------------------------------------------------------
+   LISTA / CONTADORES DE RECORRÊNCIAS
+------------------------------------------------------ */
+
+const listaRecorrencias =
+  document.getElementById("listaRecorrencias");
+
+const totalRecorrencias =
+  document.getElementById("totalRecorrencias");
+
+const recorrenciasAtivas =
+  document.getElementById("recorrenciasAtivas");
+
+const recorrenciasPausadas =
+  document.getElementById("recorrenciasPausadas");
+
+const contadorRecorrencias =
+  document.getElementById("contadorRecorrencias");
+
+const tituloFormularioRecorrencia =
+  document.getElementById(
+    "tituloFormularioRecorrencia"
+  );
+
+
+/* ------------------------------------------------------
+   ESTADO DAS RECORRÊNCIAS
+------------------------------------------------------ */
+
+let recorrenciasDados = [];
+
+let recorrenciaEmEdicao = null;
+
+
+/* ======================================================
+   CONTAS
+====================================================== */
+
+const listaContas =
+  document.getElementById("listaContas");
+
+const btnSalvarConta =
+  document.getElementById("btnSalvarConta");
+
+const btnCancelarConta =
+  document.getElementById("btnCancelarConta");
+
+
+/* ======================================================
+   RELATÓRIOS / EXPORTAÇÃO
+====================================================== */
+
+const btnExportarPdf =
+  document.getElementById("btnExportarPdf");
+
+const btnExportarExcel =
+  document.getElementById("btnExportarExcel");
+
+const btnExportarJson =
+  document.getElementById("btnExportarJson");
+
+
+/* ======================================================
+   VARIÁVEIS DE APOIO
+====================================================== */
+
+/*
+ * Mantém o estado da categoria selecionada
+ * quando o formulário está sendo editado.
+ */
+
+let categoriaSelecionadaEdicao = null;
+
+
+/*
+ * Mantém o estado do lançamento em edição.
+ */
+
+let idEmEdicao = null;
+
+
+/*
+ * Gráficos do dashboard.
+ */
+
+let grafico = null;
+
+let graficoMensal = null;
+
+let graficoComparativo = null;
+
+
+/*
+ * Plano atual do usuário.
+ */
+
+const LIMITE_FREE = 30;
+
+let planoUsuario = "FREE";
+  
   /* ========================= UTILITÁRIOS ========================= */
 
   function normalizarTipoCategoria(tipoSelecionado) {
