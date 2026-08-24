@@ -34,9 +34,12 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   /* ======================================================
      CATEGORIAS
+     As categorias vêm do Supabase.
+     A lista padrão abaixo é usada somente para garantir
+     que cada usuário tenha uma base completa de categorias.
   ====================================================== */
 
-  const categoriasPorTipo = {
+  const categoriasPadrao = {
 
     Receita: [
       "Salário",
@@ -44,29 +47,55 @@ document.addEventListener("DOMContentLoaded", async () => {
       "Mesada",
       "Freelance",
       "Vendas",
+      "Comissões",
+      "Benefícios",
+      "Aluguéis",
+      "Dividendos",
+      "Juros",
+      "Reembolsos",
       "Outros"
     ],
 
     Despesa: [
       "Moradia",
-      "Saúde",
-      "Cartão de Crédito",
       "Alimentação",
       "Transporte",
+      "Saúde",
       "Educação",
-      "Empréstimos",
-      "Compras diversas",
       "Lazer",
+      "Compras",
+      "Cartão de Crédito",
+      "Contas",
+      "Impostos",
+      "Empréstimos",
+      "Seguros",
+      "Assinaturas",
+      "Viagens",
+      "Pets",
+      "Compras diversas",
       "Outros"
     ],
 
     Investimento: [
       "Renda Fixa",
+      "Tesouro Direto",
+      "CDB",
+      "LCI/LCA",
       "Ações",
+      "FIIs",
+      "ETFs",
       "Criptomoedas",
+      "Previdência",
+      "Poupança",
       "Outros"
     ]
 
+  };
+
+  let categoriasPorTipo = {
+    Receita: [],
+    Despesa: [],
+    Investimento: []
   };
 
   /* ======================================================
@@ -96,27 +125,28 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   const btnDashboard = document.getElementById("btnDashboard");
   const btnLancamentos = document.getElementById("btnLancamentos");
-  /* ======================================================
-   RELATÓRIOS
-====================================================== */
 
-if (btnRelatorios) {
+  /* ======================================================
+     RELATÓRIOS
+  ====================================================== */
+
+  if (btnRelatorios) {
 
     btnRelatorios.onclick = () => {
 
-        dashboard.classList.add("hidden");
-        lancamentos.classList.add("hidden");
+      dashboard.classList.add("hidden");
+      lancamentos.classList.add("hidden");
 
-        if (relatorios) {
-            relatorios.classList.remove("hidden");
-        }
+      if (relatorios) {
+        relatorios.classList.remove("hidden");
+      }
 
-        fecharMenuMobile();
+      fecharMenuMobile();
 
-        atualizarRelatorios();
+      atualizarRelatorios();
     };
 
-}
+  }
 
   const btnSalvar = document.getElementById("btnSalvar");
 
@@ -143,11 +173,12 @@ if (btnRelatorios) {
   const menuOverlay = document.getElementById("menuOverlay");
 
   const dashboardPeriodo = document.getElementById("dashboardPeriodo");
-  /* ======================================================
-   ATUALIZAR RELATÓRIOS
-====================================================== */
 
-function atualizarRelatorios() {
+  /* ======================================================
+     ATUALIZAR RELATÓRIOS
+  ====================================================== */
+
+  function atualizarRelatorios() {
 
     const filtrados = obterDadosFiltrados();
 
@@ -157,72 +188,72 @@ function atualizarRelatorios() {
 
     filtrados.forEach(l => {
 
-        const valorLancamento =
-            Number(l.valor) || 0;
+      const valorLancamento =
+        Number(l.valor) || 0;
 
-        if (l.tipo === "Receita") {
-            receita += valorLancamento;
-        }
+      if (l.tipo === "Receita") {
+        receita += valorLancamento;
+      }
 
-        if (l.tipo === "Despesa") {
-            despesa += valorLancamento;
-        }
+      if (l.tipo === "Despesa") {
+        despesa += valorLancamento;
+      }
 
-        if (l.tipo === "Investimento") {
-            investimento += valorLancamento;
-        }
+      if (l.tipo === "Investimento") {
+        investimento += valorLancamento;
+      }
 
     });
 
     const saldoAtual =
-        receita - despesa;
+      receita - despesa;
 
     const elementos = {
 
-        relatorioReceitas:
-            formatarMoeda(receita),
+      relatorioReceitas:
+        formatarMoeda(receita),
 
-        relatorioDespesas:
-            formatarMoeda(despesa),
+      relatorioDespesas:
+        formatarMoeda(despesa),
 
-        relatorioInvestimentos:
-            formatarMoeda(investimento),
+      relatorioInvestimentos:
+        formatarMoeda(investimento),
 
-        relatorioSaldo:
-            formatarMoeda(saldoAtual),
+      relatorioSaldo:
+        formatarMoeda(saldoAtual),
 
-        relatorioResumoReceitas:
-            formatarMoeda(receita),
+      relatorioResumoReceitas:
+        formatarMoeda(receita),
 
-        relatorioResumoDespesas:
-            formatarMoeda(despesa),
+      relatorioResumoDespesas:
+        formatarMoeda(despesa),
 
-        relatorioResumoInvestimentos:
-            formatarMoeda(investimento),
+      relatorioResumoInvestimentos:
+        formatarMoeda(investimento),
 
-        relatorioResumoSaldo:
-            formatarMoeda(saldoAtual),
+      relatorioResumoSaldo:
+        formatarMoeda(saldoAtual),
 
-        relatorioPeriodo:
-            formatarPeriodo(
-                filtroMes?.value || ""
-            )
+      relatorioPeriodo:
+        formatarPeriodo(
+          filtroMes?.value || ""
+        )
 
     };
 
     Object.entries(elementos).forEach(
-        ([id, valor]) => {
+      ([id, valor]) => {
 
-            const elemento =
-                document.getElementById(id);
+        const elemento =
+          document.getElementById(id);
 
-            if (elemento) {
-                elemento.innerText = valor;
-            }
-
+        if (elemento) {
+          elemento.innerText = valor;
         }
+
+      }
     );
-}
+  }
 
   /* ======================================================
      FORMATAÇÃO
@@ -268,7 +299,13 @@ function atualizarRelatorios() {
 
     const ano = agora.getFullYear();
 
-    const mes = String(agora.getMonth() + 1).padStart(2, "0");
+    const mes =
+      String(
+        agora.getMonth() + 1
+      ).padStart(
+        2,
+        "0"
+      );
 
     return `${ano}-${mes}`;
 
@@ -286,12 +323,20 @@ function atualizarRelatorios() {
 
     const numeroMes = Number(partes[1]);
 
-    const data = new Date(ano, numeroMes - 1, 1);
+    const data =
+      new Date(
+        ano,
+        numeroMes - 1,
+        1
+      );
 
-    return data.toLocaleDateString("pt-BR", {
-      month: "long",
-      year: "numeric"
-    });
+    return data.toLocaleDateString(
+      "pt-BR",
+      {
+        month: "long",
+        year: "numeric"
+      }
+    );
 
   }
 
@@ -319,21 +364,38 @@ function atualizarRelatorios() {
 
   }
 
-  if (btnMenu && sidebar && menuOverlay) {
+  if (
+    btnMenu &&
+    sidebar &&
+    menuOverlay
+  ) {
 
     btnMenu.onclick = () => {
 
-      const aberto = sidebar.classList.contains("active");
+      const aberto =
+        sidebar.classList.contains(
+          "active"
+        );
 
       if (aberto) {
 
-        sidebar.classList.remove("active");
-        menuOverlay.classList.add("hidden");
+        sidebar.classList.remove(
+          "active"
+        );
+
+        menuOverlay.classList.add(
+          "hidden"
+        );
 
       } else {
 
-        sidebar.classList.add("active");
-        menuOverlay.classList.remove("hidden");
+        sidebar.classList.add(
+          "active"
+        );
+
+        menuOverlay.classList.remove(
+          "hidden"
+        );
 
       }
 
@@ -351,32 +413,45 @@ function atualizarRelatorios() {
      NAVEGAÇÃO
   ====================================================== */
 
- if (btnDashboard) {
+  if (btnDashboard) {
 
     btnDashboard.onclick = () => {
 
-        dashboard.classList.remove("hidden");
+      dashboard.classList.remove(
+        "hidden"
+      );
 
-        lancamentos.classList.add("hidden");
+      lancamentos.classList.add(
+        "hidden"
+      );
 
-        if (relatorios) {
-            relatorios.classList.add("hidden");
-        }
+      if (relatorios) {
 
-        fecharMenuMobile();
+        relatorios.classList.add(
+          "hidden"
+        );
 
-        atualizarDashboard();
+      }
+
+      fecharMenuMobile();
+
+      atualizarDashboard();
+
     };
 
-}
+  }
 
   if (btnLancamentos) {
 
     btnLancamentos.onclick = () => {
 
-      dashboard.classList.add("hidden");
+      dashboard.classList.add(
+        "hidden"
+      );
 
-      lancamentos.classList.remove("hidden");
+      lancamentos.classList.remove(
+        "hidden"
+      );
 
       fecharMenuMobile();
 
@@ -396,15 +471,19 @@ function atualizarRelatorios() {
 
     if (app) {
 
-      app.classList.add("hidden");
+      app.classList.add(
+        "hidden"
+      );
 
-      app.style.display = "none";
+      app.style.display =
+        "none";
 
     }
 
     if (loginContainer) {
 
-      loginContainer.style.display = "flex";
+      loginContainer.style.display =
+        "flex";
 
     }
 
@@ -412,73 +491,419 @@ function atualizarRelatorios() {
 
   if (btnLogoutTop) {
 
-    btnLogoutTop.onclick = async () => {
+    btnLogoutTop.onclick =
+      async () => {
 
-      await fazerLogout();
+        await fazerLogout();
 
-    };
+      };
 
   }
 
   if (btnLogout) {
 
-    btnLogout.onclick = async () => {
+    btnLogout.onclick =
+      async () => {
 
-      fecharMenuMobile();
+        fecharMenuMobile();
 
-      await fazerLogout();
+        await fazerLogout();
 
-    };
+      };
 
   }
 
   /* ======================================================
-     CATEGORIAS
+     CATEGORIAS — CARREGAMENTO E FILTRO
   ====================================================== */
+
+  function normalizarTipoCategoria(
+    tipoSelecionado
+  ) {
+
+    const valor =
+      String(
+        tipoSelecionado || ""
+      )
+        .trim()
+        .toLowerCase();
+
+    if (
+      valor === "receita"
+    ) {
+      return "Receita";
+    }
+
+    if (
+      valor === "despesa"
+    ) {
+      return "Despesa";
+    }
+
+    if (
+      valor === "investimento"
+    ) {
+      return "Investimento";
+    }
+
+    return tipoSelecionado || "";
+
+  }
+
+  async function garantirCategoriasPadrao() {
+
+    try {
+
+      const {
+        data: userData,
+        error: userError
+      } =
+        await supabase.auth.getUser();
+
+      if (
+        userError ||
+        !userData?.user
+      ) {
+
+        return;
+
+      }
+
+      const userId =
+        userData.user.id;
+
+      const {
+        data: existentes,
+        error: buscaError
+      } =
+        await supabase
+          .from(
+            "categorias_financeiras"
+          )
+          .select(
+            "id,nome,tipo,ativa"
+          )
+          .eq(
+            "user_id",
+            userId
+          );
+
+      if (buscaError) {
+
+        console.error(
+          "Erro ao verificar categorias:",
+          buscaError
+        );
+
+        return;
+
+      }
+
+      const listaExistente =
+        existentes || [];
+
+      const mapa =
+        new Set(
+          listaExistente.map(
+            item =>
+              `${normalizarTipoCategoria(item.tipo)}::${String(item.nome || "").trim().toLowerCase()}`
+          )
+        );
+
+      const novasCategorias = [];
+
+      Object.entries(
+        categoriasPadrao
+      ).forEach(
+        ([tipoPadrao, nomes]) => {
+
+          nomes.forEach(
+            nome => {
+
+              const chave =
+                `${tipoPadrao}::${nome.toLowerCase()}`;
+
+              if (
+                !mapa.has(chave)
+              ) {
+
+                novasCategorias.push({
+                  user_id:
+                    userId,
+
+                  nome:
+                    nome,
+
+                  tipo:
+                    tipoPadrao,
+
+                  ativa:
+                    true
+                });
+
+              }
+
+            }
+          );
+
+        }
+      );
+
+      if (
+        novasCategorias.length
+      ) {
+
+        const {
+          error: insertError
+        } =
+          await supabase
+            .from(
+              "categorias_financeiras"
+            )
+            .insert(
+              novasCategorias
+            );
+
+        if (
+          insertError
+        ) {
+
+          console.error(
+            "Erro ao criar categorias padrão:",
+            insertError
+          );
+
+        }
+
+      }
+
+    } catch (erro) {
+
+      console.error(
+        "Erro inesperado ao garantir categorias padrão:",
+        erro
+      );
+
+    }
+
+  }
+
+  async function carregarCategoriasFinanceiras() {
+
+    try {
+
+      const {
+        data: userData,
+        error: userError
+      } =
+        await supabase.auth.getUser();
+
+      if (
+        userError ||
+        !userData?.user
+      ) {
+
+        categoriasPorTipo = {
+          Receita: [],
+          Despesa: [],
+          Investimento: []
+        };
+
+        return;
+
+      }
+
+      await garantirCategoriasPadrao();
+
+      const {
+        data,
+        error
+      } =
+        await supabase
+          .from(
+            "categorias_financeiras"
+          )
+          .select(
+            "id,user_id,nome,tipo,ativa"
+          )
+          .eq(
+            "user_id",
+            userData.user.id
+          )
+          .eq(
+            "ativa",
+            true
+          )
+          .order(
+            "nome",
+            {
+              ascending:
+                true
+            }
+          );
+
+      if (error) {
+
+        console.error(
+          "Erro ao carregar categorias financeiras:",
+          error
+        );
+
+        return;
+
+      }
+
+      categoriasPorTipo = {
+        Receita: [],
+        Despesa: [],
+        Investimento: []
+      };
+
+      (data || []).forEach(
+        item => {
+
+          const tipoNormalizado =
+            normalizarTipoCategoria(
+              item.tipo
+            );
+
+          if (
+            categoriasPorTipo[
+              tipoNormalizado
+            ]
+          ) {
+
+            categoriasPorTipo[
+              tipoNormalizado
+            ].push(
+              item
+            );
+
+          }
+
+        }
+      );
+
+      if (
+        tipo?.value
+      ) {
+
+        popularCategorias(
+          tipo.value,
+          categoria?.value || ""
+        );
+
+      }
+
+    } catch (erro) {
+
+      console.error(
+        "Erro inesperado ao carregar categorias financeiras:",
+        erro
+      );
+
+    }
+
+  }
 
   function popularCategorias(
     tipoSelecionado,
     categoriaSelecionada = ""
   ) {
 
-    if (!categoria) return;
-
-    categoria.innerHTML =
-      "<option value=''>Categoria</option>";
-
-    if (!categoriasPorTipo[tipoSelecionado]) {
+    if (!categoria) {
 
       return;
 
     }
 
-    categoriasPorTipo[tipoSelecionado].forEach(cat => {
+    categoria.innerHTML =
+      "<option value=''>Categoria</option>";
 
-      const option = document.createElement("option");
+    const tipoNormalizado =
+      normalizarTipoCategoria(
+        tipoSelecionado
+      );
 
-      option.value = cat;
+    const lista =
+      categoriasPorTipo[
+        tipoNormalizado
+      ] || [];
 
-      option.textContent = cat;
+    lista.forEach(
+      item => {
 
-      if (cat === categoriaSelecionada) {
+        const option =
+          document.createElement(
+            "option"
+          );
 
-        option.selected = true;
+        option.value =
+          item.nome;
+
+        option.textContent =
+          item.nome;
+
+        option.dataset.id =
+          item.id;
+
+        if (
+          String(
+            item.nome
+          ) ===
+          String(
+            categoriaSelecionada
+          )
+        ) {
+
+          option.selected =
+            true;
+
+        }
+
+        categoria.appendChild(
+          option
+        );
 
       }
+    );
 
-      categoria.appendChild(option);
+    if (
+      !lista.length
+    ) {
 
-    });
+      const option =
+        document.createElement(
+          "option"
+        );
+
+      option.value =
+        "";
+
+      option.textContent =
+        "Nenhuma categoria cadastrada";
+
+      option.disabled =
+        true;
+
+      categoria.appendChild(
+        option
+      );
+
+    }
 
   }
 
   if (tipo) {
 
-    tipo.onchange = () => {
+    tipo.onchange =
+      () => {
 
-      popularCategorias(tipo.value);
+        popularCategorias(
+          tipo.value
+        );
 
-    };
+      };
 
   }
 
@@ -488,44 +913,63 @@ function atualizarRelatorios() {
 
   if (btnLogin) {
 
-    btnLogin.onclick = async () => {
+    btnLogin.onclick =
+      async () => {
 
-      if (!aceiteTermos.checked) {
+        if (
+          !aceiteTermos.checked
+        ) {
 
-        alert("Você precisa aceitar os termos.");
+          alert(
+            "Você precisa aceitar os termos."
+          );
 
-        return;
+          return;
 
-      }
+        }
 
-      if (!emailInput.value || !senhaInput.value) {
+        if (
+          !emailInput.value ||
+          !senhaInput.value
+        ) {
 
-        alert("Informe seu email e senha.");
+          alert(
+            "Informe seu email e senha."
+          );
 
-        return;
+          return;
 
-      }
+        }
 
-      const { data, error } =
-        await supabase.auth.signInWithPassword({
+        const {
+          data,
+          error
+        } =
+          await supabase.auth.signInWithPassword({
 
-          email: emailInput.value.trim(),
+            email:
+              emailInput.value.trim(),
 
-          password: senhaInput.value
+            password:
+              senhaInput.value
 
-        });
+          });
 
-      if (error) {
+        if (error) {
 
-        alert(error.message);
+          alert(
+            error.message
+          );
 
-        return;
+          return;
 
-      }
+        }
 
-      await iniciarSessao(data.user);
+        await iniciarSessao(
+          data.user
+        );
 
-    };
+      };
 
   }
 
@@ -535,66 +979,86 @@ function atualizarRelatorios() {
 
   if (btnCadastro) {
 
-    btnCadastro.onclick = async () => {
+    btnCadastro.onclick =
+      async () => {
 
-      if (!aceiteTermos.checked) {
+        if (
+          !aceiteTermos.checked
+        ) {
 
-        alert("Você precisa aceitar os termos.");
+          alert(
+            "Você precisa aceitar os termos."
+          );
 
-        return;
+          return;
 
-      }
+        }
 
-      if (!emailInput.value || !senhaInput.value) {
+        if (
+          !emailInput.value ||
+          !senhaInput.value
+        ) {
 
-        alert("Informe email e senha.");
+          alert(
+            "Informe email e senha."
+          );
 
-        return;
+          return;
 
-      }
+        }
 
-      if (senhaInput.value.length < 6) {
+        if (
+          senhaInput.value.length < 6
+        ) {
 
-        alert("A senha deve possuir pelo menos 6 caracteres.");
+          alert(
+            "A senha deve possuir pelo menos 6 caracteres."
+          );
 
-        return;
+          return;
 
-      }
+        }
 
-      const { error } =
-        await supabase.auth.signUp({
+        const {
+          error
+        } =
+          await supabase.auth.signUp({
 
-          email: emailInput.value.trim(),
+            email:
+              emailInput.value.trim(),
 
-          password: senhaInput.value,
+            password:
+              senhaInput.value,
 
-          options: {
+            options: {
 
-            data: {
+              data: {
 
-              nome:
-                emailInput.value
-                  .split("@")[0]
+                nome:
+                  emailInput.value
+                    .split("@")[0]
+
+              }
 
             }
 
-          }
+          });
 
-        });
+        if (error) {
 
-      if (error) {
+          alert(
+            error.message
+          );
 
-        alert(error.message);
+          return;
 
-        return;
+        }
 
-      }
+        alert(
+          "Conta criada com sucesso! Confirme seu email para continuar."
+        );
 
-      alert(
-        "Conta criada com sucesso! Confirme seu email para continuar."
-      );
-
-    };
+      };
 
   }
 
@@ -602,15 +1066,21 @@ function atualizarRelatorios() {
      INICIAR SESSÃO
   ====================================================== */
 
-  async function iniciarSessao(user) {
+  async function iniciarSessao(
+    user
+  ) {
 
     if (!user) return;
 
     const topbarUser =
-      document.getElementById("topbarUser");
+      document.getElementById(
+        "topbarUser"
+      );
 
     const topbarPlano =
-      document.getElementById("topbarPlano");
+      document.getElementById(
+        "topbarPlano"
+      );
 
     const nomeUsuario =
       user.user_metadata?.nome ||
@@ -619,39 +1089,49 @@ function atualizarRelatorios() {
 
     if (topbarUser) {
 
-      topbarUser.innerText = nomeUsuario;
+      topbarUser.innerText =
+        nomeUsuario;
 
     }
 
     if (topbarPlano) {
 
-      topbarPlano.innerText = planoUsuario;
+      topbarPlano.innerText =
+        planoUsuario;
 
     }
 
     if (loginContainer) {
 
-      loginContainer.style.display = "none";
+      loginContainer.style.display =
+        "none";
 
     }
 
     if (app) {
 
-      app.style.display = "flex";
+      app.style.display =
+        "flex";
 
-      app.classList.remove("hidden");
+      app.classList.remove(
+        "hidden"
+      );
 
     }
 
     if (dashboard) {
 
-      dashboard.classList.remove("hidden");
+      dashboard.classList.remove(
+        "hidden"
+      );
 
     }
 
     if (lancamentos) {
 
-      lancamentos.classList.add("hidden");
+      lancamentos.classList.add(
+        "hidden"
+      );
 
     }
 
@@ -664,21 +1144,27 @@ function atualizarRelatorios() {
 
     /* Define mês atual somente se não houver filtro */
 
-    if (filtroMes && !filtroMes.value) {
+    if (
+      filtroMes &&
+      !filtroMes.value
+    ) {
 
-      filtroMes.value = obterMesAtual();
+      filtroMes.value =
+        obterMesAtual();
 
     }
 
-    atualizarPeriodoDashboard();
+   atualizarPeriodoDashboard();
 
-    await carregarDados();
+await garantirCategoriasPadrao();
 
-    atualizarDashboard();
+await carregarCategoriasFinanceiras();
 
-    renderizarLista();
+await carregarDados();
 
-  }
+atualizarDashboard();
+
+renderizarLista();
 
   /* ======================================================
      CARREGAR DADOS
@@ -691,12 +1177,17 @@ function atualizarRelatorios() {
       const {
         data,
         error
-      } = await supabase
-        .from("lancamentos")
-        .select("*")
-        .order("data", {
-          ascending: false
-        });
+      } =
+        await supabase
+          .from("lancamentos")
+          .select("*")
+          .order(
+            "data",
+            {
+              ascending:
+                false
+            }
+          );
 
       if (error) {
 
@@ -715,7 +1206,8 @@ function atualizarRelatorios() {
 
       }
 
-      dados = data || [];
+      dados =
+        data || [];
 
     } catch (erro) {
 
@@ -729,1777 +1221,8 @@ function atualizarRelatorios() {
     }
 
   }
-
-  /* ======================================================
-     SALVAR LANÇAMENTO
-  ====================================================== */
-
-  if (btnSalvar) {
-
-    btnSalvar.onclick = async () => {
-
-      if (
-        !tipo.value ||
-        !categoria.value ||
-        !valor.value ||
-        !dataInput.value
-      ) {
-
-        alert(
-          "Preencha tipo, categoria, valor e data."
-        );
-
-        return;
-
-      }
-
-      const valorNumerico =
-        Number(
-          String(valor.value)
-            .replace(",", ".")
-        );
-
-      if (
-        !Number.isFinite(valorNumerico) ||
-        valorNumerico <= 0
-      ) {
-
-        alert("Informe um valor válido.");
-
-        return;
-
-      }
-
-      if (
-        planoUsuario === "FREE" &&
-        dados.length >= LIMITE_FREE &&
-        !idEmEdicao
-      ) {
-
-        alert(
-          "Limite do plano gratuito atingido."
-        );
-
-        return;
-
-      }
-
-      try {
-
-        const {
-          data: userData,
-          error: userError
-        } = await supabase.auth.getUser();
-
-        if (userError || !userData?.user) {
-
-          alert(
-            "Sua sessão expirou. Faça login novamente."
-          );
-
-          return;
-
-        }
-
-        let erroOperacao = null;
-
-        if (idEmEdicao) {
-
-          const resultado =
-            await supabase
-              .from("lancamentos")
-              .update({
-
-                tipo: tipo.value,
-
-                categoria: categoria.value,
-
-                descricao:
-                  descricao.value.trim(),
-
-                valor: valorNumerico,
-
-                data: dataInput.value
-
-              })
-              .eq("id", idEmEdicao);
-
-          erroOperacao = resultado.error;
-
-        } else {
-
-          const resultado =
-            await supabase
-              .from("lancamentos")
-              .insert({
-
-                user_id:
-                  userData.user.id,
-
-                tipo: tipo.value,
-
-                categoria: categoria.value,
-
-                descricao:
-                  descricao.value.trim(),
-
-                valor: valorNumerico,
-
-                data: dataInput.value
-
-              });
-
-          erroOperacao = resultado.error;
-
-        }
-
-        if (erroOperacao) {
-
-          console.error(
-            "Erro ao salvar:",
-            erroOperacao
-          );
-
-          alert(
-            "Não foi possível salvar o lançamento."
-          );
-
-          return;
-
-        }
-
-        idEmEdicao = null;
-
-        await carregarDados();
-
-        atualizarDashboard();
-
-        renderizarLista();
-
-        limparFormulario();
-
-        alert("Lançamento salvo com sucesso!");
-
-      } catch (erro) {
-
-        console.error(
-          "Erro inesperado:",
-          erro
-        );
-
-        alert(
-          "Ocorreu um erro ao salvar o lançamento."
-        );
-
-      }
-
-    };
-
-  }
-
-  /* ======================================================
-     LIMPAR FORMULÁRIO
-  ====================================================== */
-
-  function limparFormulario() {
-
-    idEmEdicao = null;
-
-    if (tipo) {
-
-      tipo.value = "";
-
-    }
-
-    if (categoria) {
-
-      categoria.innerHTML =
-        "<option value=''>Categoria</option>";
-
-    }
-
-    if (descricao) {
-
-      descricao.value = "";
-
-    }
-
-    if (valor) {
-
-      valor.value = "";
-
-    }
-
-    if (dataInput) {
-
-      dataInput.value = "";
-
-    }
-
-    if (btnSalvar) {
-
-      btnSalvar.innerText = "Salvar";
-
-    }
-
-  }
-
-  /* ======================================================
-     FILTRO
-  ====================================================== */
-
-  function obterDadosFiltrados() {
-
-    let filtrados = [...dados];
-
-    if (filtroMes && filtroMes.value) {
-
-      filtrados =
-        filtrados.filter(l => {
-
-          if (!l.data) return false;
-
-          return l.data.startsWith(
-            filtroMes.value
-          );
-
-        });
-
-    }
-
-    return filtrados;
-
-  }
-
-  if (filtroMes) {
-
-    filtroMes.addEventListener(
-      "change",
-      () => {
-
-        atualizarPeriodoDashboard();
-
-        atualizarDashboard();
-
-      }
-    );
-
-  }
-
-  if (btnLimparFiltro) {
-
-    btnLimparFiltro.onclick = () => {
-
-      filtroMes.value = "";
-
-      atualizarPeriodoDashboard();
-
-      atualizarDashboard();
-
-    };
-
-  }
-
-  /* ======================================================
-     PERÍODO DO DASHBOARD
-  ====================================================== */
-
-  function atualizarPeriodoDashboard() {
-
-    if (!dashboardPeriodo) return;
-
-    dashboardPeriodo.innerText =
-      formatarPeriodo(
-        filtroMes?.value || ""
-      );
-
-  }
-
-  /* ======================================================
-     DASHBOARD
-  ====================================================== */
-
-  function atualizarDashboard() {
-
-    const filtrados =
-      obterDadosFiltrados();
-
-    let receita = 0;
-    let despesa = 0;
-    let investimento = 0;
-
-    filtrados.forEach(l => {
-
-      const valorLancamento =
-        Number(l.valor) || 0;
-
-      if (l.tipo === "Receita") {
-
-        receita += valorLancamento;
-
-      }
-
-      if (l.tipo === "Despesa") {
-
-        despesa += valorLancamento;
-
-      }
-
-      if (l.tipo === "Investimento") {
-
-        investimento += valorLancamento;
-
-      }
-
-    });
-
-    const saldoAtual =
-      receita - despesa;
-
-    if (totalReceitas) {
-
-      totalReceitas.innerText =
-        formatarMoeda(receita);
-
-    }
-
-    if (totalDespesas) {
-
-      totalDespesas.innerText =
-        formatarMoeda(despesa);
-
-    }
-
-    if (totalInvestimentos) {
-
-      totalInvestimentos.innerText =
-        formatarMoeda(investimento);
-
-    }
-
-    if (saldo) {
-
-      saldo.innerText =
-        formatarMoeda(saldoAtual);
-
-    }
-
-    atualizarPeriodoDashboard();
-
-    renderizarAlertas(filtrados);
-
-    renderizarGrafico(
-      filtrados,
-      receita,
-      despesa,
-      investimento
-    );
-
-    renderizarGraficoMensal(
-      filtrados
-    );
-
-    // renderizarGraficoComparativo(filtrados);
-    renderizarGraficoComparativo(
-      filtrados
-    );
-
-  }
-
-  /* ======================================================
-     ALERTAS
-  ====================================================== */
-
-  function renderizarAlertas(dadosFiltrados) {
-
-    const container =
-      document.getElementById(
-        "alertasInteligentes"
-      );
-
-    if (!container) return;
-
-    container.innerHTML = "";
-
-    let receita = 0;
-    let despesa = 0;
-    let investimento = 0;
-
-    dadosFiltrados.forEach(l => {
-
-      const valorLancamento =
-        Number(l.valor) || 0;
-
-      if (l.tipo === "Receita") {
-
-        receita += valorLancamento;
-
-      }
-
-      if (l.tipo === "Despesa") {
-
-        despesa += valorLancamento;
-
-      }
-
-      if (l.tipo === "Investimento") {
-
-        investimento += valorLancamento;
-
-      }
-
-    });
-
-    const saldoAtual =
-      receita - despesa;
-
-    const percentualDespesa =
-      receita > 0
-        ? (despesa / receita) * 100
-        : 0;
-
-    function criarAlerta(
-      texto,
-      classe
-    ) {
-
-      const div =
-        document.createElement("div");
-
-      div.className =
-        `alerta ${classe}`;
-
-      div.innerText = texto;
-
-      container.appendChild(div);
-
-    }
-
-    if (saldoAtual < 0) {
-
-      criarAlerta(
-        "🔴 Seu saldo está negativo. Atenção imediata ao controle de despesas.",
-        "vermelho"
-      );
-
-    }
-
-    if (
-      despesa > receita &&
-      receita > 0
-    ) {
-
-      criarAlerta(
-        "⚠️ Suas despesas estão maiores que suas receitas neste período.",
-        "amarelo"
-      );
-
-    }
-
-    if (
-      percentualDespesa > 70 &&
-      percentualDespesa <= 90 &&
-      despesa <= receita
-    ) {
-
-      criarAlerta(
-        `🟡 Você está comprometendo ${percentualDespesa.toFixed(0)}% da sua receita com despesas. O ideal é manter abaixo de 70%.`,
-        "amarelo"
-      );
-
-    }
-
-    if (
-      percentualDespesa > 90 &&
-      receita > 0
-    ) {
-
-      criarAlerta(
-        `🔥 Alerta crítico: ${percentualDespesa.toFixed(0)}% da sua receita está comprometida com despesas.`,
-        "vermelho"
-      );
-
-    }
-
-    if (
-      investimento === 0 &&
-      receita > 0
-    ) {
-
-      criarAlerta(
-        "💡 Nenhum investimento identificado neste período. Considere investir parte da sua renda.",
-        "azul"
-      );
-
-    }
-
-    if (
-      receita === 0 &&
-      despesa === 0 &&
-      investimento === 0
-    ) {
-
-      criarAlerta(
-        "ℹ️ Nenhum lançamento encontrado neste período.",
-        "azul"
-      );
-
-    }
-
-    if (
-      saldoAtual > 0 &&
-      receita > 0 &&
-      percentualDespesa < 60
-    ) {
-
-      criarAlerta(
-        "✅ Sua saúde financeira está equilibrada neste período.",
-        "verde"
-      );
-
-    }
-
-  }
-
-  /* ======================================================
-     GRÁFICO PRINCIPAL
-  ====================================================== */
-
-  function renderizarGrafico(
-    dadosFiltrados,
-    receita,
-    despesa,
-    investimento
-  ) {
-
-    const canvas =
-      document.getElementById(
-        "grafico"
-      );
-
-    if (!canvas) return;
-
-    if (grafico) {
-
-      grafico.destroy();
-
-      grafico = null;
-
-    }
-
-    let labels = [];
-    let valores = [];
-
-    if (
-      tipoGrafico &&
-      tipoGrafico.value === "categoria"
-    ) {
-
-      const categorias = {};
-
-      dadosFiltrados.forEach(l => {
-
-        const nomeCategoria =
-          l.categoria ||
-          "Sem categoria";
-
-        categorias[nomeCategoria] =
-          (categorias[nomeCategoria] || 0) +
-          (Number(l.valor) || 0);
-
-      });
-
-      labels =
-        Object.keys(categorias);
-
-      valores =
-        Object.values(categorias);
-
-    } else {
-
-      labels = [
-        "Receitas",
-        "Despesas",
-        "Investimentos"
-      ];
-
-      valores = [
-        receita,
-        despesa,
-        investimento
-      ];
-
-    }
-
-    grafico =
-      new Chart(
-        canvas,
-        {
-
-          type: "pie",
-
-          data: {
-
-            labels,
-
-            datasets: [
-              {
-
-                data: valores,
-
-                borderWidth: 2
-
-              }
-            ]
-
-          },
-
-          options: {
-
-            responsive: true,
-
-            maintainAspectRatio: false,
-
-            plugins: {
-
-              legend: {
-
-                position: "bottom"
-
-              }
-
-            }
-
-          }
-
-        }
-      );
-
-  }
-
-  /* ======================================================
-     GRÁFICO MENSAL
-  ====================================================== */
-
-  function renderizarGraficoMensal(
-    dadosFiltrados
-  ) {
-
-    const canvas =
-      document.getElementById(
-        "graficoMensal"
-      );
-
-    if (!canvas) return;
-
-    if (graficoMensal) {
-
-      graficoMensal.destroy();
-
-      graficoMensal = null;
-
-    }
-
-    const resumo = {};
-
-    dadosFiltrados.forEach(l => {
-
-      if (!l.data) return;
-
-      const mes =
-        l.data.slice(0, 7);
-
-      if (!resumo[mes]) {
-
-        resumo[mes] = {
-
-          receita: 0,
-
-          despesa: 0
-
-        };
-
-      }
-
-      const valorLancamento =
-        Number(l.valor) || 0;
-
-      if (
-        l.tipo === "Receita"
-      ) {
-
-        resumo[mes].receita +=
-          valorLancamento;
-
-      }
-
-      if (
-        l.tipo === "Despesa"
-      ) {
-
-        resumo[mes].despesa +=
-          valorLancamento;
-
-      }
-
-    });
-
-    const labels =
-      Object.keys(resumo).sort();
-
-    const receitas =
-      labels.map(
-        m => resumo[m].receita
-      );
-
-    const despesas =
-      labels.map(
-        m => resumo[m].despesa
-      );
-
-    if (labels.length === 0) {
-
-      return;
-
-    }
-
-    graficoMensal =
-      new Chart(
-        canvas,
-        {
-
-          type: "bar",
-
-          data: {
-
-            labels,
-
-            datasets: [
-
-              {
-
-                label: "Receitas",
-
-                data: receitas,
-
-                borderWidth: 1
-
-              },
-
-              {
-
-                label: "Despesas",
-
-                data: despesas,
-
-                borderWidth: 1
-
-              }
-
-            ]
-
-          },
-
-          options: {
-
-            responsive: true,
-
-            maintainAspectRatio: false,
-
-            plugins: {
-
-              legend: {
-
-                position: "bottom"
-
-              }
-
-            },
-
-            scales: {
-
-              y: {
-
-                beginAtZero: true
-
-              }
-
-            }
-
-          }
-
-        }
-
-      );
-
-  }
-
- /* ======================================================
-   GRÁFICO COMPARATIVO
-   Receita x Despesa
-====================================================== */
-
-function renderizarGraficoComparativo() {
-
-  const canvas = document.getElementById("graficoComparativo");
-
-  if (!canvas) return;
-
-  // Destrói o gráfico anterior completamente
-  if (graficoComparativo) {
-    try {
-      graficoComparativo.destroy();
-    } catch (e) {
-      console.warn("Erro ao destruir gráfico comparativo:", e);
-    }
-
-    graficoComparativo = null;
-  }
-
-  const dadosPorMes = {};
-
-  dados.forEach(l => {
-
-    if (!l.data) return;
-
-    const mes = l.data.slice(0, 7);
-
-    if (!dadosPorMes[mes]) {
-      dadosPorMes[mes] = {
-        receita: 0,
-        despesa: 0
-      };
-    }
-
-    const valorNumerico = Number(l.valor) || 0;
-
-    if (l.tipo === "Receita") {
-      dadosPorMes[mes].receita += valorNumerico;
-    }
-
-    if (l.tipo === "Despesa") {
-      dadosPorMes[mes].despesa += valorNumerico;
-    }
-
-  });
-
-  const labels = Object.keys(dadosPorMes).sort();
-
-  // Se não houver dados, não cria o gráfico
-  if (labels.length === 0) {
-    canvas.style.display = "none";
-    return;
-  }
-
-  canvas.style.display = "block";
-
-  const receitas = labels.map(mes => dadosPorMes[mes].receita);
-  const despesas = labels.map(mes => dadosPorMes[mes].despesa);
-
-  // Define tamanho físico fixo do canvas
-  canvas.width = 1200;
-  canvas.height = 320;
-
-  graficoComparativo = new Chart(canvas, {
-
-    type: "line",
-
-    data: {
-      labels: labels,
-
-      datasets: [
-        {
-          label: "Receitas",
-          data: receitas,
-
-          borderWidth: 3,
-          tension: 0.25,
-
-          pointRadius: 4,
-          pointHoverRadius: 6,
-
-          fill: false
-        },
-
-        {
-          label: "Despesas",
-          data: despesas,
-
-          borderWidth: 3,
-          tension: 0.25,
-
-          pointRadius: 4,
-          pointHoverRadius: 6,
-
-          fill: false
-        }
-      ]
-    },
-
-    options: {
-
-      // IMPORTANTE:
-      // desliga o redimensionamento automático
-      responsive: false,
-
-      maintainAspectRatio: false,
-
-      animation: false,
-
-      resizeDelay: 0,
-
-      plugins: {
-        legend: {
-          position: "bottom"
-        },
-
-        tooltip: {
-          enabled: true
-        }
-      },
-
-      scales: {
-
-        x: {
-          display: true
-        },
-
-        y: {
-          beginAtZero: true,
-
-          ticks: {
-            callback: function(value) {
-              return Number(value).toLocaleString("pt-BR", {
-                style: "currency",
-                currency: "BRL"
-              });
-            }
-          }
-        }
-
-      }
-    }
-
-  });
-
-}
-  /* ======================================================
-     MUDANÇA DO TIPO DE GRÁFICO
-  ====================================================== */
-
-  if (tipoGrafico) {
-
-    tipoGrafico.addEventListener(
-      "change",
-      () => {
-
-        atualizarDashboard();
-
-      }
-    );
-
-  }
-
-  /* ======================================================
-     LISTA DE LANÇAMENTOS
-  ====================================================== */
-
-  function renderizarLista() {
-
-    if (!lista) return;
-
-    lista.innerHTML = "";
-
-    if (dados.length === 0) {
-
-      const vazio =
-        document.createElement("li");
-
-      vazio.innerHTML =
-        "<div class='linha-info'>Nenhum lançamento cadastrado.</div>";
-
-      lista.appendChild(vazio);
-
-      return;
-
-    }
-
-    dados.forEach(l => {
-
-      const li =
-        document.createElement("li");
-
-      const valorFormatado =
-        formatarMoeda(l.valor);
-
-      li.innerHTML = `
-
-        <div class="linha-info">
-
-          <strong>
-            ${formatarData(l.data)}
-          </strong>
-
-          –
-          ${l.tipo}
-
-          •
-          ${l.categoria || "Sem categoria"}
-
-          •
-          ${valorFormatado}
-
-          ${
-            l.descricao
-              ? ` • ${l.descricao}`
-              : ""
-          }
-
-        </div>
-
-        <div class="linha-acoes">
-
-          <button
-            type="button"
-            class="btn-acao editar"
-            data-id="${l.id}"
-            title="Editar"
-          >
-            ✏️
-          </button>
-
-          <button
-            type="button"
-            class="btn-acao excluir"
-            data-id="${l.id}"
-            title="Excluir"
-          >
-            🗑
-          </button>
-
-        </div>
-
-      `;
-
-      lista.appendChild(li);
-
-    });
-
-  }
-
-  /* ======================================================
-     EVENTOS DA LISTA
-  ====================================================== */
-
-  if (lista) {
-
-    lista.addEventListener(
-      "click",
-      event => {
-
-        const btnEditar =
-          event.target.closest(
-            ".btn-acao.editar"
-          );
-
-        const btnExcluir =
-          event.target.closest(
-            ".btn-acao.excluir"
-          );
-
-        if (btnEditar) {
-
-          editar(
-            btnEditar.dataset.id
-          );
-
-        }
-
-        if (btnExcluir) {
-
-          excluir(
-            btnExcluir.dataset.id
-          );
-
-        }
-
-      }
-    );
-
-  }
-
-  /* ======================================================
-     EDITAR
-  ====================================================== */
-
-  function editar(id) {
-
-    const lancamento =
-      dados.find(
-        d => String(d.id) === String(id)
-      );
-
-    if (!lancamento) {
-
-      alert(
-        "Lançamento não encontrado."
-      );
-
-      return;
-
-    }
-
-    idEmEdicao =
-      lancamento.id;
-
-    if (tipo) {
-
-      tipo.value =
-        lancamento.tipo;
-
-    }
-
-    popularCategorias(
-      lancamento.tipo,
-      lancamento.categoria
-    );
-
-    if (descricao) {
-
-      descricao.value =
-        lancamento.descricao || "";
-
-    }
-
-    if (valor) {
-
-      valor.value =
-        lancamento.valor;
-
-    }
-
-    if (dataInput) {
-
-      dataInput.value =
-        lancamento.data;
-
-    }
-
-    if (btnSalvar) {
-
-      btnSalvar.innerText =
-        "Atualizar lançamento";
-
-    }
-
-    dashboard.classList.add(
-      "hidden"
-    );
-
-    lancamentos.classList.remove(
-      "hidden"
-    );
-
-    fecharMenuMobile();
-
-  }
-
-  /* ======================================================
-     EXCLUIR
-  ====================================================== */
-
-  async function excluir(id) {
-
-    const confirmar =
-      confirm(
-        "Tem certeza que deseja excluir este lançamento?"
-      );
-
-    if (!confirmar) return;
-
-    try {
-
-      const {
-        error
-      } =
-        await supabase
-          .from("lancamentos")
-          .delete()
-          .eq("id", id);
-
-      if (error) {
-
-        console.error(
-          "Erro ao excluir:",
-          error
-        );
-
-        alert(
-          "Erro ao excluir lançamento."
-        );
-
-        return;
-
-      }
-
-      await carregarDados();
-
-      atualizarDashboard();
-
-      renderizarLista();
-
-      alert(
-        "Lançamento excluído com sucesso!"
-      );
-
-    } catch (erro) {
-
-      console.error(
-        "Erro inesperado:",
-        erro
-      );
-
-      alert(
-        "Ocorreu um erro ao excluir."
-      );
-
-    }
-
-  }
-
-  /* ======================================================
-     EXPORTAÇÃO PDF
-  ====================================================== */
-
-  const btnExportarPdf =
-    document.getElementById(
-      "btnExportarPdf"
-    );
-
-  if (btnExportarPdf) {
-
-    btnExportarPdf.onclick = () => {
-
-      if (
-        !window.jspdf ||
-        !window.jspdf.jsPDF
-      ) {
-
-        alert(
-          "Biblioteca de PDF não carregada."
-        );
-
-        return;
-
-      }
-
-      const {
-        jsPDF
-      } = window.jspdf;
-
-      const pdf =
-        new jsPDF();
-
-      pdf.setFontSize(16);
-
-      pdf.text(
-        "TCS Finance – Extrato Financeiro",
-        10,
-        15
-      );
-
-      pdf.setFontSize(10);
-
-      pdf.text(
-        `Período: ${
-          formatarPeriodo(
-            filtroMes?.value || ""
-          )
-        }`,
-        10,
-        23
-      );
-
-      let y = 35;
-
-      dados.forEach(l => {
-
-        const linha =
-          `${formatarData(l.data)} | ` +
-          `${l.tipo} | ` +
-          `${l.categoria || ""} | ` +
-          `${formatarMoeda(l.valor)}`;
-
-        pdf.text(
-          linha,
-          10,
-          y
-        );
-
-        y += 7;
-
-        if (y > 280) {
-
-          pdf.addPage();
-
-          y = 20;
-
-        }
-
-      });
-
-      pdf.save(
-        "extrato-financeiro.pdf"
-      );
-
-    };
-
-  }
-
-  /* ======================================================
-     FILTRO INICIAL
-  ====================================================== */
-
-  if (filtroMes) {
-
-    filtroMes.value =
-      obterMesAtual();
-
-  }
-
-  atualizarPeriodoDashboard();
-
-  /* ======================================================
-     SESSÃO EXISTENTE
-  ====================================================== */
-
-  try {
-
-    const {
-      data: sessionData
-    } =
-      await supabase.auth.getSession();
-
-    const usuario =
-      sessionData?.session?.user;
-
-    if (usuario) {
-
-      window.__USER_SESSION__ =
-        usuario;
-
-      await iniciarSessao(
-        usuario
-      );
-
-    }
-
-  } catch (erro) {
-
-    console.error(
-      "Erro ao recuperar sessão:",
-      erro
-    );
-
-  }
-/* ======================================================
-   TCS FINANCE
-   MÓDULO DE RECORRÊNCIAS
-====================================================== */
-
-const btnRecorrencias =
-  document.getElementById("btnRecorrencias");
-
-const recorrencias =
-  document.getElementById("recorrencias");
-
-const recTipo =
-  document.getElementById("recTipo");
-
-const recCategoria =
-  document.getElementById("recCategoria");
-
-const recDescricao =
-  document.getElementById("recDescricao");
-
-const recValor =
-  document.getElementById("recValor");
-
-const recFrequencia =
-  document.getElementById("recFrequencia");
-
-const recDiaVencimento =
-  document.getElementById("recDiaVencimento");
-
-const recDataInicio =
-  document.getElementById("recDataInicio");
-
-const recDataFim =
-  document.getElementById("recDataFim");
-
-const btnSalvarRecorrencia =
-  document.getElementById("btnSalvarRecorrencia");
-
-const btnCancelarRecorrencia =
-  document.getElementById("btnCancelarRecorrencia");
-
-const listaRecorrencias =
-  document.getElementById("listaRecorrencias");
-
-const totalRecorrencias =
-  document.getElementById("totalRecorrencias");
-
-const recorrenciasAtivas =
-  document.getElementById("recorrenciasAtivas");
-
-const recorrenciasPausadas =
-  document.getElementById("recorrenciasPausadas");
-
-const contadorRecorrencias =
-  document.getElementById("contadorRecorrencias");
-
-const tituloFormularioRecorrencia =
-  document.getElementById(
-    "tituloFormularioRecorrencia"
-  );
-
-
-let recorrenciasDados = [];
-
-let recorrenciaEmEdicao = null;
-
-
-/* ======================================================
-   FREQUÊNCIAS
-====================================================== */
-
-const nomesFrequencia = {
-  diaria: "Diária",
-  semanal: "Semanal",
-  quinzenal: "Quinzenal",
-  mensal: "Mensal",
-  bimestral: "Bimestral",
-  trimestral: "Trimestral",
-  semestral: "Semestral",
-  anual: "Anual"
-};
-
-
-/* ======================================================
-   NAVEGAÇÃO — RECORRÊNCIAS
-====================================================== */
-
-if (btnRecorrencias) {
-
-  btnRecorrencias.onclick = async () => {
-
-    dashboard?.classList.add("hidden");
-
-    lancamentos?.classList.add("hidden");
-
-    if (relatorios) {
-      relatorios.classList.add("hidden");
-    }
-
-    if (document.getElementById("contas")) {
-      document
-        .getElementById("contas")
-        .classList.add("hidden");
-    }
-
-    if (recorrencias) {
-      recorrencias.classList.remove("hidden");
-    }
-
-    fecharMenuMobile();
-
-    ativarMenu(
-      btnRecorrencias
-    );
-
-    await carregarRecorrencias();
-
-  };
-
-}
-
-
-/* ======================================================
-   FUNÇÃO PARA ATIVAR MENU
-====================================================== */
-
-function ativarMenu(botaoAtivo) {
-
-  const botoes =
-    document.querySelectorAll(
-      ".sidebar .nav-item"
-    );
-
-  botoes.forEach(botao => {
-    botao.classList.remove("active");
-  });
-
-  if (botaoAtivo) {
-    botaoAtivo.classList.add("active");
-  }
-
-}
-
-
-/* ======================================================
-   AJUSTAR DASHBOARD
-====================================================== */
-
-if (btnDashboard) {
-
-  const cliqueOriginalDashboard =
-    btnDashboard.onclick;
-
-  btnDashboard.onclick = () => {
-
-    dashboard?.classList.remove("hidden");
-
-    lancamentos?.classList.add("hidden");
-
-    recorrencias?.classList.add("hidden");
-
-    if (relatorios) {
-      relatorios.classList.add("hidden");
-    }
-
-    if (document.getElementById("contas")) {
-      document
-        .getElementById("contas")
-        .classList.add("hidden");
-    }
-
-    fecharMenuMobile();
-
-    ativarMenu(
-      btnDashboard
-    );
-
-    atualizarDashboard();
-
-  };
-
-}
-
-
-/* ======================================================
-   AJUSTAR LANÇAMENTOS
-====================================================== */
-
-if (btnLancamentos) {
-
-  btnLancamentos.onclick = () => {
-
-    dashboard?.classList.add("hidden");
-
-    lancamentos?.classList.remove("hidden");
-
-    recorrencias?.classList.add("hidden");
-
-    if (relatorios) {
-      relatorios.classList.add("hidden");
-    }
-
-    if (document.getElementById("contas")) {
-      document
-        .getElementById("contas")
-        .classList.add("hidden");
-    }
-
-    fecharMenuMobile();
-
-    ativarMenu(
-      btnLancamentos
-    );
-
-    renderizarLista();
-
-  };
-
-}
-
-
-/* ======================================================
-   AJUSTAR RELATÓRIOS
-====================================================== */
-
-if (btnRelatorios) {
-
-  btnRelatorios.onclick = () => {
-
-    dashboard?.classList.add("hidden");
-
-    lancamentos?.classList.add("hidden");
-
-    recorrencias?.classList.add("hidden");
-
-    if (document.getElementById("contas")) {
-      document
-        .getElementById("contas")
-        .classList.add("hidden");
-    }
-
-    if (relatorios) {
-      relatorios.classList.remove("hidden");
-    }
-
-    fecharMenuMobile();
-
-    ativarMenu(
-      btnRelatorios
-    );
-
-    atualizarRelatorios();
-
-  };
-
-}
-
-
-/* ======================================================
-   CARREGAR CATEGORIAS PARA RECORRÊNCIA
-   CORREÇÃO: COMPARAÇÃO DE TIPO SEM DIFERENÇA DE MAIÚSCULAS
-====================================================== */
-
-async function carregarCategoriasRecorrencia(
-  tipoSelecionado = "",
-  categoriaSelecionada = ""
-) {
-
-  if (!recCategoria) {
-    return;
-  }
-
-  recCategoria.innerHTML =
-    "<option value=''>Carregando categorias...</option>";
-
-  try {
-
-    /* --------------------------------------------------
-       USUÁRIO LOGADO
-    -------------------------------------------------- */
-
-    const {
-      data: userData,
-      error: userError
-    } = await supabase.auth.getUser();
-
-    if (
-      userError ||
-      !userData?.user
-    ) {
-
-      recCategoria.innerHTML =
-        "<option value=''>Sessão expirada</option>";
-
-      console.error(
-        "Erro ao identificar usuário:",
-        userError
-      );
-
-      return;
-
-    }
-
-    /* --------------------------------------------------
-       BUSCAR CATEGORIAS
-    -------------------------------------------------- */
-
-    const {
-      data,
-      error
-    } = await supabase
-      .from("categorias_financeiras")
-      .select("id,user_id,nome,tipo,ativa")
-      .eq(
-        "user_id",
-        userData.user.id
-      )
-      .eq(
-        "ativa",
-        true
-      )
-      .order(
-        "nome",
-        {
-          ascending: true
-        }
-      );
-
-    if (error) {
-
-      console.error(
-        "Erro ao carregar categorias:",
-        error
-      );
-
-      recCategoria.innerHTML =
-        "<option value=''>Erro ao carregar categorias</option>";
-
-      return;
-
-    }
-
-    /* --------------------------------------------------
-       RESET DO SELECT
-    -------------------------------------------------- */
-
-    recCategoria.innerHTML =
-      "<option value=''>Selecione uma categoria</option>";
-
-    /* --------------------------------------------------
-       NORMALIZAR TIPO
-       
-       Banco:
-       investimento
-
-       HTML:
-       Investimento
-
-       Ambos passam a ser:
-       investimento
-    -------------------------------------------------- */
-
-    const tipoNormalizado =
-      String(
-        tipoSelecionado || ""
-      )
-        .trim()
-        .toLowerCase();
-
-    /* --------------------------------------------------
-       FILTRAR CATEGORIAS
-    -------------------------------------------------- */
-
-    const categorias =
-      (data || []).filter(
-        cat => {
-
-          const tipoCategoria =
-            String(
-              cat.tipo || ""
-            )
-              .trim()
-              .toLowerCase();
-
-          if (!tipoNormalizado) {
-            return true;
-          }
-
-          return (
-            !tipoCategoria ||
-            tipoCategoria === tipoNormalizado
-          );
-
-        }
-      );
-
-    /* --------------------------------------------------
-       CRIAR OPTIONS
+      /* --------------------------------------------------
+       ADICIONAR CATEGORIAS AO SELECT
     -------------------------------------------------- */
 
     categorias.forEach(
@@ -2511,18 +1234,34 @@ async function carregarCategoriasRecorrencia(
           );
 
         option.value =
-          cat.id;
+          cat.nome;
 
         option.textContent =
-          cat.nome ||
-          "Categoria";
+          cat.nome;
+
+        option.dataset.id =
+          cat.id;
 
         if (
-          String(cat.id) ===
-          String(categoriaSelecionada)
+          categoriaSelecionada &&
+          (
+            String(
+              categoriaSelecionada
+            ) ===
+            String(
+              cat.nome
+            ) ||
+            String(
+              categoriaSelecionada
+            ) ===
+            String(
+              cat.id
+            )
+          )
         ) {
 
-          option.selected = true;
+          option.selected =
+            true;
 
         }
 
@@ -2532,6 +1271,7 @@ async function carregarCategoriasRecorrencia(
 
       }
     );
+
 
     /* --------------------------------------------------
        NENHUMA CATEGORIA
@@ -2546,12 +1286,14 @@ async function carregarCategoriasRecorrencia(
           "option"
         );
 
-      option.value = "";
+      option.value =
+        "";
 
       option.textContent =
         "Nenhuma categoria cadastrada";
 
-      option.disabled = true;
+      option.disabled =
+        true;
 
       recCategoria.appendChild(
         option
@@ -2559,10 +1301,11 @@ async function carregarCategoriasRecorrencia(
 
     }
 
+
   } catch (erro) {
 
     console.error(
-      "Erro inesperado ao carregar categorias:",
+      "Erro inesperado ao carregar categorias da recorrência:",
       erro
     );
 
@@ -2573,19 +1316,119 @@ async function carregarCategoriasRecorrencia(
 
 }
 
+
 /* ======================================================
-   ALTERAÇÃO DO TIPO
+   ALTERAÇÃO DO TIPO DA RECORRÊNCIA
 ====================================================== */
 
 if (recTipo) {
 
-  recTipo.onchange = async () => {
+  recTipo.addEventListener(
+    "change",
+    async () => {
 
-    await carregarCategoriasRecorrencia(
-      recTipo.value
-    );
+      await carregarCategoriasRecorrencia(
+        recTipo.value
+      );
 
-  };
+    }
+  );
+
+}
+
+
+/* ======================================================
+   LIMPAR FORMULÁRIO DE RECORRÊNCIA
+====================================================== */
+
+function limparFormularioRecorrencia() {
+
+  recorrenciaEmEdicao =
+    null;
+
+
+  if (recTipo) {
+
+    recTipo.value =
+      "";
+
+  }
+
+
+  if (recCategoria) {
+
+    recCategoria.innerHTML =
+      "<option value=''>Selecione uma categoria</option>";
+
+  }
+
+
+  if (recDescricao) {
+
+    recDescricao.value =
+      "";
+
+  }
+
+
+  if (recValor) {
+
+    recValor.value =
+      "";
+
+  }
+
+
+  if (recFrequencia) {
+
+    recFrequencia.value =
+      "mensal";
+
+  }
+
+
+  if (recDiaVencimento) {
+
+    recDiaVencimento.value =
+      "";
+
+  }
+
+
+  if (recDataInicio) {
+
+    recDataInicio.value =
+      "";
+
+  }
+
+
+  if (recDataFim) {
+
+    recDataFim.value =
+      "";
+
+  }
+
+
+  if (
+    tituloFormularioRecorrencia
+  ) {
+
+    tituloFormularioRecorrencia.innerText =
+      "Nova recorrência";
+
+  }
+
+
+  if (
+    btnSalvarRecorrencia
+  ) {
+
+    btnSalvarRecorrencia.innerText =
+      "Salvar recorrência";
+
+  }
 
 }
 
@@ -2596,53 +1439,51 @@ if (recTipo) {
 
 async function carregarRecorrencias() {
 
-  if (!listaRecorrencias) return;
-
-  listaRecorrencias.innerHTML = `
-    <div class="recorrencias-vazio">
-      <div class="recorrencias-vazio-icone">↻</div>
-      <strong>Carregando recorrências...</strong>
-      <p>Aguarde enquanto buscamos seus lançamentos automáticos.</p>
-    </div>
-  `;
-
   try {
 
     const {
       data: userData,
       error: userError
-    } = await supabase.auth.getUser();
+    } =
+      await supabase.auth.getUser();
+
 
     if (
       userError ||
       !userData?.user
     ) {
 
-      listaRecorrencias.innerHTML = `
-        <div class="recorrencias-vazio">
-          <div class="recorrencias-vazio-icone">🔒</div>
-          <strong>Sessão expirada</strong>
-          <p>Faça login novamente para acessar suas recorrências.</p>
-        </div>
-      `;
+      recorrenciasDados =
+        [];
+
+      renderizarRecorrencias();
 
       return;
 
     }
 
+
     const {
       data,
       error
-    } = await supabase
-      .from("lancamentos_recorrentes")
-      .select("*")
-      .eq(
-        "user_id",
-        userData.user.id
-      )
-      .order("data_inicio", {
-        ascending: false
-      });
+    } =
+      await supabase
+        .from(
+          "lancamentos_recorrentes"
+        )
+        .select("*")
+        .eq(
+          "user_id",
+          userData.user.id
+        )
+        .order(
+          "created_at",
+          {
+            ascending:
+              false
+          }
+        );
+
 
     if (error) {
 
@@ -2651,39 +1492,36 @@ async function carregarRecorrencias() {
         error
       );
 
-      listaRecorrencias.innerHTML = `
-        <div class="recorrencias-vazio">
-          <div class="recorrencias-vazio-icone">⚠️</div>
-          <strong>Não foi possível carregar</strong>
-          <p>${escapeHtml(error.message)}</p>
-        </div>
-      `;
+      recorrenciasDados =
+        [];
+
+      renderizarRecorrencias();
 
       return;
 
     }
+
 
     recorrenciasDados =
       data || [];
 
-    await carregarNomesCategorias();
+
+    atualizarContadoresRecorrencias();
 
     renderizarRecorrencias();
+
 
   } catch (erro) {
 
     console.error(
-      "Erro inesperado nas recorrências:",
+      "Erro inesperado ao carregar recorrências:",
       erro
     );
 
-    listaRecorrencias.innerHTML = `
-      <div class="recorrencias-vazio">
-        <div class="recorrencias-vazio-icone">⚠️</div>
-        <strong>Erro inesperado</strong>
-        <p>Não foi possível carregar suas recorrências.</p>
-      </div>
-    `;
+    recorrenciasDados =
+      [];
+
+    renderizarRecorrencias();
 
   }
 
@@ -2691,305 +1529,59 @@ async function carregarRecorrencias() {
 
 
 /* ======================================================
-   NOMES DAS CATEGORIAS
+   CONTADORES DE RECORRÊNCIAS
 ====================================================== */
 
-let categoriasRecorrenciaMapa = {};
+function atualizarContadoresRecorrencias() {
+
+  const total =
+    recorrenciasDados.length;
 
 
-async function carregarNomesCategorias() {
+  const ativas =
+    recorrenciasDados.filter(
+      item =>
+        item.ativa === true
+    ).length;
 
-  categoriasRecorrenciaMapa = {};
 
-  if (
-    !recorrenciasDados.length
-  ) {
-    return;
-  }
+  const pausadas =
+    recorrenciasDados.filter(
+      item =>
+        item.ativa === false
+    ).length;
 
-  try {
 
-    const ids =
-      recorrenciasDados
-        .map(item => item.categoria_id)
-        .filter(Boolean);
+  if (totalRecorrencias) {
 
-    if (!ids.length) {
-      return;
-    }
-
-    const {
-      data,
-      error
-    } = await supabase
-      .from("categorias_financeiras")
-      .select("id,nome")
-      .in("id", ids);
-
-    if (error) {
-
-      console.warn(
-        "Não foi possível carregar nomes das categorias:",
-        error
-      );
-
-      return;
-
-    }
-
-    (data || []).forEach(cat => {
-
-      categoriasRecorrenciaMapa[
-        cat.id
-      ] = cat.nome;
-
-    });
-
-  } catch (erro) {
-
-    console.warn(
-      "Erro ao carregar nomes das categorias:",
-      erro
-    );
+    totalRecorrencias.innerText =
+      total;
 
   }
 
-}
 
+  if (recorrenciasAtivas) {
 
-/* ======================================================
-   ESCAPAR HTML
-====================================================== */
-
-function escapeHtml(valor) {
-
-  return String(
-    valor ?? ""
-  )
-    .replaceAll("&", "&amp;")
-    .replaceAll("<", "&lt;")
-    .replaceAll(">", "&gt;")
-    .replaceAll('"', "&quot;")
-    .replaceAll("'", "&#039;");
-
-}
-
-
-/* ======================================================
-   PRÓXIMA DATA
-====================================================== */
-
-function calcularProximoLancamento(
-  recorrencia
-) {
-
-  if (!recorrencia) {
-    return null;
-  }
-
-  const hoje =
-    new Date();
-
-  hoje.setHours(
-    0,
-    0,
-    0,
-    0
-  );
-
-  const dataInicio =
-    recorrencia.data_inicio
-      ? new Date(
-          `${recorrencia.data_inicio}T00:00:00`
-        )
-      : hoje;
-
-  dataInicio.setHours(
-    0,
-    0,
-    0,
-    0
-  );
-
-  let data =
-    new Date(dataInicio);
-
-  const dia =
-    Number(
-      recorrencia.dia_vencimento
-    );
-
-  const frequencia =
-    recorrencia.frequencia;
-
-  if (
-    frequencia === "diaria"
-  ) {
-
-    data = new Date(
-      Math.max(
-        hoje.getTime(),
-        dataInicio.getTime()
-      )
-    );
-
-    if (
-      data < hoje
-    ) {
-      data.setDate(
-        data.getDate() + 1
-      );
-    }
-
-  } else if (
-    frequencia === "semanal"
-  ) {
-
-    while (
-      data < hoje
-    ) {
-
-      data.setDate(
-        data.getDate() + 7
-      );
-
-    }
-
-  } else if (
-    frequencia === "quinzenal"
-  ) {
-
-    while (
-      data < hoje
-    ) {
-
-      data.setDate(
-        data.getDate() + 15
-      );
-
-    }
-
-  } else {
-
-    const mesesPorFrequencia = {
-
-      mensal: 1,
-      bimestral: 2,
-      trimestral: 3,
-      semestral: 6,
-      anual: 12
-
-    };
-
-    const intervalo =
-      mesesPorFrequencia[
-        frequencia
-      ] || 1;
-
-    const anoInicial =
-      dataInicio.getFullYear();
-
-    const mesInicial =
-      dataInicio.getMonth();
-
-    let ano =
-      anoInicial;
-
-    let mes =
-      mesInicial;
-
-    if (
-      Number.isFinite(dia) &&
-      dia >= 1 &&
-      dia <= 31
-    ) {
-
-      data =
-        criarDataSegura(
-          ano,
-          mes,
-          dia
-        );
-
-    }
-
-    while (
-      data < hoje
-    ) {
-
-      mes += intervalo;
-
-      data =
-        criarDataSegura(
-          ano,
-          mes,
-          dia || 1
-        );
-
-    }
+    recorrenciasAtivas.innerText =
+      ativas;
 
   }
 
-  if (
-    recorrencia.data_fim
-  ) {
 
-    const dataFim =
-      new Date(
-        `${recorrencia.data_fim}T00:00:00`
-      );
+  if (recorrenciasPausadas) {
 
-    if (
-      data > dataFim
-    ) {
-      return null;
-    }
+    recorrenciasPausadas.innerText =
+      pausadas;
 
   }
 
-  return data;
 
-}
+  if (contadorRecorrencias) {
 
+    contadorRecorrencias.innerText =
+      total;
 
-/* ======================================================
-   CRIAR DATA SEGURA
-====================================================== */
-
-function criarDataSegura(
-  ano,
-  mes,
-  dia
-) {
-
-  const primeiroDia =
-    new Date(
-      ano,
-      mes,
-      1
-    );
-
-  const ultimoDia =
-    new Date(
-      ano,
-      mes + 1,
-      0
-    ).getDate();
-
-  const diaSeguro =
-    Math.min(
-      Math.max(
-        Number(dia) || 1,
-        1
-      ),
-      ultimoDia
-    );
-
-  return new Date(
-    primeiroDia.getFullYear(),
-    primeiroDia.getMonth(),
-    diaSeguro
-  );
+  }
 
 }
 
@@ -3001,308 +1593,257 @@ function criarDataSegura(
 function renderizarRecorrencias() {
 
   if (!listaRecorrencias) {
+
     return;
-  }
-
-  const total =
-    recorrenciasDados.length;
-
-  const ativas =
-    recorrenciasDados.filter(
-      item => item.ativo === true
-    ).length;
-
-  const pausadas =
-    total - ativas;
-
-  if (totalRecorrencias) {
-    totalRecorrencias.innerText =
-      total;
-  }
-
-  if (recorrenciasAtivas) {
-    recorrenciasAtivas.innerText =
-      ativas;
-  }
-
-  if (recorrenciasPausadas) {
-    recorrenciasPausadas.innerText =
-      pausadas;
-  }
-
-  if (contadorRecorrencias) {
-
-    contadorRecorrencias.innerText =
-      total === 0
-        ? "Nenhuma recorrência cadastrada."
-        : `${total} ${
-            total === 1
-              ? "recorrência cadastrada"
-              : "recorrências cadastradas"
-          }.`;
 
   }
 
-  if (!total) {
+
+  listaRecorrencias.innerHTML =
+    "";
+
+
+  if (
+    !recorrenciasDados.length
+  ) {
 
     listaRecorrencias.innerHTML = `
-      <div class="recorrencias-vazio">
-
-        <div class="recorrencias-vazio-icone">
-          ↻
-        </div>
-
-        <strong>
-          Nenhuma recorrência cadastrada
-        </strong>
-
-        <p>
-          Cadastre sua primeira receita,
-          despesa ou investimento automático
-          usando o formulário acima.
-        </p>
-
+      <div class="empty-state">
+        <p>Nenhuma recorrência cadastrada.</p>
       </div>
     `;
 
+    atualizarContadoresRecorrencias();
+
     return;
 
   }
 
-  listaRecorrencias.innerHTML = "";
 
   recorrenciasDados.forEach(
     recorrencia => {
 
-      const categoriaNome =
-        categoriasRecorrenciaMapa[
-          recorrencia.categoria_id
-        ] ||
-        "Sem categoria";
-
-      const proximo =
-        calcularProximoLancamento(
-          recorrencia
-        );
-
-      const statusAtivo =
-        recorrencia.ativo === true;
-
-      let icone =
-        "↻";
-
-      if (
-        recorrencia.tipo === "Receita"
-      ) {
-        icone = "↑";
-      }
-
-      if (
-        recorrencia.tipo === "Despesa"
-      ) {
-        icone = "↓";
-      }
-
-      if (
-        recorrencia.tipo === "Investimento"
-      ) {
-        icone = "◔";
-      }
-
-      const card =
+      const item =
         document.createElement(
           "div"
         );
 
-      card.className =
+
+      item.className =
         "recorrencia-item";
 
-      card.innerHTML = `
 
-        <div class="recorrencia-item-topo">
-
-          <div class="recorrencia-item-identificacao">
-
-            <div class="recorrencia-item-icone">
-              ${icone}
-            </div>
-
-            <div class="recorrencia-item-titulo">
-
-              <strong>
-                ${escapeHtml(
-                  recorrencia.descricao ||
-                  "Recorrência sem descrição"
-                )}
-              </strong>
-
-              <span>
-                ${escapeHtml(
-                  recorrencia.tipo ||
-                  ""
-                )}
-                •
-                ${escapeHtml(
-                  categoriaNome
-                )}
-              </span>
-
-            </div>
-
-          </div>
+      const ativa =
+        recorrencia.ativa !== false;
 
 
-          <span
-            class="recorrencia-status ${
-              statusAtivo
-                ? "ativa"
-                : "pausada"
-            }"
-          >
-            ${statusAtivo
-              ? "● Ativa"
-              : "● Pausada"}
-          </span>
-
-        </div>
+      const status =
+        ativa
+          ? "Ativa"
+          : "Pausada";
 
 
-        <div class="recorrencia-item-valor">
-
-          ${formatarMoeda(
-            recorrencia.valor
-          )}
-
-        </div>
-
-
-        <div class="recorrencia-item-info">
-
-          <div class="recorrencia-item-info-bloco">
-
-            <span>FREQUÊNCIA</span>
-
-            <strong>
-              ${
-                nomesFrequencia[
-                  recorrencia.frequencia
-                ] ||
-                recorrencia.frequencia ||
-                "-"
-              }
-            </strong>
-
-          </div>
+      const frequencia =
+        nomesFrequencia[
+          recorrencia.frequencia
+        ] ||
+        recorrencia.frequencia ||
+        "Mensal";
 
 
-          <div class="recorrencia-item-info-bloco">
+      item.innerHTML = `
 
-            <span>DIA</span>
-
-            <strong>
-              ${
-                recorrencia.dia_vencimento ||
-                "-"
-              }
-            </strong>
-
-          </div>
-
-
-          <div class="recorrencia-item-info-bloco">
-
-            <span>INÍCIO</span>
-
-            <strong>
-              ${
-                recorrencia.data_inicio
-                  ? formatarData(
-                      recorrencia.data_inicio
-                    )
-                  : "-"
-              }
-            </strong>
-
-          </div>
-
-
-          <div class="recorrencia-item-info-bloco">
-
-            <span>TÉRMINO</span>
-
-            <strong>
-              ${
-                recorrencia.data_fim
-                  ? formatarData(
-                      recorrencia.data_fim
-                    )
-                  : "Sem término"
-              }
-            </strong>
-
-          </div>
-
-        </div>
-
-
-        <div class="recorrencia-proximo">
-
-          <span>
-            PRÓXIMO LANÇAMENTO
-          </span>
+        <div class="recorrencia-info">
 
           <strong>
             ${
-              statusAtivo && proximo
-                ? formatarDataISO(
-                    proximo
-                  )
-                : statusAtivo
-                  ? "Sem próxima ocorrência"
-                  : "Recorrência pausada"
+              recorrencia.descricao ||
+              "Sem descrição"
             }
           </strong>
+
+          <span>
+            ${
+              recorrencia.tipo ||
+              ""
+            }
+            •
+            ${
+              recorrencia.categoria ||
+              "Sem categoria"
+            }
+          </span>
+
+          <span>
+            ${
+              formatarMoeda(
+                recorrencia.valor
+              )
+            }
+          </span>
+
+          <small>
+            ${
+              frequencia
+            }
+            ${
+              recorrencia.dia_vencimento
+                ? `• Dia ${recorrencia.dia_vencimento}`
+                : ""
+            }
+          </small>
 
         </div>
 
 
-        <div class="recorrencia-item-acoes">
+        <div class="recorrencia-status">
+
+          <span class="${
+            ativa
+              ? "status-ativa"
+              : "status-pausada"
+          }">
+
+            ${
+              status
+            }
+
+          </span>
+
+        </div>
+
+
+        <div class="recorrencia-acoes">
 
           <button
             type="button"
-            class="acao-editar"
-            data-id="${recorrencia.id}"
+            class="btn-acao"
+            data-acao="editar"
+            data-id="${
+              recorrencia.id
+            }"
+            title="Editar"
           >
-            ✏️ Editar
+            ✏️
           </button>
 
+
           <button
             type="button"
-            class="acao-pausar"
-            data-id="${recorrencia.id}"
+            class="btn-acao"
+            data-acao="alternar"
+            data-id="${
+              recorrencia.id
+            }"
+            title="${
+              ativa
+                ? "Pausar"
+                : "Ativar"
+            }"
           >
             ${
-              statusAtivo
-                ? "⏸ Pausar"
-                : "▶ Reativar"
+              ativa
+                ? "⏸️"
+                : "▶️"
             }
           </button>
 
+
           <button
             type="button"
-            class="acao-excluir"
-            data-id="${recorrencia.id}"
+            class="btn-acao"
+            data-acao="excluir"
+            data-id="${
+              recorrencia.id
+            }"
+            title="Excluir"
           >
-            🗑 Excluir
+            🗑️
           </button>
 
         </div>
 
       `;
 
+
       listaRecorrencias.appendChild(
-        card
+        item
       );
+
+    }
+  );
+
+
+  atualizarContadoresRecorrencias();
+
+}
+
+
+/* ======================================================
+   EVENTOS DAS RECORRÊNCIAS
+====================================================== */
+
+if (listaRecorrencias) {
+
+  listaRecorrencias.addEventListener(
+    "click",
+    async event => {
+
+      const botao =
+        event.target.closest(
+          "[data-acao]"
+        );
+
+
+      if (!botao) {
+
+        return;
+
+      }
+
+
+      const id =
+        botao.dataset.id;
+
+
+      const acao =
+        botao.dataset.acao;
+
+
+      if (
+        acao ===
+        "editar"
+      ) {
+
+        await editarRecorrencia(
+          id
+        );
+
+      }
+
+
+      if (
+        acao ===
+        "alternar"
+      ) {
+
+        await alternarRecorrencia(
+          id
+        );
+
+      }
+
+
+      if (
+        acao ===
+        "excluir"
+      ) {
+
+        await excluirRecorrencia(
+          id
+        );
+
+      }
 
     }
   );
@@ -3311,138 +1852,174 @@ function renderizarRecorrencias() {
 
 
 /* ======================================================
-   FORMATAR DATA DE OBJETO DATE
+   EDITAR RECORRÊNCIA
 ====================================================== */
 
-function formatarDataISO(
-  data
+async function editarRecorrencia(
+  id
 ) {
 
-  if (!data) return "";
-
-  const dia =
-    String(
-      data.getDate()
-    ).padStart(
-      2,
-      "0"
+  const recorrencia =
+    recorrenciasDados.find(
+      item =>
+        String(
+          item.id
+        ) ===
+        String(
+          id
+        )
     );
 
-  const mes =
-    String(
-      data.getMonth() + 1
-    ).padStart(
-      2,
-      "0"
+
+  if (!recorrencia) {
+
+    alert(
+      "Recorrência não encontrada."
     );
 
-  const ano =
-    data.getFullYear();
+    return;
 
-  return `${dia}/${mes}/${ano}`;
+  }
+
+
+  recorrenciaEmEdicao =
+    recorrencia.id;
+
+
+  if (recTipo) {
+
+    recTipo.value =
+      recorrencia.tipo ||
+      "";
+
+  }
+
+
+  await carregarCategoriasRecorrencia(
+    recorrencia.tipo ||
+      "",
+    recorrencia.categoria ||
+      ""
+  );
+
+
+  if (recDescricao) {
+
+    recDescricao.value =
+      recorrencia.descricao ||
+      "";
+
+  }
+
+
+  if (recValor) {
+
+    recValor.value =
+      recorrencia.valor ||
+      "";
+
+  }
+
+
+  if (recFrequencia) {
+
+    recFrequencia.value =
+      recorrencia.frequencia ||
+      "mensal";
+
+  }
+
+
+  if (recDiaVencimento) {
+
+    recDiaVencimento.value =
+      recorrencia.dia_vencimento ||
+      "";
+
+  }
+
+
+  if (recDataInicio) {
+
+    recDataInicio.value =
+      recorrencia.data_inicio ||
+      "";
+
+  }
+
+
+  if (recDataFim) {
+
+    recDataFim.value =
+      recorrencia.data_fim ||
+      "";
+
+  }
+
+
+  if (
+    tituloFormularioRecorrencia
+  ) {
+
+    tituloFormularioRecorrencia.innerText =
+      "Editar recorrência";
+
+  }
+
+
+  if (
+    btnSalvarRecorrencia
+  ) {
+
+    btnSalvarRecorrencia.innerText =
+      "Atualizar recorrência";
+
+  }
+
+
+  if (
+    recorrencias
+  ) {
+
+    recorrencias.classList.remove(
+      "hidden"
+    );
+
+  }
+
+
+  const formulario =
+    document.getElementById(
+      "formRecorrencia"
+    );
+
+
+  if (formulario) {
+
+    formulario.scrollIntoView({
+      behavior:
+        "smooth",
+
+      block:
+        "start"
+
+    });
+
+  }
 
 }
 
 
 /* ======================================================
-   SALVAR RECORRÊNCIA
+   SALVAR / ATUALIZAR RECORRÊNCIA
 ====================================================== */
 
-if (btnSalvarRecorrencia) {
+if (
+  btnSalvarRecorrencia
+) {
 
   btnSalvarRecorrencia.onclick =
     async () => {
-
-      if (
-        !recTipo?.value ||
-        !recCategoria?.value ||
-        !recDescricao?.value.trim() ||
-        !recValor?.value ||
-        !recFrequencia?.value ||
-        !recDataInicio?.value
-      ) {
-
-        alert(
-          "Preencha tipo, categoria, descrição, valor, frequência e data de início."
-        );
-
-        return;
-
-      }
-
-
-      const valorNumerico =
-        Number(
-          String(
-            recValor.value
-          ).replace(
-            ",",
-            "."
-          )
-        );
-
-
-      if (
-        !Number.isFinite(
-          valorNumerico
-        ) ||
-        valorNumerico <= 0
-      ) {
-
-        alert(
-          "Informe um valor válido."
-        );
-
-        return;
-
-      }
-
-
-      const dia =
-        Number(
-          recDiaVencimento.value
-        );
-
-
-      if (
-        recFrequencia.value === "mensal" ||
-        recFrequencia.value === "bimestral" ||
-        recFrequencia.value === "trimestral" ||
-        recFrequencia.value === "semestral" ||
-        recFrequencia.value === "anual"
-      ) {
-
-        if (
-          !Number.isInteger(dia) ||
-          dia < 1 ||
-          dia > 31
-        ) {
-
-          alert(
-            "Informe um dia de lançamento entre 1 e 31."
-          );
-
-          return;
-
-        }
-
-      }
-
-
-      if (
-        recDataFim.value &&
-        recDataFim.value <
-          recDataInicio.value
-      ) {
-
-        alert(
-          "A data de término não pode ser anterior à data de início."
-        );
-
-        return;
-
-      }
-
 
       try {
 
@@ -3467,58 +2044,157 @@ if (btnSalvarRecorrencia) {
         }
 
 
-        const dadosRecorrencia = {
+        const tipoSelecionado =
+          recTipo?.value ||
+          "";
+
+
+        const categoriaSelecionada =
+          recCategoria?.value ||
+          "";
+
+
+        const descricaoSelecionada =
+          recDescricao?.value?.trim() ||
+          "";
+
+
+        const valorSelecionado =
+          Number(
+            String(
+              recValor?.value ||
+              ""
+            )
+              .replace(
+                /\./g,
+                ""
+              )
+              .replace(
+                ",",
+                "."
+              )
+          );
+
+
+        const frequenciaSelecionada =
+          recFrequencia?.value ||
+          "mensal";
+
+
+        const diaSelecionado =
+          recDiaVencimento?.value ||
+          null;
+
+
+        const dataInicioSelecionada =
+          recDataInicio?.value ||
+          null;
+
+
+        const dataFimSelecionada =
+          recDataFim?.value ||
+          null;
+
+
+        if (!tipoSelecionado) {
+
+          alert(
+            "Selecione o tipo da recorrência."
+          );
+
+          return;
+
+        }
+
+
+        if (!categoriaSelecionada) {
+
+          alert(
+            "Selecione uma categoria."
+          );
+
+          return;
+
+        }
+
+
+        if (!descricaoSelecionada) {
+
+          alert(
+            "Informe uma descrição."
+          );
+
+          return;
+
+        }
+
+
+        if (
+          !valorSelecionado ||
+          valorSelecionado <= 0
+        ) {
+
+          alert(
+            "Informe um valor válido."
+          );
+
+          return;
+
+        }
+
+
+        const registro = {
 
           user_id:
             userData.user.id,
 
           tipo:
-            recTipo.value,
+            tipoSelecionado,
 
-          categoria_id:
-            recCategoria.value,
+          categoria:
+            categoriaSelecionada,
 
           descricao:
-            recDescricao.value.trim(),
+            descricaoSelecionada,
 
           valor:
-            valorNumerico,
+            valorSelecionado,
 
           frequencia:
-            recFrequencia.value,
+            frequenciaSelecionada,
 
           dia_vencimento:
-            Number.isInteger(dia)
-              ? dia
+            diaSelecionado
+              ? Number(
+                  diaSelecionado
+                )
               : null,
 
           data_inicio:
-            recDataInicio.value,
+            dataInicioSelecionada,
 
           data_fim:
-            recDataFim.value ||
-            null,
+            dataFimSelecionada,
 
-          ativo:
+          ativa:
             true
 
         };
-
-
-        let resultado;
 
 
         if (
           recorrenciaEmEdicao
         ) {
 
-          resultado =
+          const {
+            error
+          } =
             await supabase
               .from(
                 "lancamentos_recorrentes"
               )
               .update(
-                dadosRecorrencia
+                registro
               )
               .eq(
                 "id",
@@ -3529,48 +2205,68 @@ if (btnSalvarRecorrencia) {
                 userData.user.id
               );
 
+
+          if (error) {
+
+            console.error(
+              "Erro ao atualizar recorrência:",
+              error
+            );
+
+            alert(
+              "Não foi possível atualizar a recorrência."
+            );
+
+            return;
+
+          }
+
+
+          alert(
+            "Recorrência atualizada com sucesso!"
+          );
+
         } else {
 
-          resultado =
+          const {
+            error
+          } =
             await supabase
               .from(
                 "lancamentos_recorrentes"
               )
               .insert(
-                dadosRecorrencia
+                registro
               );
 
-        }
 
+          if (error) {
 
-        if (
-          resultado.error
-        ) {
+            console.error(
+              "Erro ao criar recorrência:",
+              error
+            );
 
-          console.error(
-            "Erro ao salvar recorrência:",
-            resultado.error
-          );
+            alert(
+              "Não foi possível criar a recorrência."
+            );
+
+            return;
+
+          }
+
 
           alert(
-            `Não foi possível salvar a recorrência.\n\n${resultado.error.message}`
+            "Recorrência criada com sucesso!"
           );
 
-          return;
-
         }
-
-
-        alert(
-          recorrenciaEmEdicao
-            ? "Recorrência atualizada com sucesso!"
-            : "Recorrência criada com sucesso!"
-        );
 
 
         limparFormularioRecorrencia();
 
         await carregarRecorrencias();
+
 
       } catch (erro) {
 
@@ -3588,66 +2284,98 @@ if (btnSalvarRecorrencia) {
     };
 
 }
+]
+          data_fim:
+            recDataFim.value ||
+            null,
+
+          ativo:
+            true
+
+        };
 
 
-/* ======================================================
-   EVENTOS DA LISTA DE RECORRÊNCIAS
-====================================================== */
+        let resposta;
 
-if (listaRecorrencias) {
 
-  listaRecorrencias.addEventListener(
-    "click",
-    async event => {
+        if (
+          recorrenciaEmEdicao
+        ) {
 
-      const btnEditar =
-        event.target.closest(
-          ".acao-editar"
+          resposta =
+            await supabase
+              .from(
+                "lancamentos_recorrentes"
+              )
+              .update(
+                dadosRecorrencia
+              )
+              .eq(
+                "id",
+                recorrenciaEmEdicao
+              )
+              .eq(
+                "user_id",
+                userData.user.id
+              );
+
+
+        } else {
+
+          resposta =
+            await supabase
+              .from(
+                "lancamentos_recorrentes"
+              )
+              .insert(
+                dadosRecorrencia
+              );
+
+        }
+
+
+        if (resposta.error) {
+
+          console.error(
+            "Erro ao salvar recorrência:",
+            resposta.error
+          );
+
+          alert(
+            "Não foi possível salvar a recorrência."
+          );
+
+          return;
+
+        }
+
+
+        alert(
+          recorrenciaEmEdicao
+            ? "Recorrência atualizada com sucesso!"
+            : "Recorrência cadastrada com sucesso!"
         );
 
-      const btnPausar =
-        event.target.closest(
-          ".acao-pausar"
+
+        limparFormularioRecorrencia();
+
+        await carregarRecorrencias();
+
+
+      } catch (erro) {
+
+        console.error(
+          "Erro inesperado ao salvar recorrência:",
+          erro
         );
 
-      const btnExcluir =
-        event.target.closest(
-          ".acao-excluir"
+        alert(
+          "Ocorreu um erro ao salvar a recorrência."
         );
-
-
-      if (btnEditar) {
-
-        await editarRecorrencia(
-          btnEditar.dataset.id
-        );
-
-        return;
 
       }
 
-
-      if (btnPausar) {
-
-        await alternarStatusRecorrencia(
-          btnPausar.dataset.id
-        );
-
-        return;
-
-      }
-
-
-      if (btnExcluir) {
-
-        await excluirRecorrencia(
-          btnExcluir.dataset.id
-        );
-
-      }
-
-    }
-  );
+    };
 
 }
 
@@ -3683,35 +2411,11 @@ async function editarRecorrencia(
     recorrencia.id;
 
 
-  if (tituloFormularioRecorrencia) {
-
-    tituloFormularioRecorrencia.innerText =
-      "Editar recorrência";
-
-  }
-
-
-  if (btnSalvarRecorrencia) {
-
-    btnSalvarRecorrencia.innerText =
-      "Atualizar recorrência";
-
-  }
-
-
-  if (btnCancelarRecorrencia) {
-
-    btnCancelarRecorrencia.classList.remove(
-      "hidden"
-    );
-
-  }
-
-
   if (recTipo) {
 
     recTipo.value =
-      recorrencia.tipo || "";
+      recorrencia.tipo ||
+      "";
 
   }
 
@@ -3744,7 +2448,7 @@ async function editarRecorrencia(
 
     recFrequencia.value =
       recorrencia.frequencia ||
-      "";
+      "mensal";
 
   }
 
@@ -3776,19 +2480,53 @@ async function editarRecorrencia(
   }
 
 
-  window.scrollTo({
-    top: 0,
-    behavior: "smooth"
-  });
+  if (
+    tituloFormularioRecorrencia
+  ) {
+
+    tituloFormularioRecorrencia.innerText =
+      "Editar recorrência";
+
+  }
+
+
+  if (
+    btnSalvarRecorrencia
+  ) {
+
+    btnSalvarRecorrencia.innerText =
+      "Atualizar recorrência";
+
+  }
+
+
+  const formulario =
+    document.getElementById(
+      "formRecorrencia"
+    );
+
+
+  if (formulario) {
+
+    formulario.scrollIntoView({
+      behavior:
+        "smooth",
+
+      block:
+        "start"
+
+    });
+
+  }
 
 }
 
 
 /* ======================================================
-   PAUSAR / REATIVAR
+   ALTERNAR STATUS DA RECORRÊNCIA
 ====================================================== */
 
-async function alternarStatusRecorrencia(
+async function alternarRecorrencia(
   id
 ) {
 
@@ -3812,48 +2550,12 @@ async function alternarStatusRecorrencia(
 
 
   const novoStatus =
-    recorrencia.ativo !== true;
-
-
-  const acao =
-    novoStatus
-      ? "reativar"
-      : "pausar";
-
-
-  const confirmar =
-    confirm(
-      `Deseja ${acao} a recorrência "${recorrencia.descricao || "sem descrição"}"?`
+    !(
+      recorrencia.ativo === true
     );
 
 
-  if (!confirmar) {
-    return;
-  }
-
-
   try {
-
-    const {
-      data: userData,
-      error: userError
-    } =
-      await supabase.auth.getUser();
-
-
-    if (
-      userError ||
-      !userData?.user
-    ) {
-
-      alert(
-        "Sua sessão expirou."
-      );
-
-      return;
-
-    }
-
 
     const {
       error
@@ -3863,28 +2565,26 @@ async function alternarStatusRecorrencia(
           "lancamentos_recorrentes"
         )
         .update({
+
           ativo:
             novoStatus
+
         })
         .eq(
           "id",
-          recorrencia.id
-        )
-        .eq(
-          "user_id",
-          userData.user.id
+          id
         );
 
 
     if (error) {
 
       console.error(
-        "Erro ao alterar status:",
+        "Erro ao alterar status da recorrência:",
         error
       );
 
       alert(
-        `Não foi possível alterar o status.\n\n${error.message}`
+        "Não foi possível alterar o status da recorrência."
       );
 
       return;
@@ -3898,12 +2598,12 @@ async function alternarStatusRecorrencia(
   } catch (erro) {
 
     console.error(
-      "Erro inesperado:",
+      "Erro inesperado ao alterar recorrência:",
       erro
     );
 
     alert(
-      "Ocorreu um erro ao alterar o status."
+      "Ocorreu um erro ao alterar a recorrência."
     );
 
   }
@@ -3919,18 +2619,1110 @@ async function excluirRecorrencia(
   id
 ) {
 
-  const recorrencia =
-    recorrenciasDados.find(
+  if (
+    !confirm(
+      "Tem certeza que deseja excluir esta recorrência?"
+    )
+  ) {
+
+    return;
+
+  }
+
+
+  try {
+
+    const {
+      error
+    } =
+      await supabase
+        .from(
+          "lancamentos_recorrentes"
+        )
+        .delete()
+        .eq(
+          "id",
+          id
+        );
+
+
+    if (error) {
+
+      console.error(
+        "Erro ao excluir recorrência:",
+        error
+      );
+
+      alert(
+        "Não foi possível excluir a recorrência."
+      );
+
+      return;
+
+    }
+
+
+    if (
+      String(
+        recorrenciaEmEdicao
+      ) ===
+      String(id)
+    ) {
+
+      limparFormularioRecorrencia();
+
+    }
+
+
+    await carregarRecorrencias();
+
+
+    alert(
+      "Recorrência excluída com sucesso!"
+    );
+
+
+  } catch (erro) {
+
+    console.error(
+      "Erro inesperado ao excluir recorrência:",
+      erro
+    );
+
+    alert(
+      "Ocorreu um erro ao excluir a recorrência."
+    );
+
+  }
+
+}
+
+
+/* ======================================================
+   EVENTOS DA LISTA DE RECORRÊNCIAS
+====================================================== */
+
+if (listaRecorrencias) {
+
+  listaRecorrencias.addEventListener(
+    "click",
+    async event => {
+
+      const botao =
+        event.target.closest(
+          "button"
+        );
+
+
+      if (!botao) {
+
+        return;
+
+      }
+
+
+      const id =
+        botao.dataset.id;
+
+
+      if (!id) {
+
+        return;
+
+      }
+
+
+      if (
+        botao.classList.contains(
+          "acao-editar"
+        )
+      ) {
+
+        await editarRecorrencia(
+          id
+        );
+
+        return;
+
+      }
+
+
+      if (
+        botao.classList.contains(
+          "acao-pausar"
+        )
+      ) {
+
+        await alternarRecorrencia(
+          id
+        );
+
+        return;
+
+      }
+
+
+      if (
+        botao.classList.contains(
+          "acao-excluir"
+        )
+      ) {
+
+        await excluirRecorrencia(
+          id
+        );
+
+        return;
+
+      }
+
+    }
+  );
+
+}
+
+
+/* ======================================================
+   NAVEGAÇÃO — RECORRÊNCIAS
+====================================================== */
+
+if (navRecorrencias) {
+
+  navRecorrencias.addEventListener(
+    "click",
+    async () => {
+
+      if (dashboard) {
+
+        dashboard.classList.add(
+          "hidden"
+        );
+
+      }
+
+      if (lancamentos) {
+
+        lancamentos.classList.add(
+          "hidden"
+        );
+
+      }
+
+      if (recorrencias) {
+
+        recorrencias.classList.remove(
+          "hidden"
+        );
+
+      }
+
+      await carregarCategoriasRecorrencia(
+        recTipo?.value || ""
+      );
+
+      await carregarRecorrencias();
+
+    }
+  );
+
+}
+      alert(
+        `Não foi possível excluir a recorrência.\n\n${error.message}`
+      );
+
+      return;
+
+    }
+
+
+    await carregarRecorrencias();
+
+
+  } catch (erro) {
+
+    console.error(
+      "Erro inesperado ao excluir recorrência:",
+      erro
+    );
+
+    alert(
+      "Ocorreu um erro ao excluir a recorrência."
+    );
+
+  }
+
+}
+
+
+/* ======================================================
+   CANCELAR EDIÇÃO DE RECORRÊNCIA
+====================================================== */
+
+if (btnCancelarRecorrencia) {
+
+  btnCancelarRecorrencia.onclick =
+    () => {
+
+      limparFormularioRecorrencia();
+
+    };
+
+}
+
+
+/* ======================================================
+   NAVEGAÇÃO — LANÇAMENTOS
+====================================================== */
+
+if (navLancamentos) {
+
+  navLancamentos.addEventListener(
+    "click",
+    () => {
+
+      if (dashboard) {
+
+        dashboard.classList.add(
+          "hidden"
+        );
+
+      }
+
+      if (recorrencias) {
+
+        recorrencias.classList.add(
+          "hidden"
+        );
+
+      }
+
+      if (lancamentos) {
+
+        lancamentos.classList.remove(
+          "hidden"
+        );
+
+      }
+
+      fecharMenuMobile();
+
+    }
+  );
+
+}
+
+
+/* ======================================================
+   NAVEGAÇÃO — DASHBOARD
+====================================================== */
+
+if (navDashboard) {
+
+  navDashboard.addEventListener(
+    "click",
+    () => {
+
+      if (lancamentos) {
+
+        lancamentos.classList.add(
+          "hidden"
+        );
+
+      }
+
+      if (recorrencias) {
+
+        recorrencias.classList.add(
+          "hidden"
+        );
+
+      }
+
+      if (dashboard) {
+
+        dashboard.classList.remove(
+          "hidden"
+        );
+
+      }
+
+      atualizarDashboard();
+
+      fecharMenuMobile();
+
+    }
+  );
+
+}
+
+
+/* ======================================================
+   NAVEGAÇÃO — CATEGORIAS
+====================================================== */
+
+if (navCategorias) {
+
+  navCategorias.addEventListener(
+    "click",
+    async () => {
+
+      if (dashboard) {
+
+        dashboard.classList.add(
+          "hidden"
+        );
+
+      }
+
+      if (lancamentos) {
+
+        lancamentos.classList.add(
+          "hidden"
+        );
+
+      }
+
+      if (recorrencias) {
+
+        recorrencias.classList.add(
+          "hidden"
+        );
+
+      }
+
+      if (categoriasView) {
+
+        categoriasView.classList.remove(
+          "hidden"
+        );
+
+      }
+
+      fecharMenuMobile();
+
+      await carregarCategoriasFinanceiras();
+
+      renderizarCategorias();
+
+    }
+  );
+
+}
+
+
+/* ======================================================
+   CARREGAR CATEGORIAS FINANCEIRAS
+====================================================== */
+
+async function carregarCategoriasFinanceiras() {
+
+  try {
+
+    const {
+      data: userData,
+      error: userError
+    } =
+      await supabase.auth.getUser();
+
+
+    if (
+      userError ||
+      !userData?.user
+    ) {
+
+      categoriasFinanceiras =
+        [];
+
+      categoriasRecorrenciaMapa =
+        {};
+
+      return;
+
+    }
+
+
+    const {
+      data,
+      error
+    } =
+      await supabase
+        .from(
+          "categorias"
+        )
+        .select("*")
+        .eq(
+          "user_id",
+          userData.user.id
+        )
+        .order(
+          "tipo",
+          {
+            ascending:
+              true
+          }
+        )
+        .order(
+          "nome",
+          {
+            ascending:
+              true
+          }
+        );
+
+
+    if (error) {
+
+      console.error(
+        "Erro ao carregar categorias:",
+        error
+      );
+
+      categoriasFinanceiras =
+        [];
+
+      categoriasRecorrenciaMapa =
+        {};
+
+      return;
+
+    }
+
+
+    categoriasFinanceiras =
+      data || [];
+
+
+    categoriasRecorrenciaMapa =
+      {};
+
+
+    categoriasFinanceiras.forEach(
+      categoria => {
+
+        categoriasRecorrenciaMapa[
+          categoria.id
+        ] =
+          categoria.nome;
+
+      }
+    );
+
+
+  } catch (erro) {
+
+    console.error(
+      "Erro inesperado ao carregar categorias:",
+      erro
+    );
+
+    categoriasFinanceiras =
+      [];
+
+    categoriasRecorrenciaMapa =
+      {};
+
+  }
+
+}
+
+
+/* ======================================================
+   RENDERIZAR CATEGORIAS
+====================================================== */
+
+function renderizarCategorias() {
+
+  if (!listaCategorias) {
+
+    return;
+
+  }
+
+
+  listaCategorias.innerHTML =
+    "";
+
+
+  if (
+    !categoriasFinanceiras.length
+  ) {
+
+    listaCategorias.innerHTML = `
+
+      <div class="categorias-vazio">
+
+        <div class="categorias-vazio-icone">
+          📂
+        </div>
+
+        <strong>
+          Nenhuma categoria cadastrada
+        </strong>
+
+        <p>
+          Cadastre categorias para organizar
+          suas receitas, despesas e investimentos.
+        </p>
+
+      </div>
+
+    `;
+
+    return;
+
+  }
+
+
+  const grupos = {
+
+    Receita: [],
+
+    Despesa: [],
+
+    Investimento: []
+
+  };
+
+
+  categoriasFinanceiras.forEach(
+    categoria => {
+
+      if (
+        grupos[categoria.tipo]
+      ) {
+
+        grupos[categoria.tipo]
+          .push(
+            categoria
+          );
+
+      }
+
+    }
+  );
+
+
+  Object.keys(
+    grupos
+  ).forEach(
+    tipo => {
+
+      const categorias =
+        grupos[tipo];
+
+
+      if (
+        !categorias.length
+      ) {
+
+        return;
+
+      }
+
+
+      const grupo =
+        document.createElement(
+          "div"
+        );
+
+
+      grupo.className =
+        "categoria-grupo";
+
+
+      grupo.innerHTML = `
+
+        <div class="categoria-grupo-titulo">
+
+          <h3>
+            ${escapeHtml(tipo)}
+          </h3>
+
+          <span>
+            ${categorias.length}
+            ${
+              categorias.length === 1
+                ? "categoria"
+                : "categorias"
+            }
+          </span>
+
+        </div>
+
+      `;
+
+
+      categorias.forEach(
+        categoria => {
+
+          const item =
+            document.createElement(
+              "div"
+            );
+
+
+          item.className =
+            "categoria-item";
+
+
+          item.innerHTML = `
+
+            <div class="categoria-item-info">
+
+              <div
+                class="categoria-item-icone"
+              >
+                ${categoria.icone || "📁"}
+              </div>
+
+              <div>
+
+                <strong>
+                  ${
+                    escapeHtml(
+                      categoria.nome
+                    )
+                  }
+                </strong>
+
+                ${
+                  categoria.descricao
+                    ? `
+                      <small>
+                        ${
+                          escapeHtml(
+                            categoria.descricao
+                          )
+                        }
+                      </small>
+                    `
+                    : ""
+                }
+
+              </div>
+
+            </div>
+
+
+            <div class="categoria-item-acoes">
+
+              <button
+                type="button"
+                class="acao-editar-categoria"
+                data-id="${
+                  categoria.id
+                }"
+              >
+                ✏️
+              </button>
+
+              <button
+                type="button"
+                class="acao-excluir-categoria"
+                data-id="${
+                  categoria.id
+                }"
+              >
+                🗑️
+              </button>
+
+            </div>
+
+          `;
+
+
+          grupo.appendChild(
+            item
+          );
+
+        }
+      );
+
+
+      listaCategorias.appendChild(
+        grupo
+      );
+
+    }
+  );
+
+}
+
+
+/* ======================================================
+   FORMULÁRIO DE CATEGORIA
+====================================================== */
+
+function limparFormularioCategoria() {
+
+  categoriaEmEdicao =
+    null;
+
+
+  if (catTipo) {
+
+    catTipo.value =
+      "";
+
+  }
+
+
+  if (catNome) {
+
+    catNome.value =
+      "";
+
+  }
+
+
+  if (catDescricao) {
+
+    catDescricao.value =
+      "";
+
+  }
+
+
+  if (catIcone) {
+
+    catIcone.value =
+      "";
+
+  }
+
+
+  if (tituloFormularioCategoria) {
+
+    tituloFormularioCategoria.innerText =
+      "Nova categoria";
+
+  }
+
+
+  if (btnSalvarCategoria) {
+
+    btnSalvarCategoria.innerText =
+      "Salvar categoria";
+
+  }
+
+
+  if (btnCancelarCategoria) {
+
+    btnCancelarCategoria.classList.add(
+      "hidden"
+    );
+
+  }
+
+}
+
+
+/* ======================================================
+   SALVAR CATEGORIA
+====================================================== */
+
+if (btnSalvarCategoria) {
+
+  btnSalvarCategoria.onclick =
+    async () => {
+
+      const tipoSelecionado =
+        catTipo?.value ||
+        "";
+
+
+      const nomeSelecionado =
+        catNome?.value?.trim() ||
+        "";
+
+
+      const descricaoSelecionada =
+        catDescricao?.value?.trim() ||
+        "";
+
+
+      const iconeSelecionado =
+        catIcone?.value?.trim() ||
+        "📁";
+
+
+      if (!tipoSelecionado) {
+
+        alert(
+          "Selecione o tipo da categoria."
+        );
+
+        return;
+
+      }
+
+
+      if (!nomeSelecionado) {
+
+        alert(
+          "Informe o nome da categoria."
+        );
+
+        return;
+
+      }
+
+
+      try {
+
+        const {
+          data: userData,
+          error: userError
+        } =
+          await supabase.auth.getUser();
+
+
+        if (
+          userError ||
+          !userData?.user
+        ) {
+
+          alert(
+            "Sua sessão expirou. Faça login novamente."
+          );
+
+          return;
+
+        }
+
+
+        const dadosCategoria = {
+
+          user_id:
+            userData.user.id,
+
+          tipo:
+            tipoSelecionado,
+
+          nome:
+            nomeSelecionado,
+
+          descricao:
+            descricaoSelecionada,
+
+          icone:
+            iconeSelecionado
+
+        };
+
+
+        let resultado;
+
+
+        if (
+          categoriaEmEdicao
+        ) {
+
+          resultado =
+            await supabase
+              .from(
+                "categorias"
+              )
+              .update(
+                dadosCategoria
+              )
+              .eq(
+                "id",
+                categoriaEmEdicao
+              )
+              .eq(
+                "user_id",
+                userData.user.id
+              );
+
+        } else {
+
+          resultado =
+            await supabase
+              .from(
+                "categorias"
+              )
+              .insert(
+                dadosCategoria
+              );
+
+        }
+
+
+        if (
+          resultado.error
+        ) {
+
+          console.error(
+            "Erro ao salvar categoria:",
+            resultado.error
+          );
+
+          alert(
+            `Não foi possível salvar a categoria.\n\n${resultado.error.message}`
+          );
+
+          return;
+
+        }
+
+
+        alert(
+          categoriaEmEdicao
+            ? "Categoria atualizada com sucesso!"
+            : "Categoria criada com sucesso!"
+        );
+
+
+        limparFormularioCategoria();
+
+        await carregarCategoriasFinanceiras();
+
+        renderizarCategorias();
+
+        atualizarSelectCategorias();
+
+      } catch (erro) {
+
+        console.error(
+          "Erro inesperado ao salvar categoria:",
+          erro
+        );
+
+        alert(
+          "Ocorreu um erro ao salvar a categoria."
+        );
+
+      }
+
+    };
+
+}
+
+
+/* ======================================================
+   EDITAR CATEGORIA
+====================================================== */
+
+async function editarCategoria(
+  id
+) {
+
+  const categoriaEncontrada =
+    categoriasFinanceiras.find(
       item =>
         String(item.id) ===
         String(id)
     );
 
 
-  if (!recorrencia) {
+  if (
+    !categoriaEncontrada
+  ) {
 
     alert(
-      "Recorrência não encontrada."
+      "Categoria não encontrada."
+    );
+
+    return;
+
+  }
+
+
+  categoriaEmEdicao =
+    categoriaEncontrada.id;
+
+
+  if (catTipo) {
+
+    catTipo.value =
+      categoriaEncontrada.tipo ||
+      "";
+
+  }
+
+
+  if (catNome) {
+
+    catNome.value =
+      categoriaEncontrada.nome ||
+      "";
+
+  }
+
+
+  if (catDescricao) {
+
+    catDescricao.value =
+      categoriaEncontrada.descricao ||
+      "";
+
+  }
+
+
+  if (catIcone) {
+
+    catIcone.value =
+      categoriaEncontrada.icone ||
+      "";
+
+  }
+
+
+  if (
+    tituloFormularioCategoria
+  ) {
+
+    tituloFormularioCategoria.innerText =
+      "Editar categoria";
+
+  }
+
+
+  if (
+    btnSalvarCategoria
+  ) {
+
+    btnSalvarCategoria.innerText =
+      "Atualizar categoria";
+
+  }
+
+
+  if (
+    btnCancelarCategoria
+  ) {
+
+    btnCancelarCategoria.classList.remove(
+      "hidden"
+    );
+
+  }
+
+}
+/* ======================================================
+   EXCLUIR CATEGORIA
+====================================================== */
+
+async function excluirCategoria(
+  id
+) {
+
+  const categoriaEncontrada =
+    categoriasFinanceiras.find(
+      item =>
+        String(item.id) ===
+        String(id)
+    );
+
+
+  if (
+    !categoriaEncontrada
+  ) {
+
+    alert(
+      "Categoria não encontrada."
     );
 
     return;
@@ -3940,12 +3732,14 @@ async function excluirRecorrencia(
 
   const confirmar =
     confirm(
-      `Tem certeza que deseja excluir a recorrência "${recorrencia.descricao || "sem descrição"}"?\n\nOs lançamentos financeiros que já foram gerados NÃO serão apagados.`
+      `Deseja realmente excluir a categoria "${categoriaEncontrada.nome}"?`
     );
 
 
   if (!confirmar) {
+
     return;
+
   }
 
 
@@ -3964,7 +3758,113 @@ async function excluirRecorrencia(
     ) {
 
       alert(
-        "Sua sessão expirou."
+        "Sua sessão expirou. Faça login novamente."
+      );
+
+      return;
+
+    }
+
+
+    /*
+     * Verifica se existem lançamentos
+     * utilizando esta categoria.
+     */
+
+    const {
+      data: lancamentosCategoria,
+      error: erroLancamentos
+    } =
+      await supabase
+        .from(
+          "lancamentos"
+        )
+        .select(
+          "id"
+        )
+        .eq(
+          "user_id",
+          userData.user.id
+        )
+        .eq(
+          "categoria_id",
+          id
+        )
+        .limit(
+          1
+        );
+
+
+    if (erroLancamentos) {
+
+      console.warn(
+        "Não foi possível verificar os lançamentos da categoria:",
+        erroLancamentos
+      );
+
+    }
+
+
+    if (
+      lancamentosCategoria &&
+      lancamentosCategoria.length > 0
+    ) {
+
+      alert(
+        "Esta categoria possui lançamentos vinculados e não pode ser excluída."
+      );
+
+      return;
+
+    }
+
+
+    /*
+     * Verifica também recorrências
+     * vinculadas à categoria.
+     */
+
+    const {
+      data: recorrenciasCategoria,
+      error: erroRecorrencias
+    } =
+      await supabase
+        .from(
+          "lancamentos_recorrentes"
+        )
+        .select(
+          "id"
+        )
+        .eq(
+          "user_id",
+          userData.user.id
+        )
+        .eq(
+          "categoria_id",
+          id
+        )
+        .limit(
+          1
+        );
+
+
+    if (erroRecorrencias) {
+
+      console.warn(
+        "Não foi possível verificar as recorrências da categoria:",
+        erroRecorrencias
+      );
+
+    }
+
+
+    if (
+      recorrenciasCategoria &&
+      recorrenciasCategoria.length > 0
+    ) {
+
+      alert(
+        "Esta categoria possui recorrências vinculadas e não pode ser excluída."
       );
 
       return;
@@ -3977,12 +3877,12 @@ async function excluirRecorrencia(
     } =
       await supabase
         .from(
-          "lancamentos_recorrentes"
+          "categorias"
         )
         .delete()
         .eq(
           "id",
-          recorrencia.id
+          id
         )
         .eq(
           "user_id",
@@ -3993,11 +3893,545 @@ async function excluirRecorrencia(
     if (error) {
 
       console.error(
-        "Erro ao excluir recorrência:",
+        "Erro ao excluir categoria:",
         error
       );
 
       alert(
+        `Não foi possível excluir a categoria.\n\n${error.message}`
+      );
+
+      return;
+
+    }
+
+
+    if (
+      String(
+        categoriaEmEdicao
+      ) ===
+      String(id)
+    ) {
+
+      limparFormularioCategoria();
+
+    }
+
+
+    await carregarCategoriasFinanceiras();
+
+    renderizarCategorias();
+
+    atualizarSelectCategorias();
+
+
+    alert(
+      "Categoria excluída com sucesso!"
+    );
+
+
+  } catch (erro) {
+
+    console.error(
+      "Erro inesperado ao excluir categoria:",
+      erro
+    );
+
+    alert(
+      "Ocorreu um erro ao excluir a categoria."
+    );
+
+  }
+
+}
+
+
+/* ======================================================
+   CANCELAR EDIÇÃO DE CATEGORIA
+====================================================== */
+
+if (
+  btnCancelarCategoria
+) {
+
+  btnCancelarCategoria.onclick =
+    () => {
+
+      limparFormularioCategoria();
+
+    };
+
+}
+
+
+/* ======================================================
+   EVENTOS DA LISTA DE CATEGORIAS
+====================================================== */
+
+if (listaCategorias) {
+
+  listaCategorias.addEventListener(
+    "click",
+    async event => {
+
+      const botao =
+        event.target.closest(
+          "button"
+        );
+
+
+      if (!botao) {
+
+        return;
+
+      }
+
+
+      const id =
+        botao.dataset.id;
+
+
+      if (!id) {
+
+        return;
+
+      }
+
+
+      if (
+        botao.classList.contains(
+          "acao-editar-categoria"
+        )
+      ) {
+
+        await editarCategoria(
+          id
+        );
+
+        return;
+
+      }
+
+
+      if (
+        botao.classList.contains(
+          "acao-excluir-categoria"
+        )
+      ) {
+
+        await excluirCategoria(
+          id
+        );
+
+        return;
+
+      }
+
+    }
+  );
+
+}
+
+
+/* ======================================================
+   ATUALIZAR SELECTS DE CATEGORIAS
+====================================================== */
+
+function atualizarSelectCategorias(
+  tipoSelecionado = null,
+  categoriaSelecionada = null
+) {
+
+  if (!categoria) {
+
+    return;
+
+  }
+
+
+  const tipoAtual =
+    tipoSelecionado ||
+    tipo?.value ||
+    "";
+
+
+  categoria.innerHTML = `
+    <option value="">
+      Selecione uma categoria
+    </option>
+  `;
+
+
+  if (!tipoAtual) {
+
+    categoria.disabled =
+      true;
+
+    return;
+
+  }
+
+
+  categoria.disabled =
+    false;
+
+
+  const categoriasDoTipo =
+    categoriasFinanceiras.filter(
+      item =>
+        item.tipo ===
+        tipoAtual
+    );
+
+
+  categoriasDoTipo.forEach(
+    cat => {
+
+      const option =
+        document.createElement(
+          "option"
+        );
+
+
+      option.value =
+        cat.id;
+
+
+      option.textContent =
+        cat.nome;
+
+
+      if (
+        categoriaSelecionada &&
+        (
+          String(
+            categoriaSelecionada
+          ) ===
+          String(
+            cat.id
+          ) ||
+          String(
+            categoriaSelecionada
+          ) ===
+          String(
+            cat.nome
+          )
+        )
+      ) {
+
+        option.selected =
+          true;
+
+      }
+
+
+      categoria.appendChild(
+        option
+      );
+
+    }
+  );
+
+
+  if (
+    categoriasDoTipo.length ===
+    0
+  ) {
+
+    const option =
+      document.createElement(
+        "option"
+      );
+
+
+    option.value =
+      "";
+
+
+    option.textContent =
+      "Nenhuma categoria cadastrada";
+
+
+    option.disabled =
+      true;
+
+
+    categoria.appendChild(
+      option
+    );
+
+  }
+
+}
+
+
+/* ======================================================
+   ALTERAÇÃO DO TIPO DO LANÇAMENTO
+====================================================== */
+
+if (tipo) {
+
+  tipo.addEventListener(
+    "change",
+    () => {
+
+      atualizarSelectCategorias(
+        tipo.value
+      );
+
+    }
+  );
+
+}
+
+
+/* ======================================================
+   MÁSCARA DE VALOR
+====================================================== */
+
+if (valor) {
+
+  valor.addEventListener(
+    "input",
+    () => {
+
+      let numero =
+        valor.value.replace(
+          /\D/g,
+          ""
+        );
+
+
+      if (!numero) {
+
+        valor.value =
+          "";
+
+        return;
+
+      }
+
+
+      numero =
+        Number(numero) /
+        100;
+
+
+      valor.value =
+        numero.toLocaleString(
+          "pt-BR",
+          {
+            minimumFractionDigits:
+              2,
+
+            maximumFractionDigits:
+              2
+          }
+        );
+
+    }
+  );
+
+}
+
+
+/* ======================================================
+   FORMATAR VALOR AO EDITAR
+====================================================== */
+
+function formatarInputValor(
+  numero
+) {
+
+  if (
+    numero === null ||
+    numero === undefined ||
+    numero === ""
+  ) {
+
+    return "";
+
+  }
+
+
+  const valorNumerico =
+    Number(numero);
+
+
+  if (
+    Number.isNaN(
+      valorNumerico
+    )
+  ) {
+
+    return "";
+
+  }
+
+
+  return valorNumerico.toLocaleString(
+    "pt-BR",
+    {
+
+      minimumFractionDigits:
+        2,
+
+      maximumFractionDigits:
+        2
+
+    }
+  );
+
+}
+
+
+/* ======================================================
+   FORMATAÇÃO DE MOEDA
+====================================================== */
+
+function formatarMoeda(
+  valorNumerico
+) {
+
+  const numero =
+    Number(
+      valorNumerico
+    ) || 0;
+
+
+  return numero.toLocaleString(
+    "pt-BR",
+    {
+
+      style:
+        "currency",
+
+      currency:
+        "BRL"
+
+    }
+  );
+
+}
+
+
+/* ======================================================
+   FORMATAÇÃO DE DATA
+====================================================== */
+
+function formatarData(
+  dataValor
+) {
+
+  if (!dataValor) {
+
+    return "";
+
+  }
+
+
+  const partes =
+    String(
+      dataValor
+    ).split(
+      "-"
+    );
+
+
+  if (
+    partes.length ===
+    3
+  ) {
+
+    return `${partes[2]}/${partes[1]}/${partes[0]}`;
+
+  }
+
+
+  return String(
+    dataValor
+  );
+
+}
+
+
+/* ======================================================
+   FORMATAR PERÍODO
+====================================================== */
+
+function formatarPeriodo(
+  valorMes
+) {
+
+  if (!valorMes) {
+
+    return "Todos os períodos";
+
+  }
+
+
+  const partes =
+    String(
+      valorMes
+    ).split(
+      "-"
+    );
+
+
+  if (
+    partes.length !==
+    2
+  ) {
+
+    return valorMes;
+
+  }
+
+
+  const ano =
+    Number(
+      partes[0]
+    );
+
+
+  const mes =
+    Number(
+      partes[1]
+    );
+
+
+  if (
+    !ano ||
+    !mes
+  ) {
+
+    return valorMes;
+
+  }
+
+
+  const data =
+    new Date(
+      ano,
+      mes - 1,
+      1
+    );
+
+
+  return data.toLocaleDateString(
+    "pt-BR",
+    {
+
+      month:
+        "long",
+
+      year:
+        "numeric"
+
+    }
+  );
+
+}
         `Não foi possível excluir a recorrência.\n\n${error.message}`
       );
 
@@ -4161,8 +4595,10 @@ function obterDataHoje() {
   const agora =
     new Date();
 
+
   const ano =
     agora.getFullYear();
+
 
   const mes =
     String(
@@ -4172,6 +4608,7 @@ function obterDataHoje() {
       "0"
     );
 
+
   const dia =
     String(
       agora.getDate()
@@ -4179,6 +4616,7 @@ function obterDataHoje() {
       2,
       "0"
     );
+
 
   return `${ano}-${mes}-${dia}`;
 
@@ -4194,4 +4632,5 @@ if (recTipo) {
   carregarCategoriasRecorrencia();
 
 }
+
 });
