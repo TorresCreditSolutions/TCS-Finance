@@ -2143,148 +2143,203 @@ if (
         }
 
 
-        const registro = {
+        /* ======================================================
+   MONTAR REGISTRO DA RECORRÊNCIA
+====================================================== */
 
-          user_id:
-            userData.user.id,
-
-          tipo:
-            tipoSelecionado,
-
-          categoria:
-            categoriaSelecionada,
-
-          descricao:
-            descricaoSelecionada,
-
-          valor:
-            valorSelecionado,
-
-          frequencia:
-            frequenciaSelecionada,
-
-          dia_vencimento:
-            diaSelecionado
-              ? Number(
-                  diaSelecionado
-                )
-              : null,
-
-          data_inicio:
-            dataInicioSelecionada,
-
-          data_fim:
-            dataFimSelecionada,
-
-          ativa:
-            true
-
-        };
+const tipoNormalizado =
+  normalizarTipoCategoria(
+    tipoSelecionado
+  ).toLowerCase();
 
 
-        if (
-          recorrenciaEmEdicao
-        ) {
+const registro = {
 
-          const {
-            error
-          } =
-            await supabase
-              .from(
-                "lancamentos_recorrentes"
-              )
-              .update(
-                registro
-              )
-              .eq(
-                "id",
-                recorrenciaEmEdicao
-              )
-              .eq(
-                "user_id",
-                userData.user.id
-              );
+  user_id:
+    userData.user.id,
 
+  tipo:
+    tipoNormalizado,
 
-          if (error) {
+  categoria:
+    categoriaSelecionada,
 
-            console.error(
-              "Erro ao atualizar recorrência:",
-              error
-            );
+  descricao:
+    descricaoSelecionada,
 
-            alert(
-              "Não foi possível atualizar a recorrência."
-            );
+  valor:
+    valorSelecionado,
 
-            return;
+  frequencia:
+    frequenciaSelecionada,
 
-          }
+  dia_vencimento:
+    diaSelecionado
+      ? Number(
+          diaSelecionado
+        )
+      : null,
 
+  data_inicio:
+    dataInicioSelecionada,
 
-          alert(
-            "Recorrência atualizada com sucesso!"
-          );
+  data_fim:
+    dataFimSelecionada,
 
-        } else {
+  ativa:
+    true
 
-          const {
-            error
-          } =
-            await supabase
-              .from(
-                "lancamentos_recorrentes"
-              )
-              .insert(
-                registro
-              );
+};
 
 
-          if (error) {
+/* ======================================================
+   VALIDAR TIPO DA RECORRÊNCIA
+====================================================== */
 
-            console.error(
-              "Erro ao criar recorrência:",
-              error
-            );
+if (
+  ![
+    "receita",
+    "despesa",
+    "investimento"
+  ].includes(
+    tipoNormalizado
+  )
+) {
 
-            alert(
-              "Não foi possível criar a recorrência."
-            );
+  alert(
+    "Tipo de recorrência inválido."
+  );
 
-            return;
+  console.error(
+    "Tipo de recorrência recebido:",
+    tipoSelecionado
+  );
 
-          }
-
-
-          alert(
-            "Recorrência criada com sucesso!"
-          );
-
-        }
-
-
-        limparFormularioRecorrencia();
-
-        await carregarRecorrencias();
-
-
-      } catch (erro) {
-
-        console.error(
-          "Erro inesperado ao salvar recorrência:",
-          erro
-        );
-
-        alert(
-          "Ocorreu um erro ao salvar a recorrência."
-        );
-
-      }
-
-    };
+  return;
 
 }
-]
+
+
+/* ======================================================
+   ATUALIZAR RECORRÊNCIA
+====================================================== */
+
+if (
+  recorrenciaEmEdicao
+) {
+
+  const {
+    error
+  } =
+    await supabase
+      .from(
+        "lancamentos_recorrentes"
+      )
+      .update(
+        registro
+      )
+      .eq(
+        "id",
+        recorrenciaEmEdicao
+      )
+      .eq(
+        "user_id",
+        userData.user.id
+      );
+
+
+  if (
+    error
+  ) {
+
+    console.error(
+      "Erro ao atualizar recorrência:",
+      error
+    );
+
+    alert(
+      `Não foi possível atualizar a recorrência.\n\n${error.message}`
+    );
+
+    return;
+
+  }
+
+
+  alert(
+    "Recorrência atualizada com sucesso!"
+  );
+
+
+} else {
+
+
+  /* ==================================================
+     CRIAR NOVA RECORRÊNCIA
+  ================================================== */
+
+  const {
+    error
+  } =
+    await supabase
+      .from(
+        "lancamentos_recorrentes"
+      )
+      .insert(
+        registro
+      );
+
+
+  if (
+    error
+  ) {
+
+    console.error(
+      "Erro ao criar recorrência:",
+      error
+    );
+
+    alert(
+      `Não foi possível criar a recorrência.\n\n${error.message}`
+    );
+
+    return;
+
+  }
+
+
+  alert(
+    "Recorrência criada com sucesso!"
+  );
+
+}
+
+
+/* ======================================================
+   FINALIZAÇÃO
+====================================================== */
+
+limparFormularioRecorrencia();
+
+await carregarRecorrencias();
+
+
+} catch (
+  erro
+) {
+
+  console.error(
+    "Erro inesperado ao salvar recorrência:",
+    erro
+  );
+
+  alert(
+    "Ocorreu um erro ao salvar a recorrência."
+  );
+
+}
+
+};
           data_fim:
             recDataFim.value ||
             null,
