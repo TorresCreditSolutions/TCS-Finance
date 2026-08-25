@@ -3755,6 +3755,521 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   }
 
+  /* =========================================================
+   CÁLCULO DE PRÓXIMO LANÇAMENTO DA RECORRÊNCIA
+   ========================================================= */
+
+function criarDataLocal(dataString) {
+
+  if (!dataString) {
+    return null;
+  }
+
+  const partes =
+    String(dataString)
+      .split("-")
+      .map(Number);
+
+  if (partes.length !== 3) {
+    return null;
+  }
+
+  const ano =
+    partes[0];
+
+  const mes =
+    partes[1];
+
+  const dia =
+    partes[2];
+
+  if (
+    !ano ||
+    !mes ||
+    !dia
+  ) {
+    return null;
+  }
+
+  const data =
+    new Date(
+      ano,
+      mes - 1,
+      dia
+    );
+
+  if (
+    Number.isNaN(
+      data.getTime()
+    )
+  ) {
+    return null;
+  }
+
+  return data;
+
+}
+
+
+function formatarDataISO(
+  data
+) {
+
+  if (!data) {
+    return "";
+  }
+
+  const ano =
+    data.getFullYear();
+
+  const mes =
+    String(
+      data.getMonth() + 1
+    ).padStart(
+      2,
+      "0"
+    );
+
+  const dia =
+    String(
+      data.getDate()
+    ).padStart(
+      2,
+      "0"
+    );
+
+  return `${ano}-${mes}-${dia}`;
+
+}
+
+
+/*
+ * Retorna a data de hoje sem horário.
+ */
+function obterDataHojeLocal() {
+
+  const hoje =
+    new Date();
+
+  return new Date(
+    hoje.getFullYear(),
+    hoje.getMonth(),
+    hoje.getDate()
+  );
+
+}
+
+
+/*
+ * Adiciona meses sem deixar a data "escapar"
+ * para o mês seguinte.
+ *
+ * Exemplo:
+ *
+ * 31/01 + 1 mês
+ *
+ * não vira 03/03.
+ *
+ * Vira 28/02 ou 29/02.
+ */
+function adicionarMesesSeguro(
+  data,
+  quantidade,
+  diaPreferencial
+) {
+
+  const anoOriginal =
+    data.getFullYear();
+
+  const mesOriginal =
+    data.getMonth();
+
+  const novoMes =
+    mesOriginal +
+    quantidade;
+
+  const primeiroDia =
+    new Date(
+      anoOriginal,
+      novoMes,
+      1
+    );
+
+  const ultimoDia =
+    new Date(
+      primeiroDia.getFullYear(),
+      primeiroDia.getMonth() + 1,
+      0
+    ).getDate();
+
+  const dia =
+    Math.min(
+      Number(
+        diaPreferencial
+      ) || data.getDate(),
+      ultimoDia
+    );
+
+  return new Date(
+    primeiroDia.getFullYear(),
+    primeiroDia.getMonth(),
+    dia
+  );
+
+}
+
+
+/*
+ * Calcula a próxima ocorrência imediatamente
+ * posterior à data informada.
+ */
+function adicionarFrequencia(
+  data,
+  frequencia,
+  diaVencimento
+) {
+
+  if (!data) {
+    return null;
+  }
+
+  const freq =
+    String(
+      frequencia ||
+      ""
+    )
+      .trim()
+      .toLowerCase();
+
+
+  /*
+   * DIÁRIO
+   */
+  if (
+    freq === "diario" ||
+    freq === "diária" ||
+    freq === "diaria"
+  ) {
+
+    const novaData =
+      new Date(
+        data
+      );
+
+    novaData.setDate(
+      novaData.getDate() + 1
+    );
+
+    return novaData;
+
+  }
+
+
+  /*
+   * SEMANAL
+   */
+  if (
+    freq === "semanal" ||
+    freq === "semanalmente"
+  ) {
+
+    const novaData =
+      new Date(
+        data
+      );
+
+    novaData.setDate(
+      novaData.getDate() + 7
+    );
+
+    return novaData;
+
+  }
+
+
+  /*
+   * QUINZENAL
+   */
+  if (
+    freq === "quinzenal" ||
+    freq === "quinzenalmente"
+  ) {
+
+    const novaData =
+      new Date(
+        data
+      );
+
+    novaData.setDate(
+      novaData.getDate() + 15
+    );
+
+    return novaData;
+
+  }
+
+
+  /*
+   * BIMESTRAL
+   */
+  if (
+    freq === "bimestral"
+  ) {
+
+    return adicionarMesesSeguro(
+      data,
+      2,
+      diaVencimento
+    );
+
+  }
+
+
+  /*
+   * TRIMESTRAL
+   */
+  if (
+    freq === "trimestral"
+  ) {
+
+    return adicionarMesesSeguro(
+      data,
+      3,
+      diaVencimento
+    );
+
+  }
+
+
+  /*
+   * SEMESTRAL
+   */
+  if (
+    freq === "semestral"
+  ) {
+
+    return adicionarMesesSeguro(
+      data,
+      6,
+      diaVencimento
+    );
+
+  }
+
+
+  /*
+   * ANUAL
+   */
+  if (
+    freq === "anual" ||
+    freq === "anualmente"
+  ) {
+
+    return adicionarMesesSeguro(
+      data,
+      12,
+      diaVencimento
+    );
+
+  }
+
+
+  /*
+   * MENSAL
+   *
+   * Também deixamos mensal como
+   * comportamento padrão para evitar
+   * quebrar recorrências antigas.
+   */
+  return adicionarMesesSeguro(
+    data,
+    1,
+    diaVencimento
+  );
+
+}
+
+
+/*
+ * Calcula o próximo lançamento real.
+ *
+ * Regras:
+ *
+ * - Se a data de início ainda não chegou,
+ *   ela é o próximo lançamento.
+ *
+ * - Se já chegou ou passou,
+ *   avançamos conforme a frequência.
+ *
+ * - Nunca retorna uma ocorrência
+ *   anterior a hoje.
+ */
+function calcularProximoLancamento(
+  dataInicio,
+  frequencia,
+  diaVencimento,
+  dataFim
+) {
+
+  let data =
+    criarDataLocal(
+      dataInicio
+    );
+
+
+  if (!data) {
+    return null;
+  }
+
+
+  const hoje =
+    obterDataHojeLocal();
+
+
+  const diaPreferencial =
+    Number(
+      diaVencimento
+    ) ||
+    data.getDate();
+
+
+  /*
+   * Se a data de início ainda é futura,
+   * ela é o próximo lançamento.
+   */
+  if (
+    data >
+    hoje
+  ) {
+
+    if (
+      dataFim &&
+      data >
+        criarDataLocal(
+          dataFim
+        )
+    ) {
+
+      return null;
+
+    }
+
+    return data;
+
+  }
+
+
+  /*
+   * Se a data de início é hoje,
+   * precisamos avançar uma ocorrência.
+   *
+   * Isso evita mostrar a própria data de início
+   * como "próximo lançamento".
+   */
+  if (
+    data.getTime() ===
+    hoje.getTime()
+  ) {
+
+    data =
+      adicionarFrequencia(
+        data,
+        frequencia,
+        diaPreferencial
+      );
+
+  }
+
+
+  /*
+   * Se a data inicial ficou no passado,
+   * avançamos até encontrar a próxima ocorrência.
+   */
+  while (
+    data <=
+    hoje
+  ) {
+
+    data =
+      adicionarFrequencia(
+        data,
+        frequencia,
+        diaPreferencial
+      );
+
+
+    if (!data) {
+      return null;
+    }
+
+  }
+
+
+  /*
+   * Respeita a data de término.
+   */
+  if (
+    dataFim
+  ) {
+
+    const fim =
+      criarDataLocal(
+        dataFim
+      );
+
+    if (
+      fim &&
+      data >
+        fim
+    ) {
+
+      return null;
+
+    }
+
+  }
+
+
+  return data;
+
+}
+
+
+/*
+ * Formata o próximo lançamento
+ * para o padrão brasileiro.
+ */
+function formatarProximoLancamento(
+  dataInicio,
+  frequencia,
+  diaVencimento,
+  dataFim
+) {
+
+  const proximaData =
+    calcularProximoLancamento(
+      dataInicio,
+      frequencia,
+      diaVencimento,
+      dataFim
+    );
+
+
+  if (!proximaData) {
+
+    return "Sem próximos lançamentos";
+
+  }
+
+
+  return formatarData(
+    formatarDataISO(
+      proximaData
+    )
+  );
+
+}
+
   /* ======================================================
      CRIAR DATA SEGURA
   ====================================================== */
@@ -3795,6 +4310,552 @@ document.addEventListener("DOMContentLoaded", async () => {
     );
 
   }
+
+  /* =========================================================
+   CÁLCULO DO PRÓXIMO LANÇAMENTO DA RECORRÊNCIA
+   ========================================================= */
+
+/*
+ * Cria uma data local a partir de YYYY-MM-DD.
+ *
+ * Não usamos new Date("YYYY-MM-DD") porque o JavaScript
+ * pode interpretar essa data como UTC e causar diferença
+ * de um dia dependendo do fuso horário.
+ */
+function criarDataLocal(dataString) {
+
+  if (!dataString) {
+    return null;
+  }
+
+  const partes =
+    String(dataString)
+      .split("-")
+      .map(Number);
+
+  if (partes.length !== 3) {
+    return null;
+  }
+
+  const ano =
+    partes[0];
+
+  const mes =
+    partes[1];
+
+  const dia =
+    partes[2];
+
+  if (
+    !Number.isInteger(ano) ||
+    !Number.isInteger(mes) ||
+    !Number.isInteger(dia)
+  ) {
+    return null;
+  }
+
+  const data =
+    new Date(
+      ano,
+      mes - 1,
+      dia
+    );
+
+  if (
+    Number.isNaN(
+      data.getTime()
+    )
+  ) {
+    return null;
+  }
+
+  return data;
+}
+
+
+/*
+ * Converte uma Date para YYYY-MM-DD.
+ */
+function formatarDataISO(data) {
+
+  if (!data) {
+    return "";
+  }
+
+  const ano =
+    data.getFullYear();
+
+  const mes =
+    String(
+      data.getMonth() + 1
+    ).padStart(
+      2,
+      "0"
+    );
+
+  const dia =
+    String(
+      data.getDate()
+    ).padStart(
+      2,
+      "0"
+    );
+
+  return `${ano}-${mes}-${dia}`;
+}
+
+
+/*
+ * Retorna a data atual sem horário.
+ */
+function obterDataHojeLocal() {
+
+  const hoje =
+    new Date();
+
+  return new Date(
+    hoje.getFullYear(),
+    hoje.getMonth(),
+    hoje.getDate()
+  );
+}
+
+
+/*
+ * Normaliza o nome da frequência.
+ *
+ * Isso evita problemas caso o banco ou o HTML tenha:
+ *
+ * "Mensal"
+ * "mensal"
+ * "MENSAL"
+ * "Quinzenal"
+ * "quinzenal"
+ * etc.
+ */
+function normalizarFrequenciaRecorrencia(
+  frequencia
+) {
+
+  return String(
+    frequencia || ""
+  )
+    .trim()
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(
+      /[\u0300-\u036f]/g,
+      ""
+    );
+
+}
+
+
+/*
+ * Adiciona meses de forma segura.
+ *
+ * Exemplo:
+ *
+ * 31/01 + 1 mês
+ *
+ * não vira 03/03.
+ *
+ * Vai para o último dia disponível
+ * de fevereiro.
+ */
+function adicionarMesesSeguro(
+  data,
+  quantidade,
+  diaPreferencial
+) {
+
+  if (!data) {
+    return null;
+  }
+
+  const quantidadeMeses =
+    Number(
+      quantidade
+    );
+
+  if (
+    !Number.isFinite(
+      quantidadeMeses
+    )
+  ) {
+    return null;
+  }
+
+  const anoOriginal =
+    data.getFullYear();
+
+  const mesOriginal =
+    data.getMonth();
+
+  const novoMes =
+    mesOriginal +
+    quantidadeMeses;
+
+  const primeiroDia =
+    new Date(
+      anoOriginal,
+      novoMes,
+      1
+    );
+
+  const ultimoDia =
+    new Date(
+      primeiroDia.getFullYear(),
+      primeiroDia.getMonth() + 1,
+      0
+    ).getDate();
+
+  const dia =
+    Math.min(
+      Number(
+        diaPreferencial
+      ) || data.getDate(),
+      ultimoDia
+    );
+
+  return new Date(
+    primeiroDia.getFullYear(),
+    primeiroDia.getMonth(),
+    dia
+  );
+}
+
+
+/*
+ * Adiciona uma ocorrência conforme a frequência.
+ *
+ * Mensal      = +1 mês
+ * Bimestral   = +2 meses
+ * Trimestral  = +3 meses
+ * Semestral   = +6 meses
+ * Anual       = +12 meses
+ * Quinzenal   = +15 dias
+ * Semanal     = +7 dias
+ * Diário      = +1 dia
+ */
+function adicionarFrequencia(
+  data,
+  frequencia,
+  diaVencimento
+) {
+
+  if (!data) {
+    return null;
+  }
+
+  const freq =
+    normalizarFrequenciaRecorrencia(
+      frequencia
+    );
+
+
+  /*
+   * DIÁRIO
+   */
+  if (
+    freq === "diario"
+  ) {
+
+    const novaData =
+      new Date(
+        data
+      );
+
+    novaData.setDate(
+      novaData.getDate() + 1
+    );
+
+    return novaData;
+  }
+
+
+  /*
+   * SEMANAL
+   */
+  if (
+    freq === "semanal"
+  ) {
+
+    const novaData =
+      new Date(
+        data
+      );
+
+    novaData.setDate(
+      novaData.getDate() + 7
+    );
+
+    return novaData;
+  }
+
+
+  /*
+   * QUINZENAL
+   */
+  if (
+    freq === "quinzenal"
+  ) {
+
+    const novaData =
+      new Date(
+        data
+      );
+
+    novaData.setDate(
+      novaData.getDate() + 15
+    );
+
+    return novaData;
+  }
+
+
+  /*
+   * BIMESTRAL
+   */
+  if (
+    freq === "bimestral"
+  ) {
+
+    return adicionarMesesSeguro(
+      data,
+      2,
+      diaVencimento
+    );
+  }
+
+
+  /*
+   * TRIMESTRAL
+   */
+  if (
+    freq === "trimestral"
+  ) {
+
+    return adicionarMesesSeguro(
+      data,
+      3,
+      diaVencimento
+    );
+  }
+
+
+  /*
+   * SEMESTRAL
+   */
+  if (
+    freq === "semestral"
+  ) {
+
+    return adicionarMesesSeguro(
+      data,
+      6,
+      diaVencimento
+    );
+  }
+
+
+  /*
+   * ANUAL
+   */
+  if (
+    freq === "anual"
+  ) {
+
+    return adicionarMesesSeguro(
+      data,
+      12,
+      diaVencimento
+    );
+  }
+
+
+  /*
+   * MENSAL
+   *
+   * Também é o comportamento padrão.
+   */
+  return adicionarMesesSeguro(
+    data,
+    1,
+    diaVencimento
+  );
+}
+
+
+/*
+ * Calcula a próxima ocorrência.
+ *
+ * REGRA IMPORTANTE:
+ *
+ * Se a data de início for hoje, ela NÃO será exibida
+ * como "próximo lançamento".
+ *
+ * O sistema calcula a próxima ocorrência de acordo
+ * com a frequência.
+ */
+function calcularProximoLancamento(
+  dataInicio,
+  frequencia,
+  diaVencimento,
+  dataFim
+) {
+
+  let data =
+    criarDataLocal(
+      dataInicio
+    );
+
+  if (!data) {
+    return null;
+  }
+
+
+  const hoje =
+    obterDataHojeLocal();
+
+
+  const diaPreferencial =
+    Number(
+      diaVencimento
+    ) ||
+    data.getDate();
+
+
+  const fim =
+    dataFim
+      ? criarDataLocal(
+          dataFim
+        )
+      : null;
+
+
+  /*
+   * Se a data de início ainda está no futuro,
+   * ela é realmente o próximo lançamento.
+   */
+  if (
+    data >
+    hoje
+  ) {
+
+    if (
+      fim &&
+      data >
+      fim
+    ) {
+
+      return null;
+    }
+
+    return data;
+  }
+
+
+  /*
+   * Se a data inicial é hoje,
+   * avançamos uma ocorrência.
+   *
+   * Exemplo:
+   *
+   * Início: 25/08/2026
+   * Frequência: Mensal
+   *
+   * Próximo: 25/09/2026
+   */
+  if (
+    data.getTime() ===
+    hoje.getTime()
+  ) {
+
+    data =
+      adicionarFrequencia(
+        data,
+        frequencia,
+        diaPreferencial
+      );
+
+  }
+
+
+  /*
+   * Se a data inicial já passou,
+   * avançamos até encontrar a próxima ocorrência
+   * que ainda não aconteceu.
+   */
+  while (
+    data &&
+    data <=
+    hoje
+  ) {
+
+    data =
+      adicionarFrequencia(
+        data,
+        frequencia,
+        diaPreferencial
+      );
+
+  }
+
+
+  if (!data) {
+    return null;
+  }
+
+
+  /*
+   * Respeita a data de término.
+   */
+  if (
+    fim &&
+    data >
+    fim
+  ) {
+
+    return null;
+  }
+
+
+  return data;
+}
+
+
+/*
+ * Formata o próximo lançamento para exibição.
+ */
+function formatarProximoLancamento(
+  dataInicio,
+  frequencia,
+  diaVencimento,
+  dataFim
+) {
+
+  const proximaData =
+    calcularProximoLancamento(
+      dataInicio,
+      frequencia,
+      diaVencimento,
+      dataFim
+    );
+
+
+  if (!proximaData) {
+
+    return "Sem próximos lançamentos";
+  }
+
+
+  return formatarData(
+    formatarDataISO(
+      proximaData
+    )
+  );
+}
 
   /* ======================================================
      RENDERIZAR RECORRÊNCIAS
@@ -3886,258 +4947,168 @@ document.addEventListener("DOMContentLoaded", async () => {
       "";
 
     recorrenciasDados.forEach(
-      recorrencia => {
+  rec => {
 
-        const categoriaNome =
-          categoriasRecorrenciaMapa[
-            recorrencia.categoria_id
-          ] ||
-          "Sem categoria";
+    const ativa =
+      rec.ativo !==
+      false;
 
-        const proximo =
-          calcularProximoLancamento(
-            recorrencia
-          );
 
-        const statusAtivo =
-          recorrencia.ativo ===
-          true;
+    const categoriaNome =
+      rec.categoria ||
+      rec.categoria_nome ||
+      rec.categoria_id ||
+      "Sem categoria";
 
-        let icone =
-          "↻";
 
-        if (
-          recorrencia.tipo ===
-          "Receita"
-        ) {
+    const proximoLancamento =
+      formatarProximoLancamento(
+      rec.data_inicio,
+      rec.frequencia,
+      rec.dia_vencimento,
+      rec.data_fim
+    )
 
-          icone =
-            "↑";
 
-        }
+    const card =
+      document.createElement(
+        "div"
+      );
 
-        if (
-          recorrencia.tipo ===
-          "Despesa"
-        ) {
 
-          icone =
-            "↓";
+    card.className =
+      "recorrencia-item";
 
-        }
 
-        if (
-          recorrencia.tipo ===
-          "Investimento"
-        ) {
+    card.innerHTML = `
 
-          icone =
-            "◔";
+      <div class="recorrencia-info">
 
-        }
+        <strong>
+          ${
+            escapeHtml(
+              rec.descricao ||
+              "Sem descrição"
+            )
+          }
+        </strong>
 
-        const card =
-          document.createElement(
-            "div"
-          );
 
-        card.className =
-          "recorrencia-item";
+        <span>
+          ${
+            escapeHtml(
+              normalizarTipoCategoria(
+                rec.tipo
+              )
+            )
+          }
 
-        card.innerHTML = `
+          •
 
-          <div class="recorrencia-item-topo">
+          ${
+            escapeHtml(
+              categoriaNome
+            )
+          }
+        </span>
 
-            <div class="recorrencia-item-identificacao">
 
-              <div class="recorrencia-item-icone">
-                ${icone}
-              </div>
+        <span>
+          ${
+            formatarMoeda(
+              rec.valor
+            )
+          }
+        </span>
 
-              <div class="recorrencia-item-titulo">
 
-                <strong>
-                  ${escapeHtml(
-                    recorrencia.descricao ||
-                    "Recorrência sem descrição"
-                  )}
-                </strong>
+        <small>
 
-                <span>
-                  ${escapeHtml(
-                    recorrencia.tipo ||
-                    ""
-                  )}
-                  •
-                  ${escapeHtml(
-                    categoriaNome
-                  )}
-                </span>
+          ${
+            escapeHtml(
+              nomesFrequencia[
+                rec.frequencia
+              ] ||
+              rec.frequencia ||
+              "Mensal"
+            )
+          }
 
-              </div>
+          ${
+            rec.dia_vencimento
+              ? ` • Dia ${escapeHtml(
+                  rec.dia_vencimento
+                )}`
+              : ""
+          }
 
-            </div>
+        </small>
 
-            <span
-              class="recorrencia-status ${
-                statusAtivo
-                  ? "ativa"
-                  : "pausada"
-              }"
-            >
-              ${
-                statusAtivo
-                  ? "● Ativa"
-                  : "● Pausada"
-              }
-            </span>
 
-          </div>
+        <div
+          class="recorrencia-proximo"
+        >
 
-          <div class="recorrencia-item-valor">
+          <small>
+            PRÓXIMO LANÇAMENTO
+          </small>
 
-            ${formatarMoeda(
-              recorrencia.valor
-            )}
+          <strong>
+            ${
+              escapeHtml(
+                proximoLancamento
+              )
+            }
+          </strong>
 
-          </div>
+        </div>
 
-          <div class="recorrencia-item-info">
+      </div>
 
-            <div class="recorrencia-item-info-bloco">
 
-              <span>
-                FREQUÊNCIA
-              </span>
+      <div class="recorrencia-acoes">
 
-              <strong>
-                ${
-                  nomesFrequencia[
-                    recorrencia.frequencia
-                  ] ||
-                  recorrencia.frequencia ||
-                  "-"
-                }
-              </strong>
+        <button
+          type="button"
+          class="acao-editar"
+          data-id="${escapeHtml(rec.id)}"
+        >
+          ✏️ Editar
+        </button>
 
-            </div>
 
-            <div class="recorrencia-item-info-bloco">
+        <button
+          type="button"
+          class="acao-pausar"
+          data-id="${escapeHtml(rec.id)}"
+        >
+          ${
+            ativa
+              ? "⏸ Pausar"
+              : "▶ Reativar"
+          }
+        </button>
 
-              <span>
-                DIA
-              </span>
 
-              <strong>
-                ${
-                  recorrencia.dia_vencimento ||
-                  "-"
-                }
-              </strong>
+        <button
+          type="button"
+          class="acao-excluir"
+          data-id="${escapeHtml(rec.id)}"
+        >
+          🗑 Excluir
+        </button>
 
-            </div>
+      </div>
 
-            <div class="recorrencia-item-info-bloco">
+    `;
 
-              <span>
-                INÍCIO
-              </span>
 
-              <strong>
-                ${
-                  recorrencia.data_inicio
-                    ? formatarData(
-                        recorrencia.data_inicio
-                      )
-                    : "-"
-                }
-              </strong>
-
-            </div>
-
-            <div class="recorrencia-item-info-bloco">
-
-              <span>
-                TÉRMINO
-              </span>
-
-              <strong>
-                ${
-                  recorrencia.data_fim
-                    ? formatarData(
-                        recorrencia.data_fim
-                      )
-                    : "Sem término"
-                }
-              </strong>
-
-            </div>
-
-          </div>
-
-          <div class="recorrencia-proximo">
-
-            <span>
-              PRÓXIMO LANÇAMENTO
-            </span>
-
-            <strong>
-              ${
-                statusAtivo &&
-                proximo
-                  ? formatarDataISO(
-                      proximo
-                    )
-                  : statusAtivo
-                    ? "Sem próxima ocorrência"
-                    : "Recorrência pausada"
-              }
-            </strong>
-
-          </div>
-
-          <div class="recorrencia-item-acoes">
-
-            <button
-              type="button"
-              class="acao-editar"
-              data-id="${recorrencia.id}"
-            >
-              ✏️ Editar
-            </button>
-
-            <button
-              type="button"
-              class="acao-pausar"
-              data-id="${recorrencia.id}"
-            >
-              ${
-                statusAtivo
-                  ? "⏸ Pausar"
-                  : "▶ Reativar"
-              }
-                  </button>
-
-            <button
-              type="button"
-              class="acao-excluir"
-              data-id="${recorrencia.id}"
-            >
-              🗑 Excluir
-            </button>
-
-          </div>
-
-        `;
-
-        listaRecorrencias.appendChild(
-          card
-        );
-
-      }
+    listaRecorrencias.appendChild(
+      card
     );
 
   }
+);
 
   /* ======================================================
      FORMATAR DATA DE OBJETO DATE
@@ -5020,4 +5991,3 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
 });
-        
