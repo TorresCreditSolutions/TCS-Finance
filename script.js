@@ -1,328 +1,3226 @@
+TCS FINANCE — VERSÃO FINAL SEM RECORRÊNCIAS
+
+ARQUIVO 1 — index.html
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>TCS Finance | Controle Financeiro</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <link rel="icon" href="favicon.ico" type="image/x-icon">
+  <link rel="stylesheet" href="style.css">
+
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+</head>
+<body>
+
+<div id="menuOverlay" class="menu-overlay hidden"></div>
+
+<div id="login-container">
+  <h2>TCS Finance</h2>
+  <input type="email" id="email" placeholder="Email">
+  <input type="password" id="senha" placeholder="Senha">
+  <button type="button" id="btnLogin">Entrar</button>
+  <button type="button" id="btnCadastro">Criar Conta</button>
+  <a href="javascript:void(0)" id="btnEsqueciSenha" class="esqueci-senha">Esqueci minha senha</a>
+  <div class="termos-container">
+    <label class="termos">
+      <input type="checkbox" id="aceiteTermos">
+      Li e aceito os termos de uso
+    </label>
+  </div>
+  <div class="creditos">© Torres Credit Solutions • Dados criptografados</div>
+</div>
+
+<div id="app" class="hidden">
+
+  <aside class="sidebar">
+    <div class="sidebar-brand">
+      <span class="brand-tcs">TCS</span><span class="brand-finance">Finance</span>
+    </div>
+
+    <nav class="sidebar-nav">
+      <button type="button" id="btnDashboard" class="nav-item active">
+        <span class="nav-icon">▥</span><span>Dashboard</span>
+      </button>
+
+      <button type="button" id="btnLancamentos" class="nav-item">
+        <span class="nav-icon">⇄</span><span>Lançamentos</span>
+      </button>
+
+      <button type="button" id="btnRelatorios" class="nav-item visual-only">
+        <span class="nav-icon">◔</span><span>Relatórios</span>
+      </button>
+    </nav>
+
+    <div class="sidebar-account">
+      <span class="account-label">CONTA</span>
+      <div class="account-card">
+        <span class="account-avatar">●</span>
+        <div>
+          <strong>Plano FREE</strong>
+          <small>Usuário</small>
+        </div>
+        <span class="free-pill">FREE</span>
+      </div>
+    </div>
+
+    <button type="button" id="btnLogout" class="sidebar-logout">
+      <span class="nav-icon">↪</span><span>Sair</span>
+    </button>
+  </aside>
+
+  <header class="topbar">
+    <div class="topbar-left">
+      <button type="button" id="btnMenu" class="btn-menu" aria-label="Abrir menu">☰</button>
+      <span class="topbar-title">TCS Finance</span>
+    </div>
+
+    <div class="topbar-center">
+      <span id="topbarUser">anderson.a9bank</span>
+      <span id="topbarPlano" class="plano-badge">FREE</span>
+    </div>
+
+    <div class="topbar-right">
+      <button type="button" id="btnLogoutTop" class="btn-logout-top">⇥&nbsp; Sair</button>
+    </div>
+  </header>
+
+  <main class="content">
+
+    <section id="dashboard">
+
+      <!-- Mantidos para compatibilidade com o JS; visualmente compactados no novo layout. -->
+      <div class="dashboard-heading">
+        <div>
+          <span class="eyebrow">VISÃO GERAL</span>
+          <h1>Dashboard Financeiro</h1>
+          <p>Acompanhe suas receitas, despesas e investimentos em um só lugar.</p>
+        </div>
+        <div class="dashboard-date" id="dashboardPeriodo">Período atual</div>
+      </div>
+
+      <div class="avisos-sistema">
+        <span id="nomeCliente">Olá!</span>
+        <span class="badge">Sistema Profissional</span>
+        <span id="planoUsuario">Plano Free</span>
+      </div>
+
+      <div class="filtros">
+        <label>
+          <span>PERÍODO</span>
+          <input type="month" id="filtroMes">
+        </label>
+        <button id="btnLimparFiltro" type="button">Limpar filtro</button>
+      </div>
+
+      <div class="cards">
+        <div class="card receita">
+          <span class="card-icon" aria-hidden="true">↑</span>
+          <span class="card-label">RECEITAS</span>
+          <strong id="totalReceitas">R$ 0,00</strong>
+          <small>Entradas no período</small>
+        </div>
+
+        <div class="card despesa">
+          <span class="card-icon" aria-hidden="true">↓</span>
+          <span class="card-label">DESPESAS</span>
+          <strong id="totalDespesas">R$ 0,00</strong>
+          <small>Saídas no período</small>
+        </div>
+
+        <div class="card investimento">
+          <span class="card-icon" aria-hidden="true">◔</span>
+          <span class="card-label">INVESTIMENTOS</span>
+          <strong id="totalInvestimentos">R$ 0,00</strong>
+          <small>Valores investidos</small>
+        </div>
+
+        <div class="card saldo">
+          <span class="card-icon" aria-hidden="true">▱</span>
+          <span class="card-label">SALDO</span>
+          <strong id="saldo">R$ 0,00</strong>
+          <small>Receitas menos despesas</small>
+        </div>
+
+        <div id="alertasInteligentes" class="alertas"></div>
+      </div>
+
+      <div class="dashboard-section-title">
+        <div>
+          <span class="eyebrow">ANÁLISE</span>
+          <h2>Desempenho financeiro</h2>
+        </div>
+      </div>
+
+      <div class="graficos">
+        <div class="grafico-box grafico-principal">
+          <div class="grafico-header">
+            <div>
+              <h3>Distribuição financeira</h3>
+              <p>Visualização dos valores registrados.</p>
+            </div>
+            <select id="tipoGrafico">
+              <option value="geral">Resumo Geral</option>
+              <option value="categoria">Por Categoria</option>
+            </select>
+          </div>
+          <div class="chart-wrap chart-pie">
+            <canvas id="grafico"></canvas>
+          </div>
+        </div>
+
+        <div class="grafico-box">
+          <div class="grafico-header">
+            <div>
+              <h3>Resumo mensal</h3>
+              <p>Comparativo de receitas e despesas.</p>
+            </div>
+          </div>
+          <div class="chart-wrap chart-bar">
+            <canvas id="graficoMensal"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <div class="grafico-box grafico-comparativo">
+        <div class="grafico-header">
+          <div>
+            <h3>Evolução Receita x Despesa</h3>
+            <p>Acompanhe a evolução do seu caixa ao longo dos meses.</p>
+          </div>
+        </div>
+        <div class="chart-wrap chart-line">
+          <canvas id="graficoComparativo"></canvas>
+        </div>
+      </div>
+
+      <section id="adminPanel" class="hidden" data-admin-only>
+        <h2>Painel Administrativo</h2>
+        <table>
+          <thead><tr><th>Email</th><th>Plano</th><th>Ação</th></tr></thead>
+          <tbody id="listaUsuariosAdmin"></tbody>
+        </table>
+      </section>
+
+      <div data-admin-only class="hidden">
+        <h2>Painel Administrativo</h2>
+        <p>Gerenciamento de usuários e planos</p>
+        <button type="button">Gerenciar Usuários</button>
+      </div>
+    </section>
+
+    <section id="lancamentos" class="hidden">
+      <div class="page-heading">
+        <span class="eyebrow">MOVIMENTAÇÕES</span>
+        <h2>Novo Lançamento</h2>
+        <p>Registre suas receitas, despesas e investimentos.</p>
+      </div>
+
+      <div class="lancamento-form-card">
+        <div class="form-grid">
+          <select id="tipo">
+            <option value="">Tipo</option>
+            <option value="Receita">Receita</option>
+            <option value="Despesa">Despesa</option>
+            <option value="Investimento">Investimento</option>
+          </select>
+
+          <select id="categoria"></select>
+          <input type="text" id="descricao" placeholder="Descrição">
+          <input type="number" id="valor" placeholder="Valor">
+          <input type="date" id="data">
+        </div>
+
+        <button id="btnSalvar">Salvar lançamento</button>
+      </div>
+
+      <div class="extrato-card">
+        <h3>Extrato</h3>
+        <ul id="listaLancamentos"></ul>
+        <button id="btnExportarPdf">Exportar PDF</button>
+      </div>
+    </section>
+
+
+    <section id="relatorios" class="hidden">
+      <div class="page-heading">
+        <span class="eyebrow">ANÁLISE</span>
+        <h2>Relatórios Financeiros</h2>
+        <p>Resumo consolidado do período selecionado.</p>
+      </div>
+      <div class="cards relatorios-cards">
+        <div class="card receita"><span class="card-label">RECEITAS</span><strong id="relatorioReceitas">R$ 0,00</strong></div>
+        <div class="card despesa"><span class="card-label">DESPESAS</span><strong id="relatorioDespesas">R$ 0,00</strong></div>
+        <div class="card investimento"><span class="card-label">INVESTIMENTOS</span><strong id="relatorioInvestimentos">R$ 0,00</strong></div>
+        <div class="card saldo"><span class="card-label">SALDO</span><strong id="relatorioSaldo">R$ 0,00</strong></div>
+      </div>
+      <div class="grafico-box">
+        <div class="grafico-header"><div><h3>Resumo do período</h3><p id="relatorioPeriodo">Período atual</p></div></div>
+        <div class="relatorio-resumo" style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:16px;">
+          <div><span>Receitas</span><strong id="relatorioResumoReceitas">R$ 0,00</strong></div>
+          <div><span>Despesas</span><strong id="relatorioResumoDespesas">R$ 0,00</strong></div>
+          <div><span>Investimentos</span><strong id="relatorioResumoInvestimentos">R$ 0,00</strong></div>
+          <div><span>Saldo</span><strong id="relatorioResumoSaldo">R$ 0,00</strong></div>
+        </div>
+      </div>
+    </section>
+
+    <footer class="creditos-app">© TCS Finance • Dados criptografados • Uso profissional</footer>
+  </main>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
+
+
+
+===== ARQUIVO 2 — style.css =====
+
+/* =========================================================
+   TCS FINANCE — INTERFACE CORPORATIVA
+   V5 — reconstrução visual baseada no layout de referência.
+   Compatível com os IDs usados pelo script.js.
+========================================================= */
+
+:root{
+  --navy:#071b2c;
+  --navy-2:#0b2942;
+  --blue:#1677ff;
+  --blue-2:#2563eb;
+  --blue-soft:#eef5ff;
+  --green:#12a66a;
+  --green-soft:#eaf8f0;
+  --red:#e5484d;
+  --red-soft:#fff0f1;
+  --purple:#6956d8;
+  --bg:#f5f7fb;
+  --surface:#fff;
+  --text:#101828;
+  --muted:#667085;
+  --line:#e4e9f0;
+  --shadow:0 8px 26px rgba(16,24,40,.055);
+  --shadow-sm:0 2px 8px rgba(16,24,40,.035);
+  --radius:18px;
+  --sidebar:240px;
+  --topbar:60px;
+}
+
+*{box-sizing:border-box}
+
+html{
+  min-height:100%;
+  scroll-behavior:smooth;
+}
+
+body{
+  margin:0;
+  min-height:100vh;
+  background:var(--bg);
+  color:var(--text);
+  font-family:Inter,ui-sans-serif,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+  font-size:14px;
+  line-height:1.45;
+  -webkit-font-smoothing:antialiased;
+}
+
+button,input,select,textarea{font:inherit}
+button{cursor:pointer}
+.hidden{display:none!important}
+
+/* =========================================================
+   LOGIN
+========================================================= */
+
+#login-container{
+  width:min(430px,calc(100% - 32px));
+  min-height:100vh;
+  margin:auto;
+  padding:40px 0;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+}
+
+#login-container h2{
+  margin:0 0 10px;
+  color:var(--navy);
+  font-size:30px;
+  font-weight:850;
+  letter-spacing:-1px;
+}
+
+#login-container h2:after{
+  content:"";
+  display:block;
+  width:44px;
+  height:4px;
+  margin-top:10px;
+  border-radius:99px;
+  background:var(--blue);
+}
+
+#login-container>input{
+  width:100%;
+  height:50px;
+  margin-top:12px;
+  padding:0 15px;
+  border:1px solid var(--line);
+  border-radius:12px;
+  outline:none;
+  background:#fff;
+  color:var(--text);
+  box-shadow:var(--shadow-sm);
+}
+
+#login-container>input:focus{
+  border-color:#9ec5ff;
+  box-shadow:0 0 0 4px rgba(22,119,255,.10);
+}
+
+#btnLogin,#btnCadastro{
+  width:100%;
+  min-height:48px;
+  margin-top:12px;
+  border:0;
+  border-radius:12px;
+  font-weight:750;
+}
+
+#btnLogin{
+  background:var(--blue);
+  color:#fff;
+  box-shadow:0 8px 20px rgba(22,119,255,.18);
+}
+
+#btnCadastro{
+  background:var(--blue-soft);
+  color:var(--blue-2);
+}
+
+.esqueci-senha{
+  display:block;
+  margin:14px 0 6px;
+  color:var(--blue);
+  text-align:center;
+  font-weight:650;
+  text-decoration:none;
+}
+
+.termos-container{
+  margin-top:12px;
+  padding:12px;
+  border:1px solid var(--line);
+  border-radius:12px;
+  background:#fff;
+}
+
+.termos{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  color:var(--muted);
+  font-size:13px;
+}
+
+.termos input{accent-color:var(--blue)}
+.creditos{margin-top:20px;color:#98a2b3;font-size:11px;text-align:center}
+
+/* =========================================================
+   SIDEBAR
+========================================================= */
+
+.sidebar{
+  position:fixed;
+  inset:0 auto 0 0;
+  z-index:1300;
+  width:var(--sidebar);
+  padding:23px 16px 18px;
+  display:flex;
+  flex-direction:column;
+  background:linear-gradient(180deg,#071c2e 0%,#06192a 100%);
+  color:#fff;
+  border-right:1px solid rgba(255,255,255,.045);
+}
+
+.sidebar-brand{
+  padding:0 8px 30px;
+  font-size:20px;
+  font-weight:850;
+  letter-spacing:-.8px;
+}
+
+.brand-tcs{color:#2490ff;margin-right:5px}
+.brand-finance{color:#fff}
+
+.sidebar-nav{
+  display:flex;
+  flex-direction:column;
+  gap:5px;
+}
+
+.nav-item{
+  width:100%;
+  height:48px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:0 12px;
+  border:0;
+  border-radius:10px;
+  background:transparent;
+  color:#d7e1eb;
+  text-align:left;
+  font-size:13px;
+  font-weight:700;
+  transition:.18s ease;
+}
+
+.nav-item:hover{
+  background:rgba(255,255,255,.07);
+  color:#fff;
+}
+
+.nav-item.active{
+  background:linear-gradient(135deg,#1677ff,#246be4);
+  color:#fff;
+  box-shadow:0 8px 18px rgba(22,119,255,.22);
+}
+
+.nav-icon{
+  width:20px;
+  display:inline-flex;
+  justify-content:center;
+  font-size:17px;
+  line-height:1;
+}
+
+.sidebar-account{
+  margin-top:auto;
+}
+
+.account-label{
+  display:block;
+  margin:0 4px 8px;
+  color:#8798a9;
+  font-size:10px;
+  font-weight:800;
+  letter-spacing:1px;
+}
+
+.account-card{
+  min-height:74px;
+  display:flex;
+  align-items:center;
+  gap:10px;
+  padding:10px 11px;
+  border:1px solid rgba(255,255,255,.06);
+  border-radius:12px;
+  background:rgba(255,255,255,.055);
+}
+
+.account-avatar{
+  width:34px;
+  height:34px;
+  display:grid;
+  place-items:center;
+  border-radius:50%;
+  background:#d9eaff;
+  color:#1677ff;
+  font-size:14px;
+}
+
+.account-card strong{
+  display:block;
+  color:#fff;
+  font-size:12px;
+  line-height:1.2;
+}
+
+.account-card small{
+  display:block;
+  margin-top:3px;
+  color:#9fb0bf;
+  font-size:11px;
+}
+
+.free-pill{
+  margin-left:auto;
+  padding:3px 7px;
+  border-radius:999px;
+  background:#1677ff;
+  color:#fff;
+  font-size:9px;
+  font-weight:850;
+}
+
+.sidebar-logout{
+  width:100%;
+  height:48px;
+  margin-top:12px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  padding:0 12px;
+  border:0;
+  border-radius:10px;
+  background:transparent;
+  color:#ff7a7e;
+  font-size:13px;
+  font-weight:750;
+  text-align:left;
+}
+
+.sidebar-logout:hover{background:rgba(229,72,77,.09)}
+
+/* =========================================================
+   TOPBAR
+========================================================= */
+
+.topbar{
+  position:fixed;
+  top:0;
+  left:var(--sidebar);
+  right:0;
+  z-index:1200;
+  height:var(--topbar);
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 24px;
+  background:rgba(255,255,255,.96);
+  border-bottom:1px solid var(--line);
+  backdrop-filter:blur(12px);
+}
+
+.topbar-left{
+  display:flex;
+  align-items:center;
+  gap:16px;
+}
+
+.btn-menu{
+  width:32px;
+  height:32px;
+  display:grid;
+  place-items:center;
+  border:0;
+  background:transparent;
+  color:#344054;
+  font-size:19px;
+}
+
+.topbar-title{
+  color:var(--navy);
+  font-size:15px;
+  font-weight:850;
+  letter-spacing:-.3px;
+}
+
+.topbar-center{
+  display:flex;
+  align-items:center;
+  gap:9px;
+  color:#475467;
+  font-size:12px;
+  font-weight:650;
+}
+
+.plano-badge{
+  padding:4px 8px;
+  border-radius:999px;
+  background:var(--blue-soft);
+  color:var(--blue);
+  font-size:10px;
+  font-weight:850;
+}
+
+.btn-logout-top{
+  min-width:50px;
+  height:36px;
+  padding:0 13px;
+  border:1px solid #ffb7b9;
+  border-radius:10px;
+  background:#fff;
+  color:var(--red);
+  font-size:12px;
+  font-weight:750;
+}
+
+/* =========================================================
+   CONTEÚDO
+========================================================= */
+
+.content{
+  min-height:100vh;
+  margin-left:var(--sidebar);
+  padding:calc(var(--topbar) + 8px) 28px 36px;
+}
+
+.dashboard-heading,
+.avisos-sistema{
+  display:none;
+}
+
+.filtros{
+  width:100%;
+  min-height:100px;
+  margin:0 0 16px;
+  padding:16px 18px;
+  display:flex;
+  align-items:flex-end;
+  gap:12px;
+  border:1px solid var(--line);
+  border-radius:16px;
+  background:#fff;
+  box-shadow:var(--shadow-sm);
+}
+
+.filtros label{
+  display:flex;
+  flex-direction:column;
+  gap:7px;
+  color:#475467;
+  font-size:10px;
+  font-weight:850;
+  letter-spacing:1px;
+}
+
+.filtros input{
+  width:250px;
+  height:42px;
+  padding:0 12px;
+  border:1px solid var(--line);
+  border-radius:10px;
+  outline:none;
+  background:#fbfcfe;
+  color:#344054;
+  font-size:12px;
+  font-weight:650;
+}
+
+#btnLimparFiltro{
+  height:42px;
+  padding:0 17px;
+  border:1px solid var(--line);
+  border-radius:10px;
+  background:#fff;
+  color:#475467;
+  font-size:12px;
+  font-weight:750;
+}
+
+/* =========================================================
+   CARDS
+========================================================= */
+
+.cards{
+  display:grid;
+  grid-template-columns:repeat(4,minmax(0,1fr));
+  gap:16px;
+  margin-bottom:17px;
+}
+
+.cards .card{
+  position:relative;
+  min-height:116px;
+  padding:18px 20px 17px 94px;
+  display:flex;
+  flex-direction:column;
+  justify-content:center;
+  border:1px solid var(--line);
+  border-radius:18px;
+  background:#fff;
+  box-shadow:var(--shadow);
+  overflow:hidden;
+}
+
+.cards .card:before{
+  content:"";
+  position:absolute;
+  left:0;
+  top:0;
+  bottom:0;
+  width:3px;
+}
+
+.cards .card:after{
+  content:"";
+  position:absolute;
+  left:20px;
+  top:50%;
+  width:56px;
+  height:56px;
+  transform:translateY(-50%);
+  display:grid;
+  place-items:center;
+  border-radius:50%;
+  font-size:28px;
+  font-weight:500;
+  opacity:1;
+}
+
+.card-icon{display:none}
+
+.card.receita:before{background:var(--green)}
+.card.despesa:before{background:var(--red)}
+.card.investimento:before{background:var(--blue)}
+.card.saldo:before{background:#fff}
+
+.card.receita:after{content:"↑";background:#e1f5e9;color:var(--green)}
+.card.despesa:after{content:"↓";background:#ffe5e6;color:var(--red)}
+.card.investimento:after{content:"◔";background:#e4efff;color:var(--blue)}
+.card.saldo:after{content:"▱";background:rgba(255,255,255,.10);color:#fff}
+
+.card-label{
+  margin:0 0 6px;
+  color:#475467;
+  font-size:11px;
+  font-weight:800;
+  letter-spacing:.8px;
+}
+
+.cards .card strong{
+  color:var(--text);
+  font-size:24px;
+  font-weight:850;
+  line-height:1.1;
+  letter-spacing:-.7px;
+}
+
+.cards .card small{
+  margin-top:5px;
+  color:#667085;
+  font-size:11px;
+}
+
+.cards .receita strong{color:var(--green)}
+.cards .despesa strong{color:var(--red)}
+.cards .investimento strong{color:var(--blue)}
+
+.cards .saldo{
+  border-color:#0b3554;
+  background:linear-gradient(135deg,#0a2943,#123b5d);
+}
+
+.cards .saldo .card-label,
+.cards .saldo small{color:#d7e6f3}
+.cards .saldo strong{color:#fff}
+
+.alertas{
+  grid-column:1/-1;
+  min-height:42px;
+  display:flex;
+  align-items:center;
+  gap:12px;
+  margin-top:-2px;
+  padding:0 12px;
+  color:#475467;
+  font-size:12px;
+}
+
+.alerta{
+  padding:8px 10px!important;
+  border:0!important;
+  border-radius:9px!important;
+  background:transparent!important;
+  font-size:12px!important;
+  font-weight:550!important;
+}
+
+.alerta:before{margin-right:7px}
+.alerta.verde{color:#087443!important}
+.alerta.verde:before{content:"✓";color:#12a66a}
+.alerta.amarelo{color:#667085!important}
+.alerta.amarelo:before{content:"💡"}
+.alerta.azul{color:#1757b5!important}
+.alerta.vermelho{color:#b4232a!important}
+
+/* =========================================================
+   TÍTULO DE ANÁLISE
+========================================================= */
+
+.dashboard-section-title{
+  margin:2px 0 10px;
+}
+
+.dashboard-section-title .eyebrow{display:block;color:#344054}
+.dashboard-section-title h2{
+  margin:4px 0 0;
+  color:var(--text);
+  font-size:20px;
+  font-weight:850;
+  letter-spacing:-.35px;
+}
+
+/* =========================================================
+   GRÁFICOS — tamanho controlado para nunca cortar a pizza
+========================================================= */
+
+.graficos{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:16px;
+}
+
+.grafico-box{
+  min-width:0;
+  height:276px;
+  padding:18px 20px 14px;
+  border:1px solid var(--line);
+  border-radius:18px;
+  background:#fff;
+  box-shadow:var(--shadow);
+  overflow:hidden;
+}
+
+.grafico-principal{
+  height:276px;
+}
+
+.grafico-header{
+  min-height:54px;
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+  margin-bottom:3px;
+}
+
+.grafico-header h3{
+  margin:0 0 5px;
+  color:var(--text);
+  font-size:15px;
+  font-weight:800;
+}
+
+.grafico-header p{
+  margin:0;
+  color:var(--muted);
+  font-size:11px;
+}
+
+.grafico-header select{
+  width:162px;
+  height:36px;
+  flex:0 0 162px;
+  padding:0 10px;
+  border:1px solid var(--line);
+  border-radius:9px;
+  background:#fff;
+  color:#344054;
+  font-size:11px;
+  font-weight:650;
+}
+
+.chart-wrap{
+  position:relative;
+  width:100%;
+  min-width:0;
+}
+
+.chart-pie{
+  height:194px;
+}
+
+.chart-bar{
+  height:194px;
+}
+
+.chart-pie canvas,
+.chart-bar canvas{
+  display:block!important;
+  width:100%!important;
+  height:194px!important;
+  max-width:100%!important;
+}
+
+.grafico-comparativo{
+  height:246px;
+  margin-top:16px;
+}
+
+.chart-line{
+  height:174px;
+}
+
+.chart-line canvas{
+  display:block!important;
+  width:100%!important;
+  height:174px!important;
+}
+
+.grafico-box canvas{
+  max-width:100%;
+}
+
+/* =========================================================
+   LANÇAMENTOS
+========================================================= */
+
+#lancamentos{
+  max-width:1180px;
+}
+
+.page-heading{
+  margin-bottom:18px;
+}
+
+.page-heading h2{
+  margin:4px 0;
+  color:var(--text);
+  font-size:26px;
+  font-weight:850;
+}
+
+.page-heading p{
+  margin:0;
+  color:var(--muted);
+}
+
+.lancamento-form-card,
+.extrato-card{
+  padding:20px;
+  border:1px solid var(--line);
+  border-radius:18px;
+  background:#fff;
+  box-shadow:var(--shadow);
+}
+
+.form-grid{
+  display:grid;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:12px;
+}
+
+.form-grid input,
+.form-grid select{
+  width:100%;
+  height:46px;
+  padding:0 12px;
+  border:1px solid var(--line);
+  border-radius:10px;
+  outline:none;
+  background:#fbfcfe;
+  color:var(--text);
+}
+
+#btnSalvar{
+  width:100%;
+  height:46px;
+  margin-top:14px;
+  border:0;
+  border-radius:10px;
+  background:var(--blue);
+  color:#fff;
+  font-weight:800;
+}
+
+.extrato-card{margin-top:18px}
+.extrato-card h3{margin:0 0 12px}
+#listaLancamentos{margin:0;padding:0;list-style:none}
+#btnExportarPdf{
+  width:auto;
+  min-width:180px;
+  height:42px;
+  margin-top:15px;
+  padding:0 16px;
+  border:1px solid var(--line);
+  border-radius:10px;
+  background:#fff;
+  color:#344054;
+  font-weight:750;
+}
+
+.creditos-app{
+  margin-top:28px;
+  padding:16px 0;
+  border-top:1px solid var(--line);
+  color:#98a2b3;
+  font-size:10px;
+  text-align:center;
+}
+
+/* =========================================================
+   RESPONSIVO
+========================================================= */
+
+@media (max-width:1100px){
+  :root{--sidebar:220px}
+  .content{padding-left:20px;padding-right:20px}
+  .cards{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+
+@media (max-width:850px){
+  .topbar{left:0}
+  .sidebar{
+    transform:translateX(-102%);
+    transition:transform .2s ease;
+  }
+  .sidebar.open{transform:translateX(0)}
+  .content{margin-left:0;padding-top:calc(var(--topbar) + 12px)}
+  .btn-menu{display:grid}
+  .topbar-center{margin-left:auto;margin-right:12px}
+  .graficos{grid-template-columns:1fr}
+  .grafico-box,.grafico-principal{height:300px}
+  .chart-pie,.chart-bar{height:218px}
+  .chart-pie canvas,.chart-bar canvas{height:218px!important}
+}
+
+@media (max-width:600px){
+  .topbar{padding:0 12px}
+  .topbar-title{font-size:14px}
+  .topbar-center{display:none}
+  .btn-logout-top{height:34px;padding:0 10px}
+  .content{padding-left:12px;padding-right:12px}
+
+  .filtros{
+    align-items:stretch;
+    flex-direction:column;
+    padding:14px;
+  }
+
+  .filtros input,#btnLimparFiltro{width:100%}
+
+  .cards{grid-template-columns:1fr;gap:10px}
+  .cards .card{min-height:108px}
+
+  .grafico-box,.grafico-principal{height:320px;padding:16px}
+  .grafico-header{flex-direction:column}
+  .grafico-header select{width:100%;flex-basis:auto}
+  .chart-pie,.chart-bar{height:220px}
+  .chart-pie canvas,.chart-bar canvas{height:220px!important}
+  .grafico-comparativo{height:290px}
+  .chart-line{height:205px}
+  .chart-line canvas{height:205px!important}
+
+  .form-grid{grid-template-columns:1fr}
+}
+
+@media (max-width:420px){
+  .cards .card{padding-left:84px}
+  .cards .card:after{left:16px;width:52px;height:52px}
+  .cards .card strong{font-size:21px}
+}
+/* =========================================================
+   TCS FINANCE — AJUSTE FINAL DE LAYOUT
+   FULL WIDTH + GRÁFICOS + PIZZA
+   ========================================================= */
+
+/* ---------------------------------------------------------
+   ESTRUTURA PRINCIPAL
+   --------------------------------------------------------- */
+
+html,
+body {
+    width: 100%;
+    min-width: 0;
+    overflow-x: hidden;
+}
+
+#app {
+    width: 100%;
+    min-height: 100vh;
+}
+
+.content {
+    width: calc(100% - var(--sidebar));
+    max-width: none !important;
+    min-width: 0;
+    margin-left: var(--sidebar) !important;
+    margin-right: 0 !important;
+    padding: calc(var(--topbar) + 18px) 28px 40px !important;
+    box-sizing: border-box;
+}
+
+/* O conteúdo interno não deve criar uma largura artificial */
+#dashboard {
+    width: 100%;
+    max-width: none !important;
+    min-width: 0;
+}
+
+/* ---------------------------------------------------------
+   FILTRO
+   --------------------------------------------------------- */
+
+.filtros {
+    width: 100%;
+    max-width: none !important;
+    box-sizing: border-box;
+}
+
+/* ---------------------------------------------------------
+   CARDS FINANCEIROS
+   --------------------------------------------------------- */
+
+.cards {
+    width: 100%;
+    max-width: none !important;
+
+    display: grid !important;
+    grid-template-columns:
+        repeat(4, minmax(0, 1fr));
+
+    gap: 16px !important;
+}
+
+.cards .card {
+    min-width: 0;
+    width: 100%;
+}
+
+/* ---------------------------------------------------------
+   ALERTAS
+   --------------------------------------------------------- */
+
+.alertas {
+    width: 100%;
+    min-width: 0;
+}
+
+/* ---------------------------------------------------------
+   ÁREA DE ANÁLISE
+   --------------------------------------------------------- */
+
+.dashboard-section-title {
+    width: 100%;
+}
+
+/* ---------------------------------------------------------
+   DOIS GRÁFICOS SUPERIORES
+   --------------------------------------------------------- */
+
+.graficos {
+    width: 100%;
+    max-width: none !important;
+    min-width: 0;
+
+    display: grid !important;
+    grid-template-columns:
+        minmax(0, 1fr)
+        minmax(0, 1fr);
+
+    gap: 18px !important;
+
+    align-items: stretch;
+}
+
+/* ---------------------------------------------------------
+   CARDS DOS GRÁFICOS
+   --------------------------------------------------------- */
+
+.grafico-box {
+    width: 100%;
+    min-width: 0;
+
+    box-sizing: border-box;
+
+    background: #fff;
+
+    border: 1px solid var(--line);
+    border-radius: 18px;
+
+    box-shadow:
+        0 8px 26px rgba(16, 24, 40, .055);
+
+    overflow: hidden;
+}
+
+/* Os dois cards superiores ficam com a mesma altura */
+.graficos > .grafico-box {
+    height: 330px;
+}
+
+/* ---------------------------------------------------------
+   CABEÇALHO DOS GRÁFICOS
+   --------------------------------------------------------- */
+
+.grafico-header {
+    width: 100%;
+    min-width: 0;
+
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+
+    gap: 16px;
+
+    margin-bottom: 6px;
+}
+
+.grafico-header > div {
+    min-width: 0;
+}
+
+.grafico-header h3 {
+    margin: 0 0 5px;
+
+    color: var(--text);
+
+    font-size: 15px;
+    font-weight: 800;
+
+    line-height: 1.25;
+}
+
+.grafico-header p {
+    margin: 0;
+
+    color: var(--muted);
+
+    font-size: 11px;
+    line-height: 1.4;
+}
+
+.grafico-header select {
+    flex: 0 0 155px;
+
+    width: 155px;
+    height: 36px;
+
+    box-sizing: border-box;
+
+    padding: 0 10px;
+
+    border: 1px solid var(--line);
+    border-radius: 9px;
+
+    background: #fff;
+    color: #344054;
+
+    font-size: 11px;
+    font-weight: 650;
+}
+
+/* ---------------------------------------------------------
+   ÁREA INTERNA DOS GRÁFICOS
+   --------------------------------------------------------- */
+
+.chart-wrap {
+    position: relative;
+
+    width: 100%;
+    min-width: 0;
+
+    box-sizing: border-box;
+}
+
+/* ---------------------------------------------------------
+   PIZZA — CORREÇÃO DEFINITIVA
+   --------------------------------------------------------- */
+
+/*
+   A pizza estava sendo cortada porque o canvas tinha
+   uma altura grande demais para o espaço vertical disponível.
+
+   Agora damos uma área própria e controlada.
+*/
+
+.chart-pie {
+    position: relative;
+
+    width: 100%;
+    height: 238px !important;
+
+    min-height: 238px;
+    max-height: 238px;
+
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    box-sizing: border-box;
+}
+
+/*
+   O canvas não pode ultrapassar a área do card.
+*/
+
+.chart-pie canvas {
+    display: block !important;
+
+    width: 100% !important;
+    height: 238px !important;
+
+    max-width: 100% !important;
+    max-height: 238px !important;
+
+    box-sizing: border-box;
+}
+
+/*
+   IMPORTANTE:
+   quando o gráfico for circular, deixamos o espaço
+   horizontal e vertical igualmente disponível.
+*/
+
+.grafico-principal .chart-pie {
+    overflow: hidden;
+}
+
+/* ---------------------------------------------------------
+   GRÁFICO DE BARRAS
+   --------------------------------------------------------- */
+
+.chart-bar {
+    position: relative;
+
+    width: 100%;
+    height: 238px !important;
+
+    min-height: 238px;
+    max-height: 238px;
+
+    box-sizing: border-box;
+}
+
+.chart-bar canvas {
+    display: block !important;
+
+    width: 100% !important;
+    height: 238px !important;
+
+    max-width: 100% !important;
+    max-height: 238px !important;
+
+    box-sizing: border-box;
+}
+
+/* ---------------------------------------------------------
+   GRÁFICO DE EVOLUÇÃO
+   --------------------------------------------------------- */
+
+.grafico-comparativo {
+    width: 100%;
+    max-width: none !important;
+
+    height: 340px;
+
+    margin-top: 18px;
+
+    box-sizing: border-box;
+}
+
+.chart-line {
+    position: relative;
+
+    width: 100%;
+
+    height: 260px !important;
+
+    min-height: 260px;
+}
+
+.chart-line canvas {
+    display: block !important;
+
+    width: 100% !important;
+    height: 260px !important;
+
+    max-width: 100% !important;
+    max-height: 260px !important;
+
+    box-sizing: border-box;
+}
+
+/* ---------------------------------------------------------
+   EVITA QUALQUER ESTOURO HORIZONTAL
+   --------------------------------------------------------- */
+
+.graficos,
+.grafico-box,
+.chart-wrap,
+.chart-pie,
+.chart-bar,
+.chart-line,
+.grafico-box canvas {
+    max-width: 100%;
+}
+
+/* ---------------------------------------------------------
+   LANÇAMENTOS TAMBÉM APROVEITA A TELA
+   --------------------------------------------------------- */
+
+#lancamentos {
+    width: 100%;
+    max-width: none !important;
+}
+
+/* ---------------------------------------------------------
+   FOOTER
+   --------------------------------------------------------- */
+
+.creditos-app {
+    width: 100%;
+    box-sizing: border-box;
+}
+
+/* =========================================================
+   TELAS GRANDES
+   ========================================================= */
+
+@media (min-width: 1600px) {
+
+    .content {
+        padding-left: 34px !important;
+        padding-right: 34px !important;
+    }
+
+    .cards {
+        gap: 18px !important;
+    }
+
+    .graficos {
+        gap: 20px !important;
+    }
+
+    .graficos > .grafico-box {
+        height: 350px;
+    }
+
+    .chart-pie,
+    .chart-bar {
+        height: 258px !important;
+        min-height: 258px;
+        max-height: 258px;
+    }
+
+    .chart-pie canvas,
+    .chart-bar canvas {
+        height: 258px !important;
+        max-height: 258px !important;
+    }
+
+    .grafico-comparativo {
+        height: 360px;
+    }
+
+    .chart-line {
+        height: 278px !important;
+    }
+
+    .chart-line canvas {
+        height: 278px !important;
+        max-height: 278px !important;
+    }
+}
+
+/* =========================================================
+   NOTEBOOK / TELAS MÉDIAS
+   ========================================================= */
+
+@media (max-width: 1200px) {
+
+    .content {
+        padding-left: 20px !important;
+        padding-right: 20px !important;
+    }
+
+    .cards {
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+    }
+
+    .graficos {
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+    }
+}
+
+/* =========================================================
+   TABLET / MENU MOBILE
+   ========================================================= */
+
+@media (max-width: 850px) {
+
+    .content {
+        width: 100%;
+        margin-left: 0 !important;
+
+        padding:
+            calc(var(--topbar) + 16px)
+            18px
+            32px !important;
+    }
+
+    .graficos {
+        grid-template-columns: 1fr;
+    }
+
+    .graficos > .grafico-box {
+        height: 330px;
+    }
+
+    .chart-pie,
+    .chart-bar {
+        height: 240px !important;
+        min-height: 240px;
+        max-height: 240px;
+    }
+
+    .chart-pie canvas,
+    .chart-bar canvas {
+        height: 240px !important;
+        max-height: 240px !important;
+    }
+
+    .grafico-comparativo {
+        height: 300px;
+    }
+
+    .chart-line {
+        height: 220px !important;
+    }
+
+    .chart-line canvas {
+        height: 220px !important;
+        max-height: 220px !important;
+    }
+}
+
+/* =========================================================
+   CELULAR
+   ========================================================= */
+
+@media (max-width: 600px) {
+
+    .content {
+        padding:
+            calc(var(--topbar) + 14px)
+            12px
+            28px !important;
+    }
+
+    .filtros {
+        flex-direction: column !important;
+        align-items: stretch !important;
+    }
+
+    .filtros input,
+    #btnLimparFiltro {
+        width: 100%;
+    }
+
+    .cards {
+        grid-template-columns: 1fr 1fr;
+        gap: 10px !important;
+    }
+
+    .cards .card {
+        min-height: 126px;
+        padding: 15px !important;
+    }
+
+    .cards .card strong {
+        font-size: 18px !important;
+        word-break: break-word;
+    }
+
+    .graficos {
+        grid-template-columns: 1fr;
+        gap: 12px !important;
+    }
+
+    .graficos > .grafico-box {
+        height: 330px;
+        padding: 15px !important;
+    }
+
+    .grafico-header {
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .grafico-header select {
+        width: 100%;
+        flex-basis: auto;
+    }
+
+    .chart-pie,
+    .chart-bar {
+        height: 230px !important;
+        min-height: 230px;
+        max-height: 230px;
+    }
+
+    .chart-pie canvas,
+    .chart-bar canvas {
+        height: 230px !important;
+        max-height: 230px !important;
+    }
+
+    .grafico-comparativo {
+        height: 300px;
+        margin-top: 12px;
+    }
+
+    .chart-line {
+        height: 215px !important;
+        min-height: 215px;
+    }
+
+    .chart-line canvas {
+        height: 215px !important;
+        max-height: 215px !important;
+    }
+}
+
+/* =========================================================
+   CELULARES PEQUENOS
+   ========================================================= */
+
+@media (max-width: 420px) {
+
+    .cards {
+        grid-template-columns: 1fr;
+    }
+
+    .cards .card {
+        min-height: 115px;
+    }
+
+    .grafico-box {
+        border-radius: 15px;
+    }
+
+    .grafico-header h3 {
+        font-size: 14px;
+    }
+
+    .chart-pie,
+    .chart-bar {
+        height: 220px !important;
+        min-height: 220px;
+        max-height: 220px;
+    }
+
+    .chart-pie canvas,
+    .chart-bar canvas {
+        height: 220px !important;
+        max-height: 220px !important;
+    }
+}
+/* =========================================================
+   TCS FINANCE — CORREÇÃO MENU MOBILE
+   JS utiliza "active"
+   ========================================================= */
+
+@media (max-width: 850px) {
+
+    .sidebar {
+        transform: translateX(-102%) !important;
+        transition: transform .25s ease !important;
+        left: 0 !important;
+        visibility: hidden;
+    }
+
+    .sidebar.active {
+        transform: translateX(0) !important;
+        visibility: visible;
+    }
+
+    .btn-menu {
+        display: grid !important;
+        position: relative;
+        z-index: 1400;
+        pointer-events: auto;
+    }
+
+    #menuOverlay {
+        position: fixed;
+        inset: 0;
+        z-index: 1250;
+        background: rgba(7, 27, 44, .42);
+        backdrop-filter: blur(2px);
+    }
+
+    #menuOverlay.hidden {
+        display: none !important;
+    }
+
+    .sidebar {
+        z-index: 1300;
+    }
+
+    .topbar {
+        z-index: 1200;
+    }
+}
+/* =========================================================
+   TCS FINANCE — CARDS MOBILE
+   Layout compacto e sem sobreposição
+   ========================================================= */
+
+@media (max-width: 600px) {
+
+    .cards {
+        display: grid !important;
+        grid-template-columns: 1fr !important;
+        gap: 12px !important;
+    }
+
+    .cards .card {
+        width: 100%;
+        min-width: 0;
+        min-height: 96px;
+
+        padding: 14px 16px 14px 72px !important;
+
+        display: flex;
+        flex-direction: column;
+        justify-content: center;
+
+        overflow: hidden;
+    }
+
+    .cards .card:after {
+        left: 16px !important;
+
+        width: 42px !important;
+        height: 42px !important;
+
+        font-size: 21px !important;
+    }
+
+    .cards .card-label {
+        margin-bottom: 4px !important;
+        font-size: 10px !important;
+        line-height: 1.2;
+    }
+
+    .cards .card strong {
+        display: block;
+
+        max-width: 100%;
+
+        font-size: 21px !important;
+        line-height: 1.15 !important;
+        letter-spacing: -.4px !important;
+
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    .cards .card small {
+        margin-top: 4px !important;
+        font-size: 10px !important;
+        line-height: 1.2;
+    }
+}
+
+
+/* ---------------------------------------------------------
+   CELULARES MUITO PEQUENOS
+   --------------------------------------------------------- */
+
+@media (max-width: 420px) {
+
+    .cards {
+        grid-template-columns: 1fr !important;
+    }
+
+    .cards .card {
+        min-height: 92px;
+
+        padding:
+            13px
+            14px
+            13px
+            66px !important;
+    }
+
+    .cards .card:after {
+        left: 13px !important;
+
+        width: 40px !important;
+        height: 40px !important;
+
+        font-size: 20px !important;
+    }
+
+    .cards .card strong {
+        font-size: 19px !important;
+    }
+}
+/* =========================================================
+   RELATÓRIOS
+   ========================================================= */
+
+#relatorios {
+    width: 100%;
+    max-width: none;
+}
+
+.relatorios-grid {
+    display: grid;
+    grid-template-columns:
+        repeat(4, minmax(0, 1fr));
+
+    gap: 16px;
+
+    margin-top: 20px;
+}
+
+.relatorio-card {
+    min-height: 120px;
+
+    display: flex;
+    align-items: center;
+
+    gap: 14px;
+
+    padding: 18px;
+
+    border: 1px solid var(--line);
+    border-radius: 18px;
+
+    background: #fff;
+
+    box-shadow: var(--shadow);
+}
+
+.relatorio-icon {
+    width: 48px;
+    height: 48px;
+
+    flex: 0 0 48px;
+
+    display: grid;
+    place-items: center;
+
+    border-radius: 50%;
+
+    background: var(--blue-soft);
+    color: var(--blue);
+
+    font-size: 22px;
+    font-weight: 700;
+}
+
+.relatorio-card small {
+    display: block;
+
+    margin-bottom: 5px;
+
+    color: var(--muted);
+
+    font-size: 10px;
+    font-weight: 800;
+
+    letter-spacing: .8px;
+}
+
+.relatorio-card strong {
+    display: block;
+
+    color: var(--text);
+
+    font-size: 22px;
+    font-weight: 850;
+}
+
+.relatorio-saldo {
+    background: linear-gradient(
+        135deg,
+        #0a2943,
+        #123b5d
+    );
+
+    border-color: #0b3554;
+}
+
+.relatorio-saldo small {
+    color: #d7e6f3;
+}
+
+.relatorio-saldo strong {
+    color: #fff;
+}
+
+.relatorio-saldo .relatorio-icon {
+    background: rgba(255,255,255,.10);
+    color: #fff;
+}
+
+.relatorio-resumo {
+    margin-top: 20px;
+
+    padding: 22px;
+
+    border: 1px solid var(--line);
+    border-radius: 18px;
+
+    background: #fff;
+
+    box-shadow: var(--shadow);
+}
+
+.relatorio-resumo h3 {
+    margin: 0 0 4px;
+
+    font-size: 16px;
+}
+
+.relatorio-resumo p {
+    margin: 0 0 18px;
+
+    color: var(--muted);
+
+    font-size: 12px;
+}
+
+.relatorio-linha {
+    min-height: 48px;
+
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    padding: 0 4px;
+
+    border-bottom: 1px solid var(--line);
+
+    color: #475467;
+}
+
+.relatorio-linha strong {
+    color: var(--text);
+}
+
+.relatorio-linha.destaque {
+    margin-top: 4px;
+
+    border-bottom: 0;
+
+    font-weight: 800;
+}
+
+.relatorio-linha.destaque strong {
+    color: var(--blue);
+}
+
+
+/* MOBILE */
+
+@media (max-width: 850px) {
+
+    .relatorios-grid {
+        grid-template-columns:
+            repeat(2, minmax(0, 1fr));
+    }
+}
+
+@media (max-width: 600px) {
+
+    .relatorios-grid {
+        grid-template-columns: 1fr;
+        gap: 10px;
+    }
+
+    .relatorio-card {
+        min-height: 92px;
+        padding: 14px;
+    }
+
+    .relatorio-icon {
+        width: 42px;
+        height: 42px;
+        flex-basis: 42px;
+        font-size: 19px;
+    }
+
+    .relatorio-card strong {
+        font-size: 20px;
+    }
+}
+/* ==========================================================
+   TCS FINANCE — RECORRÊNCIAS
+   ========================================================== */
+
+#recorrencias {
+  width: 100%;
+  animation: aparecerRecorrencias 0.25s ease;
+}
+
+@keyframes aparecerRecorrencias {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+
+/* ==========================================================
+   CABEÇALHO
+   ========================================================== */
+
+#recorrencias .page-heading {
+  margin-bottom: 24px;
+}
+
+#recorrencias .page-heading .eyebrow {
+  display: block;
+  margin-bottom: 6px;
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 1.5px;
+  opacity: 0.65;
+}
+
+#recorrencias .page-heading h2 {
+  margin: 0;
+  font-size: 28px;
+  font-weight: 800;
+}
+
+#recorrencias .page-heading p {
+  margin: 7px 0 0;
+  opacity: 0.65;
+  font-size: 14px;
+}
+
+
+/* ==========================================================
+   CARD DO FORMULÁRIO
+   ========================================================== */
+
+.recorrencias-form-card,
+.recorrencias-lista-card {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 24px;
+  margin-bottom: 20px;
+
+  background: var(--card-bg, #ffffff);
+  border: 1px solid var(--border-color, #e7eaf0);
+  border-radius: 18px;
+
+  box-shadow:
+    0 8px 24px rgba(0, 0, 0, 0.04);
+}
+
+
+/* ==========================================================
+   CABEÇALHO INTERNO DOS CARDS
+   ========================================================== */
+
+.recorrencias-form-card .section-card-heading,
+.recorrencias-lista-card .section-card-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+
+  margin-bottom: 22px;
+}
+
+.recorrencias-form-card .section-card-heading h3,
+.recorrencias-lista-card .section-card-heading h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.recorrencias-form-card .section-card-heading p,
+.recorrencias-lista-card .section-card-heading p {
+  margin: 5px 0 0;
+  font-size: 13px;
+  opacity: 0.62;
+}
+
+
+/* ==========================================================
+   GRID DO FORMULÁRIO
+   ========================================================== */
+
+.recorrencia-form-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 18px;
+  width: 100%;
+}
+
+
+/* ==========================================================
+   CAMPOS
+   ========================================================== */
+
+.recorrencia-form-grid .field-group {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  min-width: 0;
+}
+
+.recorrencia-form-grid .field-group span {
+  font-size: 12px;
+  font-weight: 750;
+  opacity: 0.75;
+}
+
+.recorrencia-form-grid input,
+.recorrencia-form-grid select {
+  width: 100%;
+  min-width: 0;
+  height: 46px;
+
+  box-sizing: border-box;
+
+  padding: 0 13px;
+
+  border: 1px solid var(--border-color, #dfe3ea);
+  border-radius: 11px;
+
+  background: var(--input-bg, #ffffff);
+  color: inherit;
+
+  font-family: inherit;
+  font-size: 14px;
+
+  outline: none;
+
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    background 0.18s ease;
+}
+
+.recorrencia-form-grid input:focus,
+.recorrencia-form-grid select:focus {
+  border-color: var(--primary, #2563eb);
+
+  box-shadow:
+    0 0 0 3px rgba(37, 99, 235, 0.10);
+}
+
+
+/* ==========================================================
+   CAIXA INFORMATIVA
+   ========================================================== */
+
+.recorrencia-info-box {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+
+  margin-top: 22px;
+  padding: 14px 16px;
+
+  border-radius: 13px;
+
+  background: rgba(37, 99, 235, 0.06);
+  border: 1px solid rgba(37, 99, 235, 0.12);
+}
+
+.recorrencia-info-icon {
+  width: 38px;
+  height: 38px;
+
+  flex: 0 0 38px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 10px;
+
+  background: rgba(37, 99, 235, 0.10);
+
+  font-size: 20px;
+}
+
+.recorrencia-info-box strong {
+  display: block;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.recorrencia-info-box p {
+  margin: 3px 0 0;
+
+  font-size: 12px;
+  line-height: 1.45;
+
+  opacity: 0.65;
+}
+
+
+/* ==========================================================
+   BOTÕES
+   ========================================================== */
+
+.contas-form-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+
+  margin-top: 22px;
+}
+
+.btn-primary-tcs,
+.btn-secondary-tcs {
+  min-height: 44px;
+
+  padding: 0 18px;
+
+  border-radius: 10px;
+
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 750;
+
+  cursor: pointer;
+
+  transition:
+    transform 0.15s ease,
+    opacity 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.btn-primary-tcs {
+  border: none;
+
+  background: var(--primary, #2563eb);
+  color: #ffffff;
+
+  box-shadow:
+    0 5px 14px rgba(37, 99, 235, 0.20);
+}
+
+.btn-primary-tcs:hover {
+  transform: translateY(-1px);
+  opacity: 0.94;
+}
+
+.btn-secondary-tcs {
+  border: 1px solid var(--border-color, #dfe3ea);
+
+  background: transparent;
+  color: inherit;
+}
+
+.btn-secondary-tcs:hover {
+  background: rgba(0, 0, 0, 0.035);
+}
+
+
+/* ==========================================================
+   RESUMO
+   ========================================================== */
+
+.recorrencias-resumo-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(3, minmax(0, 1fr));
+
+  gap: 18px;
+
+  width: 100%;
+
+  margin-bottom: 20px;
+}
+
+.recorrencia-resumo-card {
+  min-width: 0;
+
+  display: flex;
+  align-items: center;
+
+  gap: 14px;
+
+  padding: 18px;
+
+  border-radius: 16px;
+
+  background: var(--card-bg, #ffffff);
+  border: 1px solid var(--border-color, #e7eaf0);
+
+  box-shadow:
+    0 6px 18px rgba(0, 0, 0, 0.035);
+}
+
+.recorrencia-resumo-icon {
+  width: 44px;
+  height: 44px;
+
+  flex: 0 0 44px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 12px;
+
+  background: rgba(37, 99, 235, 0.08);
+
+  font-size: 21px;
+}
+
+.recorrencia-resumo-card div {
+  min-width: 0;
+}
+
+.recorrencia-resumo-card div span {
+  display: block;
+
+  margin-bottom: 3px;
+
+  font-size: 10px;
+  font-weight: 800;
+
+  letter-spacing: 0.8px;
+
+  opacity: 0.55;
+}
+
+.recorrencia-resumo-card div strong {
+  display: block;
+
+  font-size: 24px;
+  font-weight: 850;
+
+  line-height: 1.1;
+}
+
+
+/* ==========================================================
+   LISTA
+   ========================================================== */
+
+.recorrencias-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+
+  gap: 16px;
+
+  width: 100%;
+}
+
+
+/* ==========================================================
+   CARD INDIVIDUAL DA RECORRÊNCIA
+   ========================================================== */
+
+.recorrencia-item {
+  position: relative;
+
+  display: flex;
+  flex-direction: column;
+
+  min-width: 0;
+
+  padding: 19px;
+
+  border-radius: 15px;
+
+  border: 1px solid var(--border-color, #e7eaf0);
+
+  background: var(--card-bg, #ffffff);
+
+  transition:
+    transform 0.18s ease,
+    box-shadow 0.18s ease,
+    border-color 0.18s ease;
+}
+
+.recorrencia-item:hover {
+  transform: translateY(-2px);
+
+  box-shadow:
+    0 10px 25px rgba(0, 0, 0, 0.06);
+}
+
+
+/* ==========================================================
+   CABEÇALHO DO ITEM
+   ========================================================== */
+
+.recorrencia-item-topo {
+  display: flex;
+
+  align-items: flex-start;
+  justify-content: space-between;
+
+  gap: 12px;
+}
+
+.recorrencia-item-identificacao {
+  display: flex;
+
+  align-items: center;
+
+  gap: 12px;
+
+  min-width: 0;
+}
+
+.recorrencia-item-icone {
+  width: 42px;
+  height: 42px;
+
+  flex: 0 0 42px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  border-radius: 11px;
+
+  background: rgba(37, 99, 235, 0.08);
+
+  font-size: 19px;
+}
+
+.recorrencia-item-titulo {
+  min-width: 0;
+}
+
+.recorrencia-item-titulo strong {
+  display: block;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.recorrencia-item-titulo span {
+  display: block;
+
+  margin-top: 3px;
+
+  font-size: 11px;
+
+  opacity: 0.58;
+}
+
+
+/* ==========================================================
+   STATUS
+   ========================================================== */
+
+.recorrencia-status {
+  display: inline-flex;
+
+  align-items: center;
+
+  gap: 5px;
+
+  flex: 0 0 auto;
+
+  padding: 5px 9px;
+
+  border-radius: 999px;
+
+  font-size: 10px;
+  font-weight: 800;
+}
+
+.recorrencia-status.ativa {
+  background: rgba(22, 163, 74, 0.10);
+  color: #15803d;
+}
+
+.recorrencia-status.pausada {
+  background: rgba(234, 88, 12, 0.10);
+  color: #c2410c;
+}
+
+
+/* ==========================================================
+   VALOR
+   ========================================================== */
+
+.recorrencia-item-valor {
+  margin-top: 18px;
+
+  font-size: 23px;
+  font-weight: 850;
+
+  line-height: 1.1;
+}
+
+
+/* ==========================================================
+   INFORMAÇÕES
+   ========================================================== */
+
+.recorrencia-item-info {
+  display: grid;
+
+  grid-template-columns:
+    repeat(2, minmax(0, 1fr));
+
+  gap: 10px;
+
+  margin-top: 16px;
+}
+
+.recorrencia-item-info-bloco {
+  min-width: 0;
+
+  padding: 10px;
+
+  border-radius: 10px;
+
+  background: rgba(0, 0, 0, 0.025);
+}
+
+.recorrencia-item-info-bloco span {
+  display: block;
+
+  font-size: 10px;
+  font-weight: 700;
+
+  opacity: 0.52;
+
+  margin-bottom: 4px;
+}
+
+.recorrencia-item-info-bloco strong {
+  display: block;
+
+  font-size: 12px;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+
+/* ==========================================================
+   PRÓXIMO LANÇAMENTO
+   ========================================================== */
+
+.recorrencia-proximo {
+  margin-top: 13px;
+
+  padding: 11px 12px;
+
+  border-radius: 10px;
+
+  background: rgba(37, 99, 235, 0.05);
+}
+
+.recorrencia-proximo span {
+  display: block;
+
+  font-size: 10px;
+  font-weight: 700;
+
+  opacity: 0.55;
+
+  margin-bottom: 3px;
+}
+
+.recorrencia-proximo strong {
+  font-size: 12px;
+}
+
+
+/* ==========================================================
+   AÇÕES DO ITEM
+   ========================================================== */
+
+.recorrencia-item-acoes {
+  display: flex;
+
+  align-items: center;
+
+  gap: 8px;
+
+  margin-top: 17px;
+
+  padding-top: 14px;
+
+  border-top: 1px solid var(--border-color, #edf0f4);
+}
+
+.recorrencia-item-acoes button {
+  min-height: 35px;
+
+  padding: 0 10px;
+
+  border-radius: 8px;
+
+  border: 1px solid var(--border-color, #dfe3ea);
+
+  background: transparent;
+
+  color: inherit;
+
+  font-family: inherit;
+
+  font-size: 11px;
+  font-weight: 700;
+
+  cursor: pointer;
+
+  transition:
+    background 0.15s ease,
+    transform 0.15s ease;
+}
+
+.recorrencia-item-acoes button:hover {
+  background: rgba(0, 0, 0, 0.035);
+
+  transform: translateY(-1px);
+}
+
+.recorrencia-item-acoes .acao-excluir {
+  margin-left: auto;
+}
+
+
+/* ==========================================================
+   ESTADO VAZIO
+   ========================================================== */
+
+.recorrencias-vazio {
+  grid-column: 1 / -1;
+
+  display: flex;
+  flex-direction: column;
+
+  align-items: center;
+  justify-content: center;
+
+  min-height: 210px;
+
+  padding: 25px;
+
+  text-align: center;
+
+  border: 1px dashed var(--border-color, #dfe3ea);
+
+  border-radius: 15px;
+}
+
+.recorrencias-vazio-icone {
+  width: 54px;
+  height: 54px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  margin-bottom: 12px;
+
+  border-radius: 15px;
+
+  background: rgba(37, 99, 235, 0.07);
+
+  font-size: 24px;
+}
+
+.recorrencias-vazio strong {
+  font-size: 14px;
+  font-weight: 800;
+}
+
+.recorrencias-vazio p {
+  max-width: 420px;
+
+  margin: 6px 0 0;
+
+  font-size: 12px;
+
+  line-height: 1.5;
+
+  opacity: 0.58;
+}
+
+
+/* ==========================================================
+   DARK MODE
+   ========================================================== */
+
+body.dark .recorrencias-form-card,
+body.dark .recorrencias-lista-card,
+body.dark .recorrencia-resumo-card,
+body.dark .recorrencia-item {
+  box-shadow:
+    0 8px 24px rgba(0, 0, 0, 0.16);
+}
+
+body.dark .recorrencia-item-info-bloco {
+  background: rgba(255, 255, 255, 0.035);
+}
+
+body.dark .btn-secondary-tcs,
+body.dark .recorrencia-item-acoes button {
+  border-color: rgba(255, 255, 255, 0.10);
+}
+
+
+/* ==========================================================
+   TABLET
+   ========================================================== */
+
+@media (max-width: 1100px) {
+
+  .recorrencia-form-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+  .recorrencias-grid {
+    grid-template-columns:
+      repeat(2, minmax(0, 1fr));
+  }
+
+}
+
+
+/* ==========================================================
+   MOBILE
+   ========================================================== */
+
+@media (max-width: 700px) {
+
+  #recorrencias .page-heading {
+    margin-bottom: 18px;
+  }
+
+  #recorrencias .page-heading h2 {
+    font-size: 23px;
+  }
+
+  #recorrencias .page-heading p {
+    font-size: 12px;
+    line-height: 1.45;
+  }
+
+
+  .recorrencias-form-card,
+  .recorrencias-lista-card {
+    padding: 17px;
+
+    border-radius: 15px;
+
+    margin-bottom: 15px;
+  }
+
+
+  .recorrencias-form-card .section-card-heading,
+  .recorrencias-lista-card .section-card-heading {
+    margin-bottom: 17px;
+  }
+
+
+  .recorrencias-form-card .section-card-heading h3,
+  .recorrencias-lista-card .section-card-heading h3 {
+    font-size: 16px;
+  }
+
+
+  .recorrencias-form-card .section-card-heading p,
+  .recorrencias-lista-card .section-card-heading p {
+    font-size: 11px;
+    line-height: 1.4;
+  }
+
+
+  .recorrencia-form-grid {
+    grid-template-columns: 1fr;
+
+    gap: 13px;
+  }
+
+
+  .recorrencia-form-grid input,
+  .recorrencia-form-grid select {
+    height: 45px;
+
+    font-size: 13px;
+  }
+
+
+  .recorrencia-info-box {
+    align-items: flex-start;
+
+    padding: 12px;
+  }
+
+
+  .recorrencia-info-icon {
+    width: 34px;
+    height: 34px;
+
+    flex-basis: 34px;
+
+    font-size: 17px;
+  }
+
+
+  .recorrencia-info-box strong {
+    font-size: 12px;
+  }
+
+
+  .recorrencia-info-box p {
+    font-size: 11px;
+  }
+
+
+  .contas-form-actions {
+    flex-direction: column;
+
+    align-items: stretch;
+
+    width: 100%;
+  }
+
+
+  .btn-primary-tcs,
+  .btn-secondary-tcs {
+    width: 100%;
+  }
+
+
+  .recorrencias-resumo-grid {
+    grid-template-columns: 1fr;
+
+    gap: 10px;
+
+    margin-bottom: 15px;
+  }
+
+
+  .recorrencia-resumo-card {
+    padding: 14px;
+  }
+
+
+  .recorrencia-resumo-icon {
+    width: 40px;
+    height: 40px;
+
+    flex-basis: 40px;
+  }
+
+
+  .recorrencia-resumo-card div strong {
+    font-size: 21px;
+  }
+
+
+  .recorrencias-grid {
+    grid-template-columns: 1fr;
+
+    gap: 11px;
+  }
+
+
+  .recorrencia-item {
+    padding: 15px;
+  }
+
+
+  .recorrencia-item-topo {
+    gap: 8px;
+  }
+
+
+  .recorrencia-item-identificacao {
+    gap: 9px;
+  }
+
+
+  .recorrencia-item-icone {
+    width: 38px;
+    height: 38px;
+
+    flex-basis: 38px;
+
+    font-size: 17px;
+  }
+
+
+  .recorrencia-item-titulo strong {
+    font-size: 13px;
+  }
+
+
+  .recorrencia-item-titulo span {
+    font-size: 10px;
+  }
+
+
+  .recorrencia-status {
+    padding: 4px 7px;
+
+    font-size: 9px;
+  }
+
+
+  .recorrencia-item-valor {
+    margin-top: 15px;
+
+    font-size: 21px;
+  }
+
+
+  .recorrencia-item-info {
+    gap: 7px;
+
+    margin-top: 13px;
+  }
+
+
+  .recorrencia-item-info-bloco {
+    padding: 9px;
+  }
+
+
+  .recorrencia-item-info-bloco span {
+    font-size: 9px;
+  }
+
+
+  .recorrencia-item-info-bloco strong {
+    font-size: 11px;
+  }
+
+
+  .recorrencia-proximo {
+    margin-top: 10px;
+
+    padding: 10px;
+  }
+
+
+  .recorrencia-proximo span {
+    font-size: 9px;
+  }
+
+
+  .recorrencia-proximo strong {
+    font-size: 11px;
+  }
+
+
+  .recorrencia-item-acoes {
+    flex-wrap: wrap;
+
+    margin-top: 13px;
+
+    padding-top: 12px;
+  }
+
+
+  .recorrencia-item-acoes button {
+    flex: 1;
+
+    min-height: 36px;
+
+    padding: 0 7px;
+
+    font-size: 10px;
+  }
+
+
+  .recorrencia-item-acoes .acao-excluir {
+    margin-left: 0;
+  }
+
+}
+
+
+/* ==========================================================
+   MOBILE PEQUENO
+   ========================================================== */
+
+@media (max-width: 390px) {
+
+  .recorrencias-form-card,
+  .recorrencias-lista-card {
+    padding: 14px;
+  }
+
+
+  .recorrencia-item {
+    padding: 13px;
+  }
+
+
+  .recorrencia-item-topo {
+    align-items: flex-start;
+  }
+
+
+  .recorrencia-item-identificacao {
+    max-width: calc(100% - 70px);
+  }
+
+
+  .recorrencia-item-info {
+    grid-template-columns: 1fr;
+  }
+
+
+  .recorrencia-item-acoes button {
+    min-width: 0;
+
+    padding: 0 5px;
+
+    font-size: 9px;
+  }
+
+}
+
+/* =========================================================
+   TCS FINANCE — RELATÓRIOS SEM RECORRÊNCIAS
+   ========================================================= */
+.relatorios-cards{margin-top:18px}
+.relatorio-resumo>div{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:7px}
+.relatorio-resumo span{color:var(--muted);font-size:12px;text-transform:uppercase;font-weight:700;letter-spacing:.04em}
+.relatorio-resumo strong{font-size:20px}
+@media(max-width:700px){.relatorio-resumo{grid-template-columns:1fr 1fr!important}.relatorios-cards{grid-template-columns:1fr 1fr!important}}
+
+
+
+===== ARQUIVO 3 — Script.js =====
+
 /* =========================================================
    TCS FINANCE
-   SCRIPT.JS COMPLETO / ESTÁVEL
+   SCRIPT.JS — VERSÃO SEM RECORRÊNCIAS
+   25/08/2026
    =========================================================
-
-   PRINCIPAIS CORREÇÕES:
-   - Inicialização segura do Supabase
-   - Login e sessão persistente
-   - Logout
-   - Cadastro
-   - Lançamentos
-   - Dashboard
-   - Gráficos
-   - Relatórios
-   - Recorrências
-   - Categorias de recorrência
-   - Editar / excluir / pausar / reativar
-   - Filtros
-   - Exportação
+   Recursos:
+   - Login / sessão persistente / logout
+   - Cadastro / recuperação de senha
+   - Lançamentos: Receita, Despesa, Investimento
+   - Categorias por tipo
+   - Tipos de investimento detalhados por categoria
+   - Editar / excluir lançamentos
+   - Filtro mensal
+   - Dashboard financeiro
+   - Gastos por categoria
+   - Investimentos por categoria
+   - Gráficos Chart.js
+   - Alertas financeiros
+   - Exportação PDF
+   - Compatível com o HTML atual
+   - Sem módulo de recorrências
    ========================================================= */
 
 console.log("TCS Finance: carregando Script.js...");
 
-console.log("TCS FINANCE — SCRIPT CORRIGIDO — 25/08/2026 — VERSÃO 20260825-01");
-
 document.addEventListener("DOMContentLoaded", () => {
-
   "use strict";
 
   /* =========================================================
-     SUPABASE
+     CONFIGURAÇÃO
      ========================================================= */
 
-  let supabase = null;
+  const SUPABASE_URL = "https://figkamlmpangolnasaby.supabase.co";
+  const SUPABASE_KEY = "sb_publishable_qkDLfEnWNNXyqQVdogQzBQ_Sre7CVBL";
 
-  /* =========================================================
-     ESTADO GLOBAL
-     ========================================================= */
+  const LIMITE_FREE = 30;
+  const $ = (id) => document.getElementById(id);
 
+  let supabaseClient = null;
+  let usuarioAtual = null;
   let dados = [];
-
-  let recorrenciasDados = [];
-
-  let recorrenciaEmEdicao = null;
-
+  let categoriasFinanceiras = [];
   let idEmEdicao = null;
 
   let grafico = null;
-
   let graficoMensal = null;
-
   let graficoComparativo = null;
 
-  let categoriasRecorrenciaMapa = {};
-
-  let planoUsuario = "FREE";
-
-  const LIMITE_FREE = 30;
+  let inicializando = false;
+  let sessaoPronta = false;
 
   /* =========================================================
-     UTILITÁRIO DOM
+     ELEMENTOS
      ========================================================= */
 
-  const $ = id => document.getElementById(id);
+  const loginContainer = $("login-container");
+  const app = $("app");
+  const dashboard = $("dashboard");
+  const lancamentos = $("lancamentos");
+  const relatorios = $("relatorios");
+  const contas = $("contas");
+  const categoriasView = $("categorias");
+
+  const emailInput = $("email");
+  const senhaInput = $("senha");
+  const aceiteTermos = $("aceiteTermos");
+
+  const btnLogin = $("btnLogin");
+  const btnCadastro = $("btnCadastro");
+  const btnEsqueciSenha = $("btnEsqueciSenha");
+  const btnLogout = $("btnLogout");
+  const btnLogoutTop = $("btnLogoutTop");
+
+  const btnDashboard = $("btnDashboard");
+  const btnLancamentos = $("btnLancamentos");
+  const btnRelatorios = $("btnRelatorios");
+  const btnContas = $("btnContas");
+
+  const btnSalvar = $("btnSalvar");
+  const tipo = $("tipo");
+  const categoria = $("categoria");
+  const descricao = $("descricao");
+  const valor = $("valor");
+  const dataInput = $("data");
+  const lista = $("listaLancamentos");
+
+  const filtroMes = $("filtroMes");
+  const btnLimparFiltro = $("btnLimparFiltro");
+  const dashboardPeriodo = $("dashboardPeriodo");
+  const tipoGrafico = $("tipoGrafico");
+
+  const totalReceitas = $("totalReceitas");
+  const totalDespesas = $("totalDespesas");
+  const totalInvestimentos = $("totalInvestimentos");
+  const saldo = $("saldo");
+
+  const nomeCliente = $("nomeCliente");
+  const topbarUser = $("topbarUser");
+  const topbarPlano = $("topbarPlano");
+  const planoUsuario = $("planoUsuario");
+
+  const btnExportarPdf = $("btnExportarPdf");
+
+  const btnMenu = $("btnMenu");
+  const sidebar = document.querySelector(".sidebar");
+  const menuOverlay = $("menuOverlay");
 
   /* =========================================================
-     ELEMENTOS PRINCIPAIS
-     ========================================================= */
-
-  const loginContainer =
-    $("login-container");
-
-  const app =
-    $("app");
-
-  const dashboard =
-    $("dashboard");
-
-  const lancamentos =
-    $("lancamentos");
-
-  const relatorios =
-    $("relatorios");
-
-  const recorrencias =
-    $("recorrencias");
-
-  const contas =
-    $("contas");
-
-  const categoriasView =
-    $("categorias");
-
-  /* =========================================================
-     USUÁRIO
-     ========================================================= */
-
-  const nomeCliente =
-    $("nomeCliente");
-
-  const topbarUser =
-    $("topbarUser");
-
-  const topbarPlano =
-    $("topbarPlano");
-
-  /* =========================================================
-     LOGIN
-     ========================================================= */
-
-  const emailInput =
-    $("email");
-
-  const senhaInput =
-    $("senha");
-
-  const aceiteTermos =
-    $("aceiteTermos");
-
-  const btnLogin =
-    $("btnLogin");
-
-  const btnCadastro =
-    $("btnCadastro");
-
-  const btnEsqueciSenha =
-    $("btnEsqueciSenha");
-
-  const btnLogoutTop =
-    $("btnLogoutTop");
-
-  const btnLogout =
-    $("btnLogout");
-
-  /* =========================================================
-     NAVEGAÇÃO
-     ========================================================= */
-
-  const btnDashboard =
-    $("btnDashboard");
-
-  const btnLancamentos =
-    $("btnLancamentos");
-
-  const btnRecorrencias =
-    $("btnRecorrencias");
-
-  const btnRelatorios =
-    $("btnRelatorios");
-
-  const btnContas =
-    $("btnContas");
-
-  /* =========================================================
-     LANÇAMENTOS
-     ========================================================= */
-
-  const btnSalvar =
-    $("btnSalvar");
-
-  const tipo =
-    $("tipo");
-
-  const categoria =
-    $("categoria");
-
-  const descricao =
-    $("descricao");
-
-  const valor =
-    $("valor");
-
-  const dataInput =
-    $("data");
-
-  const lista =
-    $("listaLancamentos");
-
-  /* =========================================================
-     FILTROS
-     ========================================================= */
-
-  const filtroMes =
-    $("filtroMes");
-
-  const btnLimparFiltro =
-    $("btnLimparFiltro");
-
-  const dashboardPeriodo =
-    $("dashboardPeriodo");
-
-  const tipoGrafico =
-    $("tipoGrafico");
-
-  /* =========================================================
-     DASHBOARD
-     ========================================================= */
-
-  const totalReceitas =
-    $("totalReceitas");
-
-  const totalDespesas =
-    $("totalDespesas");
-
-  const totalInvestimentos =
-    $("totalInvestimentos");
-
-  const saldo =
-    $("saldo");
-
-  /* =========================================================
-     EXPORTAÇÃO
-     ========================================================= */
-
-  const btnExportarPdf =
-    $("btnExportarPdf");
-
-  /* =========================================================
-     MENU MOBILE
-     ========================================================= */
-
-  const btnMenu =
-    $("btnMenu");
-
-  const sidebar =
-    document.querySelector(".sidebar");
-
-  const menuOverlay =
-    $("menuOverlay");
-
-  /* =========================================================
-     RECORRÊNCIAS
-     ========================================================= */
-
-  const recTipo =
-    $("recTipo");
-
-  const recCategoria =
-    $("recCategoria");
-
-  const recDescricao =
-    $("recDescricao");
-
-  const recValor =
-    $("recValor");
-
-  const recFrequencia =
-    $("recFrequencia");
-
-  const recDiaVencimento =
-    $("recDiaVencimento");
-
-  const recDataInicio =
-    $("recDataInicio");
-
-  const recDataFim =
-    $("recDataFim");
-
-  const btnSalvarRecorrencia =
-    $("btnSalvarRecorrencia");
-
-  const btnCancelarRecorrencia =
-    $("btnCancelarRecorrencia");
-
-  const listaRecorrencias =
-    $("listaRecorrencias");
-
-  const totalRecorrencias =
-    $("totalRecorrencias");
-
-  const recorrenciasAtivas =
-    $("recorrenciasAtivas");
-
-  const recorrenciasPausadas =
-    $("recorrenciasPausadas");
-
-  const contadorRecorrencias =
-    $("contadorRecorrencias");
-
-  const tituloFormularioRecorrencia =
-    $("tituloFormularioRecorrencia");
-
-  /* =========================================================
-     FREQUÊNCIAS
-     ========================================================= */
-
-  const nomesFrequencia = {
-
-    diaria:
-      "Diária",
-
-    semanal:
-      "Semanal",
-
-    quinzenal:
-      "Quinzenal",
-
-    mensal:
-      "Mensal",
-
-    bimestral:
-      "Bimestral",
-
-    trimestral:
-      "Trimestral",
-
-    semestral:
-      "Semestral",
-
-    anual:
-      "Anual"
-
-  };
-
-  /* =========================================================
-     CATEGORIAS PADRÃO
+     CATEGORIAS PADRÃO LOCAIS
+     =========================================================
+     Importante:
+     Não gravamos automaticamente essas categorias no banco.
+     Isso evita quebrar instalações antigas com CHECK/FK diferentes.
+     O lançamento grava o NOME da categoria na coluna "categoria".
      ========================================================= */
 
   const categoriasPadrao = {
-
     Receita: [
-
       "Salário",
       "Renda Extra",
-      "Mesada",
       "Freelance",
       "Vendas",
       "Comissões",
@@ -331,12 +3229,10 @@ document.addEventListener("DOMContentLoaded", () => {
       "Dividendos",
       "Juros",
       "Reembolsos",
-      "Outros"
-
+      "Outras Receitas"
     ],
 
     Despesa: [
-
       "Moradia",
       "Alimentação",
       "Transporte",
@@ -353,13 +3249,10 @@ document.addEventListener("DOMContentLoaded", () => {
       "Viagens",
       "Pets",
       "Compras diversas",
-      "Outros"
-
+      "Outras Despesas"
     ],
 
     Investimento: [
-
-      "Renda Fixa",
       "Tesouro Direto",
       "CDB",
       "LCI/LCA",
@@ -369,1418 +3262,526 @@ document.addEventListener("DOMContentLoaded", () => {
       "Criptomoedas",
       "Previdência",
       "Poupança",
-      "Outros"
-
+      "Renda Fixa",
+      "Outros Investimentos"
     ]
-
   };
 
-  let categoriasFinanceiras = [];
-
   /* =========================================================
-     ESCAPE HTML
+     UTILITÁRIOS
      ========================================================= */
 
-  function escapeHtml(valor) {
-
-    return String(
-      valor ?? ""
-    ).replace(
-      /[&<>'"]/g,
-      caractere => {
-
-        const mapa = {
-
-          "&":
-            "&amp;",
-
-          "<":
-            "&lt;",
-
-          ">":
-            "&gt;",
-
-          "'":
-            "&#39;",
-
-          '"':
-            "&quot;"
-
-        };
-
-        return mapa[
-          caractere
-        ];
-
-      }
-    );
-
+  function escapeHtml(value) {
+    return String(value ?? "").replace(/[&<>'"]/g, (char) => {
+      const map = {
+        "&": "&amp;",
+        "<": "&lt;",
+        ">": "&gt;",
+        "'": "&#39;",
+        '"': "&quot;"
+      };
+      return map[char];
+    });
   }
 
-  /* =========================================================
-     NORMALIZAR TIPO
-     ========================================================= */
+  function normalizarTipo(value) {
+    const texto = String(value ?? "").trim().toLowerCase();
 
-  function normalizarTipo(
-    valor
-  ) {
+    if (texto === "receita") return "Receita";
+    if (texto === "despesa") return "Despesa";
+    if (texto === "investimento") return "Investimento";
 
-    const texto =
-      String(
-        valor ?? ""
-      )
-        .trim()
-        .toLowerCase();
-
-    if (
-      texto ===
-      "receita"
-    ) {
-
-      return "Receita";
-
-    }
-
-    if (
-      texto ===
-      "despesa"
-    ) {
-
-      return "Despesa";
-
-    }
-
-    if (
-      texto ===
-      "investimento"
-    ) {
-
-      return "Investimento";
-
-    }
-
-    return String(
-      valor ?? ""
-    );
-
+    return String(value ?? "");
   }
 
-  function normalizarTipoBanco(
-    valor
-  ) {
-
-    return normalizarTipo(
-      valor
-    ).toLowerCase();
-
-  }
-
-  /* =========================================================
-     CONVERTER NÚMERO
-     ========================================================= */
-
-  function numero(
-    valor
-  ) {
-
-    if (
-      typeof valor ===
-      "number"
-    ) {
-
-      return Number.isFinite(
-        valor
-      )
-        ? valor
-        : 0;
-
+  function numero(value) {
+    if (typeof value === "number") {
+      return Number.isFinite(value) ? value : 0;
     }
 
-    let texto =
-      String(
-        valor ?? ""
-      ).trim();
+    let texto = String(value ?? "").trim();
 
-    if (!texto) {
+    if (!texto) return 0;
 
-      return 0;
-
+    /*
+      Aceita:
+      1234.56
+      1234,56
+      1.234,56
+    */
+    if (texto.includes(",")) {
+      texto = texto.replace(/\./g, "").replace(",", ".");
     }
 
-    if (
-      texto.includes(",")
-    ) {
-
-      texto =
-        texto
-          .replace(
-            /\./g,
-            ""
-          )
-          .replace(
-            ",",
-            "."
-          );
-
-    }
-
-    const resultado =
-      Number(
-        texto
-      );
-
-    return Number.isFinite(
-      resultado
-    )
-      ? resultado
-      : 0;
-
+    const n = Number(texto);
+    return Number.isFinite(n) ? n : 0;
   }
 
-  /* =========================================================
-     MOEDA
-     ========================================================= */
-
-  function formatarMoeda(
-    valor
-  ) {
-
-    return numero(
-      valor
-    ).toLocaleString(
-      "pt-BR",
-      {
-
-        style:
-          "currency",
-
-        currency:
-          "BRL"
-
-      }
-    );
-
+  function formatarMoeda(value) {
+    return numero(value).toLocaleString("pt-BR", {
+      style: "currency",
+      currency: "BRL"
+    });
   }
 
-  /* =========================================================
-     NÚMERO
-     ========================================================= */
-
-  function formatarNumero(
-    valor
-  ) {
-
-    return numero(
-      valor
-    ).toLocaleString(
-      "pt-BR",
-      {
-
-        minimumFractionDigits:
-          2,
-
-        maximumFractionDigits:
-          2
-
-      }
-    );
-
+  function formatarNumero(value) {
+    return numero(value).toLocaleString("pt-BR", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    });
   }
 
-  /* =========================================================
-     DATA
-     ========================================================= */
+  function formatarData(value) {
+    if (!value) return "";
 
-  function formatarData(
-    valor
-  ) {
+    const texto = String(value).slice(0, 10);
+    const partes = texto.split("-");
 
-    if (!valor) {
-
-      return "";
-
-    }
-
-    const texto =
-      String(
-        valor
-      ).slice(
-        0,
-        10
-      );
-
-    const partes =
-      texto.split(
-        "-"
-      );
-
-    if (
-      partes.length ===
-      3
-    ) {
-
+    if (partes.length === 3) {
       return `${partes[2]}/${partes[1]}/${partes[0]}`;
-
     }
 
     return texto;
-
   }
-
-  /* =========================================================
-     DATA HOJE
-     ========================================================= */
 
   function obterDataHoje() {
+    const hoje = new Date();
 
-    const data =
-      new Date();
-
-    return (
-
-      data.getFullYear() +
-
-      "-" +
-
-      String(
-        data.getMonth() + 1
-      ).padStart(
-        2,
-        "0"
-      ) +
-
-      "-" +
-
-      String(
-        data.getDate()
-      ).padStart(
-        2,
-        "0"
-      )
-
-    );
-
+    return [
+      hoje.getFullYear(),
+      String(hoje.getMonth() + 1).padStart(2, "0"),
+      String(hoje.getDate()).padStart(2, "0")
+    ].join("-");
   }
-
-  /* =========================================================
-     MÊS ATUAL
-     ========================================================= */
 
   function obterMesAtual() {
+    const hoje = new Date();
 
-    const data =
-      new Date();
+    return [
+      hoje.getFullYear(),
+      String(hoje.getMonth() + 1).padStart(2, "0")
+    ].join("-");
+  }
+
+  function formatarPeriodo(value) {
+    if (!value) return "Todos os períodos";
+
+    const partes = String(value).split("-");
+
+    if (partes.length !== 2) return value;
+
+    const data = new Date(
+      Number(partes[0]),
+      Number(partes[1]) - 1,
+      1
+    );
+
+    return data.toLocaleDateString("pt-BR", {
+      month: "long",
+      year: "numeric"
+    });
+  }
+
+  function obterNomeCategoriaDoSelect() {
+    if (!categoria) return "";
+
+    const option = categoria.options[categoria.selectedIndex];
 
     return (
+      option?.dataset?.nome ||
+      option?.textContent ||
+      categoria.value ||
+      ""
+    ).trim();
+  }
 
-      data.getFullYear() +
+  function mostrarErroSupabase(prefixo, error) {
+    console.error(prefixo, error);
 
-      "-" +
+    const mensagem = error?.message || "Erro desconhecido.";
 
-      String(
-        data.getMonth() + 1
-      ).padStart(
-        2,
-        "0"
-      )
-
-    );
-
+    alert(`${prefixo}\n\n${mensagem}`);
   }
 
   /* =========================================================
-     PERÍODO
-     ========================================================= */
-
-  function formatarPeriodo(
-    valor
-  ) {
-
-    if (!valor) {
-
-      return "Todos os períodos";
-
-    }
-
-    const partes =
-      String(
-        valor
-      ).split(
-        "-"
-      );
-
-    if (
-      partes.length !==
-      2
-    ) {
-
-      return valor;
-
-    }
-
-    const data =
-      new Date(
-        Number(
-          partes[0]
-        ),
-        Number(
-          partes[1]
-        ) - 1,
-        1
-      );
-
-    return data.toLocaleDateString(
-      "pt-BR",
-      {
-
-        month:
-          "long",
-
-        year:
-          "numeric"
-
-      }
-    );
-
-  }
-
-  /* =========================================================
-     VALOR DO INPUT
-     ========================================================= */
-
-  function parseValorInput(
-    valor
-  ) {
-
-    return numero(
-      valor
-    );
-
-  }
-
-  /* =========================================================
-     VISIBILIDADE
-     ========================================================= */
-
-  function mostrarTela(
-    tela
-  ) {
-
-    [
-
-      dashboard,
-      lancamentos,
-      relatorios,
-      recorrencias,
-      contas,
-      categoriasView
-
-    ].forEach(
-      elemento => {
-
-        if (
-          elemento
-        ) {
-
-          elemento.classList.add(
-            "hidden"
-          );
-
-        }
-
-      }
-    );
-
-    if (tela) {
-
-      tela.classList.remove(
-        "hidden"
-      );
-
-    }
-
-    fecharMenuMobile();
-
-  }
-
-  /* =========================================================
-     LOGIN / APP
+     VISUAL
      ========================================================= */
 
   function mostrarLogin() {
-
     if (app) {
-
-      app.classList.add(
-        "hidden"
-      );
-
-      app.style.display =
-        "none";
-
+      app.classList.add("hidden");
+      app.style.display = "none";
     }
 
-    if (
-      loginContainer
-    ) {
-
-      loginContainer.classList.remove(
-        "hidden"
-      );
-
-      loginContainer.style.display =
-        "flex";
-
+    if (loginContainer) {
+      loginContainer.classList.remove("hidden");
+      loginContainer.style.display = "flex";
     }
-
   }
 
   function mostrarApp() {
-
-    if (
-      loginContainer
-    ) {
-
-      loginContainer.classList.add(
-        "hidden"
-      );
-
-      loginContainer.style.display =
-        "none";
-
+    if (loginContainer) {
+      loginContainer.classList.add("hidden");
+      loginContainer.style.display = "none";
     }
 
     if (app) {
-
-      app.classList.remove(
-        "hidden"
-      );
-
-      app.style.display =
-        "flex";
-
+      app.classList.remove("hidden");
+      app.style.display = "flex";
     }
+  }
 
+  function mostrarTela(tela) {
+    [
+      dashboard,
+      lancamentos,
+      relatorios,
+      contas,
+      categoriasView
+    ].forEach((elemento) => {
+      if (elemento) elemento.classList.add("hidden");
+    });
+
+    if (tela) tela.classList.remove("hidden");
+
+    fecharMenuMobile();
+  }
+
+  function ativarMenu(botao) {
+    document
+      .querySelectorAll(".sidebar .nav-item, .sidebar button")
+      .forEach((elemento) => elemento.classList.remove("active"));
+
+    if (botao) botao.classList.add("active");
+  }
+
+  function fecharMenuMobile() {
+    if (sidebar) sidebar.classList.remove("active");
+    if (menuOverlay) menuOverlay.classList.add("hidden");
   }
 
   /* =========================================================
      SUPABASE
      ========================================================= */
 
-  async function inicializarSupabase() {
-
+  function inicializarSupabase() {
     if (
       !window.supabase ||
-      !window.supabase.createClient
+      typeof window.supabase.createClient !== "function"
     ) {
-
-      console.error(
-        "Supabase JS não encontrado."
-      );
-
+      console.error("Supabase JS não encontrado.");
       alert(
-        "O módulo Supabase não foi carregado. Verifique o HTML."
+        "O Supabase não foi carregado. Verifique se o script do Supabase está no HTML antes do script.js."
       );
-
       return false;
-
-    }
-
-    supabase =
-      window.supabase.createClient(
-
-        "https://figkamlmpangolnasaby.supabase.co",
-
-        "sb_publishable_qkDLfEnWNNXyqQVdogQzBQ_Sre7CVBL"
-
-      );
-
-    return true;
-
-  }
-
-  /* =========================================================
-     USUÁRIO ATUAL
-     ========================================================= */
-
-  async function obterUsuarioAtual() {
-
-    if (!supabase) {
-
-      return null;
-
     }
 
     try {
+      supabaseClient = window.supabase.createClient(
+        SUPABASE_URL,
+        SUPABASE_KEY,
+        {
+          auth: {
+            persistSession: true,
+            autoRefreshToken: true,
+            detectSessionInUrl: true
+          }
+        }
+      );
 
-      const {
-        data,
-        error
-      } =
-        await supabase.auth.getUser();
+      console.log("Supabase inicializado.");
+      return true;
+    } catch (error) {
+      console.error("Erro ao inicializar Supabase:", error);
+      alert("Não foi possível inicializar o sistema.");
+      return false;
+    }
+  }
+
+  async function obterUsuarioAtual() {
+    if (!supabaseClient) return null;
+
+    try {
+      const { data, error } = await supabaseClient.auth.getUser();
 
       if (error) {
-
-        console.warn(
-          "getUser:",
-          error.message
-        );
-
+        console.warn("getUser:", error.message);
         return null;
-
       }
 
-      return (
-        data?.user ||
-        null
-      );
-
-    } catch (erro) {
-
-      console.error(
-        "Erro getUser:",
-        erro
-      );
-
+      return data?.user || null;
+    } catch (error) {
+      console.error("Erro getUser:", error);
       return null;
-
     }
-
-  }
-
-  /* =========================================================
-     MENU MOBILE
-     ========================================================= */
-
-  function fecharMenuMobile() {
-
-    if (sidebar) {
-
-      sidebar.classList.remove(
-        "active"
-      );
-
-    }
-
-    if (menuOverlay) {
-
-      menuOverlay.classList.add(
-        "hidden"
-      );
-
-    }
-
-  }
-
-  function ativarMenu(
-    botao
-  ) {
-
-    document
-      .querySelectorAll(
-        ".sidebar .nav-item"
-      )
-      .forEach(
-        elemento => {
-
-          elemento.classList.remove(
-            "active"
-          );
-
-        }
-      );
-
-    if (botao) {
-
-      botao.classList.add(
-        "active"
-      );
-
-    }
-
-  }
-
-  if (
-    btnMenu
-  ) {
-
-    btnMenu.addEventListener(
-      "click",
-      () => {
-
-        if (sidebar) {
-
-          sidebar.classList.toggle(
-            "active"
-          );
-
-        }
-
-        if (menuOverlay) {
-
-          menuOverlay.classList.toggle(
-            "hidden"
-          );
-
-        }
-
-      }
-    );
-
-  }
-
-  if (
-    menuOverlay
-  ) {
-
-    menuOverlay.addEventListener(
-      "click",
-      fecharMenuMobile
-    );
-
   }
 
   /* =========================================================
      CATEGORIAS
      ========================================================= */
 
-  async function garantirCategoriasPadrao() {
-
-    const user =
-      await obterUsuarioAtual();
-
-    if (!user) {
-
-      return;
-
-    }
-
-    try {
-
-      const {
-        data,
-        error
-      } =
-        await supabase
-          .from(
-            "categorias_financeiras"
-          )
-          .select(
-            "id,nome,tipo,ativa"
-          )
-          .eq(
-            "user_id",
-            user.id
-          );
-
-      if (error) {
-
-        console.warn(
-          "Categorias padrão:",
-          error.message
-        );
-
-        return;
-
-      }
-
-      const existentes =
-        new Set(
-          (data || []).map(
-            item =>
-              `${normalizarTipo(item.tipo).toLowerCase()}::${String(item.nome || "").trim().toLowerCase()}`
-          )
-        );
-
-      const novas =
-        [];
-
-      Object.entries(
-        categoriasPadrao
-      ).forEach(
-        (
-          [
-            tipoCategoria,
-            nomes
-          ]
-        ) => {
-
-          nomes.forEach(
-            nome => {
-
-              const chave =
-                `${tipoCategoria.toLowerCase()}::${nome.toLowerCase()}`;
-
-              if (
-                !existentes.has(
-                  chave
-                )
-              ) {
-
-                novas.push({
-
-                  user_id:
-                    user.id,
-
-                  nome:
-                    nome,
-
-                  tipo:
-                    tipoCategoria,
-
-                  ativa:
-                    true
-
-                });
-
-              }
-
-            }
-          );
-
-        }
-      );
-
-      if (
-        novas.length
-      ) {
-
-        const {
-          error:
-            erroInsert
-        } =
-          await supabase
-            .from(
-              "categorias_financeiras"
-            )
-            .insert(
-              novas
-            );
-
-        if (
-          erroInsert
-        ) {
-
-          console.warn(
-            "Não foi possível criar categorias padrão:",
-            erroInsert.message
-          );
-
-        }
-
-      }
-
-    } catch (erro) {
-
-      console.error(
-        "Erro categorias padrão:",
-        erro
-      );
-
-    }
-
-  }
-
-  /* =========================================================
-     CARREGAR CATEGORIAS
-     ========================================================= */
-
   async function carregarCategoriasFinanceiras() {
-
-    const user =
-      await obterUsuarioAtual();
+    const user = usuarioAtual || (await obterUsuarioAtual());
 
     if (!user) {
-
-      categoriasFinanceiras =
-        [];
-
+      categoriasFinanceiras = [];
       return;
-
     }
+
+    /*
+      Tentamos buscar as categorias já existentes.
+      Se a tabela não existir ou estiver incompatível,
+      o sistema continua funcionando com as categorias locais.
+    */
 
     try {
+      const resultado = await supabaseClient
+        .from("categorias_financeiras")
+        .select("id,nome,tipo,ativa")
+        .eq("user_id", user.id)
+        .eq("ativa", true)
+        .order("nome", { ascending: true });
 
-      let resultado =
-        await supabase
-          .from(
-            "categorias_financeiras"
-          )
-          .select(
-            "*"
-          )
-          .eq(
-            "user_id",
-            user.id
-          )
-          .eq(
-            "ativa",
-            true
-          )
-          .order(
-            "nome",
-            {
-              ascending:
-                true
-            }
-          );
-
-      /*
-       * Fallback para instalações
-       * que estejam usando "categorias".
-       */
-
-      if (
-        resultado.error
-      ) {
-
-        resultado =
-          await supabase
-            .from(
-              "categorias"
-            )
-            .select(
-              "*"
-            )
-            .eq(
-              "user_id",
-              user.id
-            )
-            .order(
-              "nome",
-              {
-                ascending:
-                  true
-              }
-            );
-
-      }
-
-      if (
-        resultado.error
-      ) {
-
-        console.warn(
-          "Erro ao carregar categorias:",
-          resultado.error.message
-        );
-
-        categoriasFinanceiras =
-          [];
-
+      if (!resultado.error && Array.isArray(resultado.data)) {
+        categoriasFinanceiras = resultado.data;
         return;
-
       }
 
-      categoriasFinanceiras =
-        resultado.data ||
-        [];
-
-    } catch (erro) {
-
-      console.error(
-        "Erro categorias:",
-        erro
+      console.warn(
+        "Tabela categorias_financeiras indisponível. Usando categorias locais."
       );
-
-      categoriasFinanceiras =
-        [];
-
+    } catch (error) {
+      console.warn("Erro ao consultar categorias:", error);
     }
 
+    categoriasFinanceiras = [];
   }
 
-  /* =========================================================
-     SELECT DE CATEGORIAS
-     ========================================================= */
+  function obterCategoriasParaTipo(tipoSelecionado) {
+    const tipoNormalizado = normalizarTipo(tipoSelecionado);
+
+    const categoriasDoBanco = categoriasFinanceiras
+      .filter(
+        (item) =>
+          normalizarTipo(item.tipo) === tipoNormalizado &&
+          item.nome
+      )
+      .map((item) => ({
+        id: item.id,
+        nome: item.nome
+      }));
+
+    if (categoriasDoBanco.length) {
+      return categoriasDoBanco;
+    }
+
+    return (categoriasPadrao[tipoNormalizado] || []).map((nome) => ({
+      id: nome,
+      nome
+    }));
+  }
 
   function atualizarSelectCategorias(
-
     tipoSelecionado = "",
-
-    categoriaSelecionada = null
-
+    categoriaSelecionada = ""
   ) {
-
-    if (!categoria) {
-
-      return;
-
-    }
+    if (!categoria) return;
 
     categoria.innerHTML =
       "<option value=''>Selecione uma categoria</option>";
 
-    if (
-      !tipoSelecionado
-    ) {
-
-      categoria.disabled =
-        true;
-
+    if (!tipoSelecionado) {
+      categoria.disabled = true;
       return;
-
     }
 
-    categoria.disabled =
-      false;
+    categoria.disabled = false;
 
-    const lista =
-      categoriasFinanceiras.filter(
-        item =>
-          normalizarTipo(
-            item.tipo
-          ) ===
-          normalizarTipo(
-            tipoSelecionado
-          )
-      );
+    const listaCategorias =
+      obterCategoriasParaTipo(tipoSelecionado);
 
-    lista.forEach(
-      item => {
+    listaCategorias.forEach((item) => {
+      const option = document.createElement("option");
 
-        const option =
-          document.createElement(
-            "option"
-          );
+      /*
+        O valor é o ID somente quando a categoria veio do banco.
+        Porém o texto/nome é o que será salvo em lancamentos.
+      */
+      option.value = item.id ?? item.nome;
+      option.textContent = item.nome;
+      option.dataset.nome = item.nome;
 
-        option.value =
-          item.id ??
-          item.nome;
-
-        option.textContent =
-          item.nome ||
-          item.descricao ||
-          "Categoria";
-
-        option.dataset.nome =
-          item.nome ||
-          "";
-
-        if (
-
-          String(
-            categoriaSelecionada
-          ) ===
-          String(
-            item.id
-          ) ||
-
-          String(
-            categoriaSelecionada
-          ) ===
-          String(
-            item.nome
-          )
-
-        ) {
-
-          option.selected =
-            true;
-
-        }
-
-        categoria.appendChild(
-          option
-        );
-
+      if (
+        String(categoriaSelecionada) === String(item.id) ||
+        String(categoriaSelecionada) === String(item.nome)
+      ) {
+        option.selected = true;
       }
-    );
 
-    if (
-      !lista.length
-    ) {
-
-      const option =
-        document.createElement(
-          "option"
-        );
-
-      option.disabled =
-        true;
-
-      option.textContent =
-        "Nenhuma categoria cadastrada";
-
-      categoria.appendChild(
-        option
-      );
-
-    }
-
+      categoria.appendChild(option);
+    });
   }
 
-  if (
-    tipo
-  ) {
-
-    tipo.addEventListener(
-      "change",
-      () => {
-
-        atualizarSelectCategorias(
-          tipo.value
-        );
-
-      }
-    );
-
+  if (tipo) {
+    tipo.addEventListener("change", () => {
+      atualizarSelectCategorias(tipo.value);
+    });
   }
 
   /* =========================================================
-     LANÇAMENTOS
+     LANÇAMENTOS — CARREGAR
      ========================================================= */
 
   async function carregarDados() {
-
-    const user =
-      await obterUsuarioAtual();
+    const user = usuarioAtual || (await obterUsuarioAtual());
 
     if (!user) {
-
-      dados =
-        [];
-
+      dados = [];
       return;
-
     }
 
     try {
-
-      const {
-        data,
-        error
-      } =
-        await supabase
-          .from(
-            "lancamentos"
-          )
-          .select(
-            "*"
-          )
-          .eq(
-            "user_id",
-            user.id
-          )
-          .order(
-            "data",
-            {
-              ascending:
-                false
-            }
-          );
+      const { data, error } = await supabaseClient
+        .from("lancamentos")
+        .select("*")
+        .eq("user_id", user.id)
+        .order("data", { ascending: false });
 
       if (error) {
-
-        console.error(
-          "Erro ao carregar lançamentos:",
-          error
-        );
-
-        dados =
-          [];
-
+        console.error("Erro ao carregar lançamentos:", error);
+        dados = [];
         return;
-
       }
 
-      dados =
-        data ||
-        [];
-
-    } catch (erro) {
-
-      console.error(
-        "Erro inesperado:",
-        erro
-      );
-
-      dados =
-        [];
-
+      dados = Array.isArray(data) ? data : [];
+    } catch (error) {
+      console.error("Erro inesperado ao carregar lançamentos:", error);
+      dados = [];
     }
-
   }
 
   /* =========================================================
-     LIMPAR FORMULÁRIO
+     LANÇAMENTOS — LIMPAR
      ========================================================= */
 
   function limparFormulario() {
+    idEmEdicao = null;
 
-    idEmEdicao =
-      null;
-
-    if (tipo) {
-
-      tipo.value =
-        "";
-
-    }
+    if (tipo) tipo.value = "";
 
     if (categoria) {
-
       categoria.innerHTML =
-        "<option value=''>Categoria</option>";
-
-      categoria.disabled =
-        true;
-
+        "<option value=''>Selecione uma categoria</option>";
+      categoria.disabled = true;
     }
 
-    if (descricao) {
+    if (descricao) descricao.value = "";
+    if (valor) valor.value = "";
+    if (dataInput) dataInput.value = obterDataHoje();
 
-      descricao.value =
-        "";
-
-    }
-
-    if (valor) {
-
-      valor.value =
-        "";
-
-    }
-
-    if (dataInput) {
-
-      dataInput.value =
-        obterDataHoje();
-
-    }
-
-    if (btnSalvar) {
-
-      btnSalvar.innerText =
-        "Salvar";
-
-    }
-
+    if (btnSalvar) btnSalvar.innerText = "Salvar";
   }
 
   /* =========================================================
-     SALVAR LANÇAMENTO
+     LANÇAMENTOS — SALVAR / EDITAR
      ========================================================= */
 
-  if (
-    btnSalvar
-  ) {
-
-    btnSalvar.addEventListener(
-      "click",
-      async () => {
-
-        try {
-
-          if (
-
-            !tipo?.value ||
-
-            !categoria?.value ||
-
-            !valor?.value ||
-
-            !dataInput?.value
-
-          ) {
-
-            alert(
-              "Preencha tipo, categoria, valor e data."
-            );
-
-            return;
-
-          }
-
-          const valorNumerico =
-            parseValorInput(
-              valor.value
-            );
-
-          if (
-
-            !Number.isFinite(
-              valorNumerico
-            ) ||
-
-            valorNumerico <=
-              0
-
-          ) {
-
-            alert(
-              "Informe um valor válido."
-            );
-
-            return;
-
-          }
-
-          if (
-
-            planoUsuario ===
-              "FREE" &&
-
-            dados.length >=
-              LIMITE_FREE &&
-
-            !idEmEdicao
-
-          ) {
-
-            alert(
-              "Limite do plano gratuito atingido."
-            );
-
-            return;
-
-          }
-
-          const user =
-            await obterUsuarioAtual();
-
-          if (!user) {
-
-            alert(
-              "Sua sessão expirou. Faça login novamente."
-            );
-
-            mostrarLogin();
-
-            return;
-
-          }
-
-          const optionSelecionada =
-            categoria.options[
-              categoria.selectedIndex
-            ];
-
-          const nomeCategoria =
-            optionSelecionada
-              ?.dataset
-              ?.nome ||
-
-            optionSelecionada
-              ?.text ||
-
-            categoria.value;
-
-          let resultado;
-
-          if (
-            idEmEdicao
-          ) {
-
-            resultado =
-              await supabase
-                .from(
-                  "lancamentos"
-                )
-                .update({
-
-                  tipo:
-                    tipo.value,
-
-                  categoria:
-                    nomeCategoria,
-
-                  descricao:
-                    descricao?.value?.trim() ||
-                    "",
-
-                  valor:
-                    valorNumerico,
-
-                  data:
-                    dataInput.value
-
-                })
-                .eq(
-                  "id",
-                  idEmEdicao
-                )
-                .eq(
-                  "user_id",
-                  user.id
-                );
-
-          } else {
-
-            resultado =
-              await supabase
-                .from(
-                  "lancamentos"
-                )
-                .insert({
-
-                  user_id:
-                    user.id,
-
-                  tipo:
-                    tipo.value,
-
-                  categoria:
-                    nomeCategoria,
-
-                  descricao:
-                    descricao?.value?.trim() ||
-                    "",
-
-                  valor:
-                    valorNumerico,
-
-                  data:
-                    dataInput.value
-
-                });
-
-          }
-
-          if (
-            resultado.error
-          ) {
-
-            console.error(
-              resultado.error
-            );
-
-            alert(
-              `Não foi possível salvar o lançamento.\n\n${resultado.error.message}`
-            );
-
-            return;
-
-          }
-
-          limparFormulario();
-
-          await carregarDados();
-
-          atualizarDashboard();
-
-          renderizarLista();
-
-          alert(
-            "Lançamento salvo com sucesso!"
-          );
-
-        } catch (erro) {
-
-          console.error(
-            "Erro ao salvar lançamento:",
-            erro
-          );
-
-          alert(
-            "Ocorreu um erro ao salvar o lançamento."
-          );
-
-        }
-
+  async function salvarLancamento() {
+    if (!supabaseClient) {
+      alert("Sistema ainda não inicializado.");
+      return;
+    }
+
+    if (
+      !tipo?.value ||
+      !categoria?.value ||
+      !valor?.value ||
+      !dataInput?.value
+    ) {
+      alert("Preencha tipo, categoria, valor e data.");
+      return;
+    }
+
+    const valorNumerico = numero(valor.value);
+
+    if (!Number.isFinite(valorNumerico) || valorNumerico <= 0) {
+      alert("Informe um valor válido.");
+      return;
+    }
+
+    if (
+      usuarioAtual?.user_metadata?.plano?.toUpperCase?.() === "FREE" &&
+      dados.length >= LIMITE_FREE &&
+      !idEmEdicao
+    ) {
+      alert(
+        `O plano gratuito permite até ${LIMITE_FREE} lançamentos.`
+      );
+      return;
+    }
+
+    const user = usuarioAtual || (await obterUsuarioAtual());
+
+    if (!user) {
+      alert("Sua sessão expirou. Faça login novamente.");
+      mostrarLogin();
+      return;
+    }
+
+    const nomeCategoria = obterNomeCategoriaDoSelect();
+
+    const registro = {
+      tipo: normalizarTipo(tipo.value),
+      categoria: nomeCategoria,
+      descricao: descricao?.value?.trim() || "",
+      valor: valorNumerico,
+      data: dataInput.value
+    };
+
+    try {
+      let resultado;
+
+      if (idEmEdicao) {
+        resultado = await supabaseClient
+          .from("lancamentos")
+          .update(registro)
+          .eq("id", idEmEdicao)
+          .eq("user_id", user.id);
+      } else {
+        resultado = await supabaseClient
+          .from("lancamentos")
+          .insert({
+            user_id: user.id,
+            ...registro
+          });
       }
-    );
 
+      if (resultado.error) {
+        mostrarErroSupabase(
+          "Não foi possível salvar o lançamento.",
+          resultado.error
+        );
+        return;
+      }
+
+      limparFormulario();
+      await carregarDados();
+      atualizarDashboard();
+      renderizarLista();
+
+      alert(
+        idEmEdicao
+          ? "Lançamento atualizado com sucesso!"
+          : "Lançamento salvo com sucesso!"
+      );
+    } catch (error) {
+      console.error("Salvar lançamento:", error);
+      alert("Ocorreu um erro ao salvar o lançamento.");
+    }
+  }
+
+  if (btnSalvar) {
+    btnSalvar.addEventListener("click", salvarLancamento);
   }
 
   /* =========================================================
@@ -1788,27 +3789,88 @@ document.addEventListener("DOMContentLoaded", () => {
      ========================================================= */
 
   function obterDadosFiltrados() {
-
-    if (
-      !filtroMes?.value
-    ) {
-
-      return [
-        ...dados
-      ];
-
+    if (!filtroMes?.value) {
+      return [...dados];
     }
 
-    return dados.filter(
-      item =>
-        String(
-          item.data ||
-          ""
-        ).startsWith(
-          filtroMes.value
-        )
+    return dados.filter((item) =>
+      String(item.data || "").startsWith(filtroMes.value)
     );
+  }
 
+  /* =========================================================
+     RESUMOS
+     ========================================================= */
+
+  function calcularResumo(registros) {
+    const resumo = {
+      receita: 0,
+      despesa: 0,
+      investimento: 0
+    };
+
+    registros.forEach((item) => {
+      const valorItem = numero(item.valor);
+      const tipoItem = normalizarTipo(item.tipo);
+
+      if (tipoItem === "Receita") resumo.receita += valorItem;
+      if (tipoItem === "Despesa") resumo.despesa += valorItem;
+      if (tipoItem === "Investimento") resumo.investimento += valorItem;
+    });
+
+    resumo.saldo = resumo.receita - resumo.despesa;
+
+    return resumo;
+  }
+
+  function agruparPorCategoria(registros, tipoDesejado) {
+    const mapa = {};
+
+    registros.forEach((item) => {
+      if (normalizarTipo(item.tipo) !== tipoDesejado) return;
+
+      const nome =
+        String(item.categoria || "Sem categoria").trim() ||
+        "Sem categoria";
+
+      mapa[nome] = (mapa[nome] || 0) + numero(item.valor);
+    });
+
+    return Object.entries(mapa)
+      .sort((a, b) => b[1] - a[1])
+      .map(([categoriaNome, total]) => ({
+        categoria: categoriaNome,
+        total
+      }));
+  }
+
+  function agruparPorMes(registros) {
+    const mapa = {};
+
+    registros.forEach((item) => {
+      const mes = String(item.data || "").slice(0, 7);
+
+      if (!mes) return;
+
+      if (!mapa[mes]) {
+        mapa[mes] = {
+          receita: 0,
+          despesa: 0,
+          investimento: 0
+        };
+      }
+
+      const tipoItem = normalizarTipo(item.tipo);
+      const valorItem = numero(item.valor);
+
+      if (tipoItem === "Receita") mapa[mes].receita += valorItem;
+      if (tipoItem === "Despesa") mapa[mes].despesa += valorItem;
+      if (tipoItem === "Investimento") {
+        mapa[mes].investimento += valorItem;
+      }
+    });
+
+    return mapa;
   }
 
   /* =========================================================
@@ -1816,167 +3878,56 @@ document.addEventListener("DOMContentLoaded", () => {
      ========================================================= */
 
   function atualizarPeriodoDashboard() {
-
-    if (
-      dashboardPeriodo
-    ) {
-
-      dashboardPeriodo.innerText =
-        formatarPeriodo(
-          filtroMes?.value ||
-          ""
-        );
-
+    if (dashboardPeriodo) {
+      dashboardPeriodo.innerText = formatarPeriodo(
+        filtroMes?.value || ""
+      );
     }
-
   }
 
-  function destruirGrafico(
-    referencia
-  ) {
-
-    if (
-      referencia
-    ) {
-
+  function destruirGrafico(referencia) {
+    if (referencia) {
       try {
-
         referencia.destroy();
-
       } catch (_) {}
-
     }
-
   }
 
   function atualizarDashboard() {
+    const filtrados = obterDadosFiltrados();
+    const resumo = calcularResumo(filtrados);
 
-    const filtrados =
-      obterDadosFiltrados();
-
-    let receita =
-      0;
-
-    let despesa =
-      0;
-
-    let investimento =
-      0;
-
-    filtrados.forEach(
-      item => {
-
-        const v =
-          numero(
-            item.valor
-          );
-
-        const tipoItem =
-          normalizarTipo(
-            item.tipo
-          );
-
-        if (
-          tipoItem ===
-          "Receita"
-        ) {
-
-          receita +=
-            v;
-
-        }
-
-        if (
-          tipoItem ===
-          "Despesa"
-        ) {
-
-          despesa +=
-            v;
-
-        }
-
-        if (
-          tipoItem ===
-          "Investimento"
-        ) {
-
-          investimento +=
-            v;
-
-        }
-
-      }
-    );
-
-    if (
-      totalReceitas
-    ) {
-
-      totalReceitas.innerText =
-        formatarMoeda(
-          receita
-        );
-
+    if (totalReceitas) {
+      totalReceitas.innerText = formatarMoeda(resumo.receita);
     }
 
-    if (
-      totalDespesas
-    ) {
-
-      totalDespesas.innerText =
-        formatarMoeda(
-          despesa
-        );
-
+    if (totalDespesas) {
+      totalDespesas.innerText = formatarMoeda(resumo.despesa);
     }
 
-    if (
-      totalInvestimentos
-    ) {
-
+    if (totalInvestimentos) {
       totalInvestimentos.innerText =
-        formatarMoeda(
-          investimento
-        );
-
+        formatarMoeda(resumo.investimento);
     }
 
-    if (
-      saldo
-    ) {
-
-      saldo.innerText =
-        formatarMoeda(
-          receita -
-          despesa
-        );
-
+    if (saldo) {
+      saldo.innerText = formatarMoeda(resumo.saldo);
     }
 
     atualizarPeriodoDashboard();
 
     renderizarGrafico(
       filtrados,
-      receita,
-      despesa,
-      investimento
+      resumo.receita,
+      resumo.despesa,
+      resumo.investimento
     );
 
-    renderizarGraficoMensal(
-      filtrados
-    );
-
-    renderizarGraficoComparativo(
-      filtrados
-    );
-
-    renderizarAlertas(
-      filtrados
-    );
-
+    renderizarGraficoMensal(filtrados);
+    renderizarGraficoComparativo(filtrados);
+    renderizarAnaliseCategorias(filtrados);
+    renderizarAlertas(filtrados);
     atualizarRelatorios();
-
   }
 
   /* =========================================================
@@ -1984,965 +3935,520 @@ document.addEventListener("DOMContentLoaded", () => {
      ========================================================= */
 
   function renderizarGrafico(
-
     filtrados,
-
     receita,
-
     despesa,
-
     investimento
-
   ) {
+    const canvas = $("grafico");
 
-    const canvas =
-      $("grafico");
+    if (!canvas || !window.Chart) return;
 
-    if (
-      !canvas ||
-      !window.Chart
-    ) {
+    destruirGrafico(grafico);
 
-      return;
+    const modo = tipoGrafico?.value || "geral";
 
-    }
+    let labels = [];
+    let valores = [];
 
-    destruirGrafico(
-      grafico
-    );
-
-    let labels = [
-
-      "Receitas",
-      "Despesas",
-      "Investimentos"
-
-    ];
-
-    let valores = [
-
-      receita,
-      despesa,
-      investimento
-
-    ];
-
-    if (
-      tipoGrafico?.value ===
-      "categoria"
-    ) {
-
-      const mapa =
-        {};
-
-      filtrados.forEach(
-        item => {
-
-          const chave =
-            item.categoria ||
-            "Sem categoria";
-
-          mapa[chave] =
-            (
-              mapa[chave] ||
-              0
-            ) +
-            numero(
-              item.valor
-            );
-
-        }
+    if (modo === "categoria") {
+      const despesas = agruparPorCategoria(
+        filtrados,
+        "Despesa"
       );
 
-      labels =
-        Object.keys(
-          mapa
-        );
+      const investimentos = agruparPorCategoria(
+        filtrados,
+        "Investimento"
+      );
 
-      valores =
-        Object.values(
-          mapa
-        );
+      const receitas = agruparPorCategoria(
+        filtrados,
+        "Receita"
+      );
 
+      const todos = [
+        ...despesas.map((x) => ({
+          label: `Despesa • ${x.categoria}`,
+          total: x.total
+        })),
+        ...investimentos.map((x) => ({
+          label: `Investimento • ${x.categoria}`,
+          total: x.total
+        })),
+        ...receitas.map((x) => ({
+          label: `Receita • ${x.categoria}`,
+          total: x.total
+        }))
+      ].sort((a, b) => b.total - a.total);
+
+      labels = todos.map((x) => x.label);
+      valores = todos.map((x) => x.total);
+    } else {
+      labels = ["Receitas", "Despesas", "Investimentos"];
+      valores = [receita, despesa, investimento];
     }
 
-    grafico =
-      new Chart(
-        canvas,
-        {
-
-          type:
-            "doughnut",
-
-          data: {
-
-            labels,
-
-            datasets: [
-
-              {
-
-                data:
-                  valores
-
-              }
-
-            ]
-
-          },
-
-          options: {
-
-            responsive:
-              true,
-
-            maintainAspectRatio:
-              false,
-
-            plugins: {
-
-              legend: {
-
-                position:
-                  "bottom"
-
-              }
-
-            }
-
+    grafico = new Chart(canvas, {
+      type: "doughnut",
+      data: {
+        labels,
+        datasets: [
+          {
+            data: valores
           }
-
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: "bottom"
+          }
         }
-      );
-
-  }
-
-  /* =========================================================
-     AGRUPAR POR MÊS
-     ========================================================= */
-
-  function agruparPorMes(
-    filtrados
-  ) {
-
-    const mapa =
-      {};
-
-    filtrados.forEach(
-      item => {
-
-        if (
-          !item.data
-        ) {
-
-          return;
-
-        }
-
-        const mes =
-          String(
-            item.data
-          ).slice(
-            0,
-            7
-          );
-
-        if (
-          !mapa[mes]
-        ) {
-
-          mapa[mes] = {
-
-            receita:
-              0,
-
-            despesa:
-              0
-
-          };
-
-        }
-
-        const v =
-          numero(
-            item.valor
-          );
-
-        if (
-          normalizarTipo(
-            item.tipo
-          ) ===
-          "Receita"
-        ) {
-
-          mapa[mes].receita +=
-            v;
-
-        }
-
-        if (
-          normalizarTipo(
-            item.tipo
-          ) ===
-          "Despesa"
-        ) {
-
-          mapa[mes].despesa +=
-            v;
-
-        }
-
       }
-    );
-
-    return mapa;
-
+    });
   }
 
   /* =========================================================
      GRÁFICO MENSAL
      ========================================================= */
 
-  function renderizarGraficoMensal(
-    filtrados
-  ) {
+  function renderizarGraficoMensal(filtrados) {
+    const canvas = $("graficoMensal");
 
-    const canvas =
-      $("graficoMensal");
+    if (!canvas || !window.Chart) return;
 
-    if (
-      !canvas ||
-      !window.Chart
-    ) {
+    destruirGrafico(graficoMensal);
 
-      return;
+    const mapa = agruparPorMes(filtrados);
+    const labels = Object.keys(mapa).sort();
 
-    }
+    if (!labels.length) return;
 
-    destruirGrafico(
-      graficoMensal
-    );
-
-    const mapa =
-      agruparPorMes(
-        filtrados
-      );
-
-    const labels =
-      Object.keys(
-        mapa
-      ).sort();
-
-    graficoMensal =
-      new Chart(
-        canvas,
-        {
-
-          type:
-            "bar",
-
-          data: {
-
-            labels,
-
-            datasets: [
-
-              {
-
-                label:
-                  "Receitas",
-
-                data:
-                  labels.map(
-                    mes =>
-                      mapa[mes]
-                        .receita
-                  )
-
-              },
-
-              {
-
-                label:
-                  "Despesas",
-
-                data:
-                  labels.map(
-                    mes =>
-                      mapa[mes]
-                        .despesa
-                  )
-
-              }
-
-            ]
-
+    graficoMensal = new Chart(canvas, {
+      type: "bar",
+      data: {
+        labels,
+        datasets: [
+          {
+            label: "Receitas",
+            data: labels.map((mes) => mapa[mes].receita)
           },
-
-          options: {
-
-            responsive:
-              true,
-
-            maintainAspectRatio:
-              false,
-
-            plugins: {
-
-              legend: {
-
-                position:
-                  "bottom"
-
-              }
-
-            }
-
+          {
+            label: "Despesas",
+            data: labels.map((mes) => mapa[mes].despesa)
+          },
+          {
+            label: "Investimentos",
+            data: labels.map((mes) => mapa[mes].investimento)
           }
-
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: "bottom"
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true
+          }
         }
-
-      );
-
+      }
+    });
   }
 
   /* =========================================================
      GRÁFICO COMPARATIVO
      ========================================================= */
 
-  function renderizarGraficoComparativo(
-    filtrados
-  ) {
+  function renderizarGraficoComparativo(filtrados) {
+    const canvas = $("graficoComparativo");
 
-    const canvas =
-      $("graficoComparativo");
+    if (!canvas || !window.Chart) return;
 
-    if (
-      !canvas ||
-      !window.Chart
-    ) {
+    destruirGrafico(graficoComparativo);
 
-      return;
+    const mapa = agruparPorMes(filtrados);
+    const labels = Object.keys(mapa).sort();
 
-    }
+    if (!labels.length) return;
 
-    destruirGrafico(
-      graficoComparativo
-    );
-
-    const mapa =
-      agruparPorMes(
-        filtrados
-      );
-
-    const labels =
-      Object.keys(
-        mapa
-      ).sort();
-
-    if (
-      !labels.length
-    ) {
-
-      return;
-
-    }
-
-    graficoComparativo =
-      new Chart(
-        canvas,
-        {
-
-          type:
-            "line",
-
-          data: {
-
-            labels,
-
-            datasets: [
-
-              {
-
-                label:
-                  "Receitas",
-
-                data:
-                  labels.map(
-                    mes =>
-                      mapa[mes]
-                        .receita
-                  ),
-
-                tension:
-                  0.25,
-
-                borderWidth:
-                  3
-
-              },
-
-              {
-
-                label:
-                  "Despesas",
-
-                data:
-                  labels.map(
-                    mes =>
-                      mapa[mes]
-                        .despesa
-                  ),
-
-                tension:
-                  0.25,
-
-                borderWidth:
-                  3
-
-              }
-
-            ]
-
+    graficoComparativo = new Chart(canvas, {
+      type: "line",
+      data: {
+        labels,
+        datasets: [
+          {
+            label: "Receitas",
+            data: labels.map((mes) => mapa[mes].receita),
+            tension: 0.25,
+            borderWidth: 3
           },
-
-          options: {
-
-            responsive:
-              true,
-
-            maintainAspectRatio:
-              false,
-
-            plugins: {
-
-              legend: {
-
-                position:
-                  "bottom"
-
-              }
-
-            },
-
-            scales: {
-
-              y: {
-
-                beginAtZero:
-                  true
-
-              }
-
-            }
-
+          {
+            label: "Despesas",
+            data: labels.map((mes) => mapa[mes].despesa),
+            tension: 0.25,
+            borderWidth: 3
+          },
+          {
+            label: "Investimentos",
+            data: labels.map((mes) => mapa[mes].investimento),
+            tension: 0.25,
+            borderWidth: 3
           }
-
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: "bottom"
+          }
+        },
+        scales: {
+          y: {
+            beginAtZero: true
+          }
         }
-
-      );
-
+      }
+    });
   }
 
   /* =========================================================
-     ALERTAS FINANCEIROS
+     ANÁLISE DE CATEGORIAS
+     =========================================================
+     Criada dinamicamente para não exigir alteração imediata
+     no HTML atual.
      ========================================================= */
 
-  function renderizarAlertas(
-    filtrados
-  ) {
+  function renderizarAnaliseCategorias(registros) {
+    if (!dashboard) return;
 
-    const container =
-      $("alertasInteligentes");
+    let bloco = $("analiseCategoriasTCS");
 
-    if (
-      !container
-    ) {
-
-      return;
-
+    if (!bloco) {
+      bloco = document.createElement("div");
+      bloco.id = "analiseCategoriasTCS";
+      bloco.className = "grafico-box";
+      dashboard.appendChild(bloco);
     }
 
-    let receita =
-      0;
-
-    let despesa =
-      0;
-
-    let investimento =
-      0;
-
-    filtrados.forEach(
-      item => {
-
-        const v =
-          numero(
-            item.valor
-          );
-
-        if (
-          normalizarTipo(
-            item.tipo
-          ) ===
-          "Receita"
-        ) {
-
-          receita +=
-            v;
-
-        }
-
-        if (
-          normalizarTipo(
-            item.tipo
-          ) ===
-          "Despesa"
-        ) {
-
-          despesa +=
-            v;
-
-        }
-
-        if (
-          normalizarTipo(
-            item.tipo
-          ) ===
-          "Investimento"
-        ) {
-
-          investimento +=
-            v;
-
-        }
-
-      }
+    const despesas = agruparPorCategoria(registros, "Despesa");
+    const investimentos = agruparPorCategoria(
+      registros,
+      "Investimento"
     );
 
-    const saldoAtual =
-      receita -
-      despesa;
-
-    const percentual =
-      receita > 0
-        ? (
-            despesa /
-            receita
-          ) *
-          100
-        : 0;
-
-    const alertas =
-      [];
-
-    if (
-      saldoAtual <
+    const totalDespesas = despesas.reduce(
+      (soma, item) => soma + item.total,
       0
-    ) {
+    );
 
-      alertas.push(
-        "🔴 Seu saldo está negativo. Atenção ao controle de despesas."
-      );
+    const totalInvestimentos = investimentos.reduce(
+      (soma, item) => soma + item.total,
+      0
+    );
 
-    }
+    const topDespesas = despesas.slice(0, 5);
+    const topInvestimentos = investimentos.slice(0, 5);
 
-    if (
-      despesa >
-      receita
-    ) {
+    const montarLista = (lista, total) => {
+      if (!lista.length) {
+        return "<p>Nenhum lançamento no período.</p>";
+      }
 
-      alertas.push(
-        "⚠️ Suas despesas estão maiores que suas receitas neste período."
-      );
+      return `
+        <div class="tcs-analise-lista">
+          ${lista
+            .map((item, index) => {
+              const percentual =
+                total > 0
+                  ? (item.total / total) * 100
+                  : 0;
 
-    } else if (
-      percentual >
-      70
-    ) {
+              return `
+                <div class="tcs-analise-item">
+                  <div>
+                    <strong>${index + 1}. ${escapeHtml(
+                item.categoria
+              )}</strong>
+                    <small>${percentual.toFixed(
+                      1
+                    )}% do total</small>
+                  </div>
+                  <strong>${formatarMoeda(
+                    item.total
+                  )}</strong>
+                </div>
+              `;
+            })
+            .join("")}
+        </div>
+      `;
+    };
 
-      alertas.push(
-        `🟡 Você está comprometendo ${percentual.toFixed(0)}% da sua receita com despesas.`
-      );
+    bloco.innerHTML = `
+      <div class="grafico-header">
+        <div>
+          <h3>Onde seu dinheiro está indo</h3>
+          <p>Principais categorias de despesas e investimentos no período.</p>
+        </div>
+      </div>
 
-    }
+      <div style="
+        display:grid;
+        grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
+        gap:20px;
+      ">
+        <div>
+          <h4>🔴 Maiores despesas</h4>
+          ${montarLista(topDespesas, totalDespesas)}
+        </div>
 
-    if (
-      investimento ===
-        0 &&
-      receita >
-        0
-    ) {
-
-      alertas.push(
-        "💡 Nenhum investimento identificado neste período."
-      );
-
-    }
-
-    if (
-      !alertas.length
-    ) {
-
-      alertas.push(
-        "✅ Sua saúde financeira está equilibrada neste período."
-      );
-
-    }
-
-    container.innerHTML =
-      alertas
-        .map(
-          texto =>
-            `<div class="alerta">${escapeHtml(texto)}</div>`
-        )
-        .join("");
-
+        <div>
+          <h4>🟢 Maiores investimentos</h4>
+          ${montarLista(
+            topInvestimentos,
+            totalInvestimentos
+          )}
+        </div>
+      </div>
+    `;
   }
 
   /* =========================================================
-     LISTA
+     ALERTAS
+     ========================================================= */
+
+  function renderizarAlertas(registros) {
+    const container = $("alertasInteligentes");
+
+    if (!container) return;
+
+    const resumo = calcularResumo(registros);
+    const alertas = [];
+
+    if (resumo.saldo < 0) {
+      alertas.push(
+        "🔴 Seu saldo está negativo neste período."
+      );
+    }
+
+    if (
+      resumo.receita > 0 &&
+      resumo.despesa > resumo.receita
+    ) {
+      alertas.push(
+        "⚠️ Suas despesas estão maiores que suas receitas."
+      );
+    } else if (resumo.receita > 0) {
+      const percentual =
+        (resumo.despesa / resumo.receita) * 100;
+
+      if (percentual > 70) {
+        alertas.push(
+          `🟡 Suas despesas consomem ${percentual.toFixed(
+            0
+          )}% das receitas.`
+        );
+      }
+    }
+
+    if (
+      resumo.receita > 0 &&
+      resumo.investimento === 0
+    ) {
+      alertas.push(
+        "💡 Não há investimentos registrados neste período."
+      );
+    }
+
+    if (!alertas.length) {
+      alertas.push(
+        "✅ Nenhum alerta crítico identificado neste período."
+      );
+    }
+
+    container.innerHTML = alertas
+      .map(
+        (texto) =>
+          `<div class="alerta">${escapeHtml(texto)}</div>`
+      )
+      .join("");
+  }
+
+  /* =========================================================
+     LISTA / EXTRATO
      ========================================================= */
 
   function renderizarLista() {
+    if (!lista) return;
 
-    if (
-      !lista
-    ) {
+    lista.innerHTML = "";
 
-      return;
+    const filtrados = obterDadosFiltrados();
 
-    }
-
-    lista.innerHTML =
-      "";
-
-    if (
-      !dados.length
-    ) {
-
+    if (!filtrados.length) {
       lista.innerHTML =
-        "<li>Nenhum lançamento cadastrado.</li>";
-
+        "<li>Nenhum lançamento encontrado para o período.</li>";
       return;
-
     }
 
-    const filtrados =
-      obterDadosFiltrados();
+    filtrados.forEach((item) => {
+      const li = document.createElement("li");
 
-    if (
-      !filtrados.length
-    ) {
+      const tipoItem = normalizarTipo(item.tipo);
 
-      lista.innerHTML =
-        "<li>Nenhum lançamento encontrado para o período selecionado.</li>";
-
-      return;
-
-    }
-
-    filtrados.forEach(
-      item => {
-
-        const li =
-          document.createElement(
-            "li"
-          );
-
-        li.innerHTML = `
-
-          <div>
-
-            <strong>
-              ${escapeHtml(
-                item.descricao ||
+      li.innerHTML = `
+        <div>
+          <strong>
+            ${escapeHtml(
+              item.descricao ||
                 item.categoria ||
                 "Sem descrição"
-              )}
-            </strong>
+            )}
+          </strong>
 
-            <small>
+          <small>
+            ${escapeHtml(tipoItem)}
+            •
+            ${escapeHtml(
+              item.categoria || "Sem categoria"
+            )}
+            •
+            ${formatarData(item.data)}
+          </small>
+        </div>
 
-              ${escapeHtml(
-                normalizarTipo(
-                  item.tipo
-                )
-              )}
+        <div>
+          <strong>${formatarMoeda(item.valor)}</strong>
 
-              •
+          <button
+            type="button"
+            data-acao="editar"
+            data-id="${escapeHtml(item.id)}"
+            title="Editar"
+          >
+            ✏️
+          </button>
 
-              ${escapeHtml(
-                item.categoria ||
-                "Sem categoria"
-              )}
+          <button
+            type="button"
+            data-acao="excluir"
+            data-id="${escapeHtml(item.id)}"
+            title="Excluir"
+          >
+            🗑️
+          </button>
+        </div>
+      `;
 
-              •
-
-              ${formatarData(
-                item.data
-              )}
-
-            </small>
-
-          </div>
-
-          <div>
-
-            <strong>
-              ${formatarMoeda(
-                item.valor
-              )}
-            </strong>
-
-            <button
-              type="button"
-              data-acao="editar"
-              data-id="${escapeHtml(
-                item.id
-              )}"
-            >
-              ✏️
-            </button>
-
-            <button
-              type="button"
-              data-acao="excluir"
-              data-id="${escapeHtml(
-                item.id
-              )}"
-            >
-              🗑️
-            </button>
-
-          </div>
-
-        `;
-
-        lista.appendChild(
-          li
-        );
-
-      }
-    );
-
+      lista.appendChild(li);
+    });
   }
 
-  /* =========================================================
-     EDITAR LANÇAMENTO
-     ========================================================= */
+  async function editarLancamento(id) {
+    const item = dados.find(
+      (registro) => String(registro.id) === String(id)
+    );
 
-  async function editarLancamento(
-    id
-  ) {
-
-    const item =
-      dados.find(
-        registro =>
-          String(
-            registro.id
-          ) ===
-          String(
-            id
-          )
-      );
-
-    if (
-      !item
-    ) {
-
+    if (!item) {
+      alert("Lançamento não encontrado.");
       return;
-
     }
 
-    idEmEdicao =
-      item.id;
+    idEmEdicao = item.id;
 
-    if (
-      tipo
-    ) {
-
-      tipo.value =
-        normalizarTipo(
-          item.tipo
-        );
-
+    if (tipo) {
+      tipo.value = normalizarTipo(item.tipo);
     }
 
     atualizarSelectCategorias(
-
-      tipo?.value ||
-      "",
-
-      item.categoria_id ||
+      tipo?.value || "",
       item.categoria
-
     );
 
-    if (
-      descricao
-    ) {
-
-      descricao.value =
-        item.descricao ||
-        "";
-
+    if (descricao) {
+      descricao.value = item.descricao || "";
     }
 
-    if (
-      valor
-    ) {
-
-      valor.value =
-        formatarNumero(
-          item.valor
-        );
-
+    if (valor) {
+      valor.value = formatarNumero(item.valor);
     }
 
-    if (
-      dataInput
-    ) {
-
-      dataInput.value =
-        String(
-          item.data ||
-          ""
-        ).slice(
-          0,
-          10
-        );
-
+    if (dataInput) {
+      dataInput.value = String(item.data || "").slice(0, 10);
     }
 
-    if (
-      btnSalvar
-    ) {
-
-      btnSalvar.innerText =
-        "Atualizar";
-
+    if (btnSalvar) {
+      btnSalvar.innerText = "Atualizar";
     }
 
-    mostrarTela(
-      lancamentos
-    );
-
+    mostrarTela(lancamentos);
+    fecharMenuMobile();
   }
 
-  /* =========================================================
-     EXCLUIR LANÇAMENTO
-     ========================================================= */
-
-  async function excluirLancamento(
-    id
-  ) {
-
-    if (
-      !confirm(
-        "Excluir lançamento?"
-      )
-    ) {
-
+  async function excluirLancamento(id) {
+    if (!confirm("Tem certeza que deseja excluir este lançamento?")) {
       return;
-
     }
 
-    const user =
-      await obterUsuarioAtual();
+    const user = usuarioAtual || (await obterUsuarioAtual());
 
-    if (
-      !user
-    ) {
-
+    if (!user) {
       mostrarLogin();
-
       return;
-
     }
 
-    const {
-      error
-    } =
-      await supabase
-        .from(
-          "lancamentos"
-        )
+    try {
+      const { error } = await supabaseClient
+        .from("lancamentos")
         .delete()
-        .eq(
-          "id",
-          id
-        )
-        .eq(
-          "user_id",
-          user.id
+        .eq("id", id)
+        .eq("user_id", user.id);
+
+      if (error) {
+        mostrarErroSupabase(
+          "Não foi possível excluir o lançamento.",
+          error
         );
+        return;
+      }
 
-    if (
-      error
-    ) {
+      await carregarDados();
+      atualizarDashboard();
+      renderizarLista();
+    } catch (error) {
+      console.error("Excluir lançamento:", error);
+      alert("Ocorreu um erro ao excluir.");
+    }
+  }
 
-      alert(
-        `Não foi possível excluir.\n\n${error.message}`
+  if (lista) {
+    lista.addEventListener("click", (event) => {
+      const botao = event.target.closest(
+        "button[data-acao]"
       );
 
-      return;
+      if (!botao) return;
 
-    }
+      const id = botao.dataset.id;
 
-    await carregarDados();
-
-    atualizarDashboard();
-
-    renderizarLista();
-
-  }
-
-  if (
-    lista
-  ) {
-
-    lista.addEventListener(
-      "click",
-      event => {
-
-        const botao =
-          event.target.closest(
-            "button[data-acao]"
-          );
-
-        if (
-          !botao
-        ) {
-
-          return;
-
-        }
-
-        if (
-          botao.dataset.acao ===
-          "editar"
-        ) {
-
-          editarLancamento(
-            botao.dataset.id
-          );
-
-        }
-
-        if (
-          botao.dataset.acao ===
-          "excluir"
-        ) {
-
-          excluirLancamento(
-            botao.dataset.id
-          );
-
-        }
-
+      if (botao.dataset.acao === "editar") {
+        editarLancamento(id);
       }
-    );
 
+      if (botao.dataset.acao === "excluir") {
+        excluirLancamento(id);
+      }
+    });
   }
 
   /* =========================================================
@@ -2950,2058 +4456,111 @@ document.addEventListener("DOMContentLoaded", () => {
      ========================================================= */
 
   function atualizarRelatorios() {
+    const registros = obterDadosFiltrados();
+    const resumo = calcularResumo(registros);
 
-    const filtrados =
-      obterDadosFiltrados();
-
-    let receita =
-      0;
-
-    let despesa =
-      0;
-
-    let investimento =
-      0;
-
-    filtrados.forEach(
-      item => {
-
-        const v =
-          numero(
-            item.valor
-          );
-
-        if (
-          normalizarTipo(
-            item.tipo
-          ) ===
-          "Receita"
-        ) {
-
-          receita +=
-            v;
-
-        }
-
-        if (
-          normalizarTipo(
-            item.tipo
-          ) ===
-          "Despesa"
-        ) {
-
-          despesa +=
-            v;
-
-        }
-
-        if (
-          normalizarTipo(
-            item.tipo
-          ) ===
-          "Investimento"
-        ) {
-
-          investimento +=
-            v;
-
-        }
-
-      }
-    );
-
-    const valores = {
-
-      relatorioReceitas:
-        formatarMoeda(
-          receita
-        ),
-
-      relatorioDespesas:
-        formatarMoeda(
-          despesa
-        ),
-
-      relatorioInvestimentos:
-        formatarMoeda(
-          investimento
-        ),
-
-      relatorioSaldo:
-        formatarMoeda(
-          receita -
-          despesa
-        ),
-
-      relatorioResumoReceitas:
-        formatarMoeda(
-          receita
-        ),
-
-      relatorioResumoDespesas:
-        formatarMoeda(
-          despesa
-        ),
-
-      relatorioResumoInvestimentos:
-        formatarMoeda(
-          investimento
-        ),
-
-      relatorioResumoSaldo:
-        formatarMoeda(
-          receita -
-          despesa
-        ),
-
-      relatorioPeriodo:
-        formatarPeriodo(
-          filtroMes?.value ||
-          ""
-        )
-
+    const campos = {
+      relatorioReceitas: formatarMoeda(resumo.receita),
+      relatorioDespesas: formatarMoeda(resumo.despesa),
+      relatorioInvestimentos: formatarMoeda(
+        resumo.investimento
+      ),
+      relatorioSaldo: formatarMoeda(resumo.saldo),
+      relatorioResumoReceitas: formatarMoeda(
+        resumo.receita
+      ),
+      relatorioResumoDespesas: formatarMoeda(
+        resumo.despesa
+      ),
+      relatorioResumoInvestimentos: formatarMoeda(
+        resumo.investimento
+      ),
+      relatorioResumoSaldo: formatarMoeda(
+        resumo.saldo
+      ),
+      relatorioPeriodo: formatarPeriodo(
+        filtroMes?.value || ""
+      )
     };
 
-    Object.entries(
-      valores
-    ).forEach(
-      (
-        [
-          id,
-          texto
-        ]
-      ) => {
-
-        const elemento =
-          $(id);
-
-        if (
-          elemento
-        ) {
-
-          elemento.innerText =
-            texto;
-
-        }
-
-      }
-    );
-
-  }
-
-  /* =========================================================
-     RECORRÊNCIAS
-     ========================================================= */
-
-  async function carregarCategoriasRecorrencia(
-
-    tipoSelecionado = "",
-
-    categoriaSelecionada = ""
-
-  ) {
-
-    if (
-      !recCategoria
-    ) {
-
-      return;
-
-    }
-
-    recCategoria.innerHTML =
-      "<option value=''>Carregando categorias...</option>";
-
-    const user =
-      await obterUsuarioAtual();
-
-    if (
-      !user
-    ) {
-
-      recCategoria.innerHTML =
-        "<option value=''>Sessão expirada</option>";
-
-      return;
-
-    }
-
-    try {
-
-      let resultado =
-        await supabase
-          .from(
-            "categorias_financeiras"
-          )
-          .select(
-            "*"
-          )
-          .eq(
-            "user_id",
-            user.id
-          )
-          .eq(
-            "ativa",
-            true
-          )
-          .order(
-            "nome",
-            {
-              ascending:
-                true
-            }
-          );
-
-      /*
-       * Fallback para bancos
-       * que usam tabela "categorias".
-       */
-
-      if (
-        resultado.error
-      ) {
-
-        resultado =
-          await supabase
-            .from(
-              "categorias"
-            )
-            .select(
-              "*"
-            )
-            .eq(
-              "user_id",
-              user.id
-            )
-            .order(
-              "nome",
-              {
-                ascending:
-                  true
-              }
-            );
-
-      }
-
-      if (
-        resultado.error
-      ) {
-
-        console.error(
-          "Erro ao carregar categorias da recorrência:",
-          resultado.error
-        );
-
-        recCategoria.innerHTML =
-          "<option value=''>Erro ao carregar categorias</option>";
-
-        return;
-
-      }
-
-      recCategoria.innerHTML =
-        "<option value=''>Selecione uma categoria</option>";
-
-      const categorias =
-        (
-          resultado.data ||
-          []
-        ).filter(
-          categoriaBanco => {
-
-            if (
-              !tipoSelecionado
-            ) {
-
-              return true;
-
-            }
-
-            if (
-              !categoriaBanco.tipo
-            ) {
-
-              return true;
-
-            }
-
-            return (
-              normalizarTipo(
-                categoriaBanco.tipo
-              ) ===
-              normalizarTipo(
-                tipoSelecionado
-              )
-            );
-
-          }
-        );
-
-      categorias.forEach(
-        item => {
-
-          const option =
-            document.createElement(
-              "option"
-            );
-
-          option.value =
-            item.id ??
-            item.nome;
-
-          option.textContent =
-            item.nome ||
-            item.descricao ||
-            "Categoria";
-
-          option.dataset.nome =
-            item.nome ||
-            "";
-
-          if (
-
-            String(
-              item.id
-            ) ===
-            String(
-              categoriaSelecionada
-            ) ||
-
-            String(
-              item.nome
-            ) ===
-            String(
-              categoriaSelecionada
-            )
-
-          ) {
-
-            option.selected =
-              true;
-
-          }
-
-          recCategoria.appendChild(
-            option
-          );
-
-        }
-      );
-
-      if (
-        !categorias.length
-      ) {
-
-        const option =
-          document.createElement(
-            "option"
-          );
-
-        option.disabled =
-          true;
-
-        option.textContent =
-          "Nenhuma categoria cadastrada";
-
-        recCategoria.appendChild(
-          option
-        );
-
-      }
-
-    } catch (erro) {
-
-      console.error(
-        "Erro inesperado ao carregar categorias:",
-        erro
-      );
-
-      recCategoria.innerHTML =
-        "<option value=''>Erro ao carregar categorias</option>";
-
-    }
-
-  }
-
-  if (
-    recTipo
-  ) {
-
-    recTipo.addEventListener(
-      "change",
-      () => {
-
-        carregarCategoriasRecorrencia(
-          recTipo.value
-        );
-
-      }
-    );
-
-  }
-
-  /* =========================================================
-     NOMES DAS CATEGORIAS
-     ========================================================= */
-
-  async function carregarNomesCategorias() {
-
-    categoriasRecorrenciaMapa =
-      {};
-
-    const user =
-      await obterUsuarioAtual();
-
-    if (
-      !user
-    ) {
-
-      return;
-
-    }
-
-    try {
-
-      let resultado =
-        await supabase
-          .from(
-            "categorias_financeiras"
-          )
-          .select(
-            "id,nome"
-          )
-          .eq(
-            "user_id",
-            user.id
-          );
-
-      if (
-        resultado.error
-      ) {
-
-        resultado =
-          await supabase
-            .from(
-              "categorias"
-            )
-            .select(
-              "id,nome"
-            )
-            .eq(
-              "user_id",
-              user.id
-            );
-
-      }
-
-      (
-        resultado.data ||
-        []
-      ).forEach(
-        item => {
-
-          categoriasRecorrenciaMapa[
-            item.id
-          ] =
-            item.nome;
-
-        }
-      );
-
-    } catch (erro) {
-
-      console.error(
-        "Erro categorias recorrência:",
-        erro
-      );
-
-    }
-
-  }
-
-  function obterNomeCategoriaRecorrencia(
-    item
-  ) {
-
-    return (
-
-      item.categoria ||
-
-      item.categoria_nome ||
-
-      categoriasRecorrenciaMapa[
-        item.categoria_id
-      ] ||
-
-      item.categoria_id ||
-
-      "Sem categoria"
-
-    );
-
-  }
-
-  /* =========================================================
-     CONTADORES
-     ========================================================= */
-
-  function atualizarContadoresRecorrencias() {
-
-    const total =
-      recorrenciasDados.length;
-
-    const ativas =
-      recorrenciasDados.filter(
-        item =>
-          item.ativo !== false &&
-          item.ativa !== false
-      ).length;
-
-    const pausadas =
-      total -
-      ativas;
-
-    if (
-      totalRecorrencias
-    ) {
-
-      totalRecorrencias.innerText =
-        total;
-
-    }
-
-    if (
-      recorrenciasAtivas
-    ) {
-
-      recorrenciasAtivas.innerText =
-        ativas;
-
-    }
-
-    if (
-      recorrenciasPausadas
-    ) {
-
-      recorrenciasPausadas.innerText =
-        pausadas;
-
-    }
-
-    if (
-      contadorRecorrencias
-    ) {
-
-      contadorRecorrencias.innerText =
-        `${total} ${
-          total === 1
-            ? "recorrência cadastrada."
-            : "recorrências cadastradas."
-        }`;
-
-    }
-
-  }
-
-  /* =========================================================
-     PRÓXIMA OCORRÊNCIA
-     ========================================================= */
-
-  function calcularProximaOcorrencia(
-    recorrencia
-  ) {
-
-    if (
-      !recorrencia
-    ) {
-
-      return null;
-
-    }
-
-    const ativa =
-      recorrencia.ativo !== false &&
-      recorrencia.ativa !== false;
-
-    if (
-      !ativa ||
-      !recorrencia.data_inicio
-    ) {
-
-      return null;
-
-    }
-
-    let data =
-      new Date(
-        `${recorrencia.data_inicio}T00:00:00`
-      );
-
-    const hoje =
-      new Date();
-
-    hoje.setHours(
-      0,
-      0,
-      0,
-      0
-    );
-
-    const dataFim =
-      recorrencia.data_fim
-        ? new Date(
-            `${recorrencia.data_fim}T00:00:00`
-          )
-        : null;
-
-    const dia =
-      Number(
-        recorrencia.dia_vencimento
-      );
-
-    let contador =
-      0;
-
-    while (
-      data < hoje &&
-      contador <
-        120
-    ) {
-
-      contador++;
-
-      switch (
-        recorrencia.frequencia
-      ) {
-
-        case "diaria":
-
-          data.setDate(
-            data.getDate() +
-            1
-          );
-
-          break;
-
-        case "semanal":
-
-          data.setDate(
-            data.getDate() +
-            7
-          );
-
-          break;
-
-        case "quinzenal":
-
-          data.setDate(
-            data.getDate() +
-            15
-          );
-
-          break;
-
-        case "bimestral":
-
-          data.setMonth(
-            data.getMonth() +
-            2
-          );
-
-          break;
-
-        case "trimestral":
-
-          data.setMonth(
-            data.getMonth() +
-            3
-          );
-
-          break;
-
-        case "semestral":
-
-          data.setMonth(
-            data.getMonth() +
-            6
-          );
-
-          break;
-
-        case "anual":
-
-          data.setFullYear(
-            data.getFullYear() +
-            1
-          );
-
-          break;
-
-        case "mensal":
-
-        default:
-
-          data.setMonth(
-            data.getMonth() +
-            1
-          );
-
-          if (
-            Number.isInteger(
-              dia
-            )
-          ) {
-
-            const ultimoDia =
-              new Date(
-                data.getFullYear(),
-                data.getMonth() + 1,
-                0
-              ).getDate();
-
-            data.setDate(
-              Math.min(
-                dia,
-                ultimoDia
-              )
-            );
-
-          }
-
-          break;
-
-      }
-
-    }
-
-    if (
-      dataFim &&
-      data >
-        dataFim
-    ) {
-
-      return null;
-
-    }
-
-    return data;
-
-  }
-
-  /* =========================================================
-     RENDERIZAR RECORRÊNCIAS
-     ========================================================= */
-
-  function renderizarRecorrencias() {
-
-    if (
-      !listaRecorrencias
-    ) {
-
-      return;
-
-    }
-
-    listaRecorrencias.innerHTML =
-      "";
-
-    atualizarContadoresRecorrencias();
-
-    if (
-      !recorrenciasDados.length
-    ) {
-
-      listaRecorrencias.innerHTML = `
-
-        <div class="recorrencias-vazio">
-
-          <strong>
-            Nenhuma recorrência cadastrada.
-          </strong>
-
-          <p>
-            Cadastre uma recorrência para automatizar seus lançamentos.
-          </p>
-
-        </div>
-
-      `;
-
-      return;
-
-    }
-
-    recorrenciasDados.forEach(
-      recorrencia => {
-
-        const ativa =
-          recorrencia.ativo !== false &&
-          recorrencia.ativa !== false;
-
-        const proxima =
-          calcularProximaOcorrencia(
-            recorrencia
-          );
-
-        const card =
-          document.createElement(
-            "div"
-          );
-
-        card.className =
-          "recorrencia-item";
-
-        card.innerHTML = `
-
-          <div class="recorrencia-info">
-
-            <strong>
-
-              ${escapeHtml(
-                recorrencia.descricao ||
-                "Sem descrição"
-              )}
-
-            </strong>
-
-            <span>
-
-              ${escapeHtml(
-                normalizarTipo(
-                  recorrencia.tipo
-                )
-              )}
-
-              •
-
-              ${escapeHtml(
-                obterNomeCategoriaRecorrencia(
-                  recorrencia
-                )
-              )}
-
-            </span>
-
-            <span>
-
-              ${formatarMoeda(
-                recorrencia.valor
-              )}
-
-            </span>
-
-            <small>
-
-              ${escapeHtml(
-                nomesFrequencia[
-                  recorrencia.frequencia
-                ] ||
-                recorrencia.frequencia ||
-                "Mensal"
-              )}
-
-              ${
-                recorrencia.dia_vencimento
-                  ? ` • Dia ${escapeHtml(
-                      recorrencia.dia_vencimento
-                    )}`
-                  : ""
-              }
-
-            </small>
-
-            <small>
-
-              Status:
-              ${
-                ativa
-                  ? "Ativa"
-                  : "Pausada"
-              }
-
-              ${
-                proxima
-                  ? ` • Próximo: ${formatarData(
-                      proxima
-                        .toISOString()
-                        .slice(
-                          0,
-                          10
-                        )
-                    )}`
-                  : ""
-              }
-
-            </small>
-
-          </div>
-
-          <div class="recorrencia-acoes">
-
-            <button
-              type="button"
-              class="acao-editar"
-              data-id="${escapeHtml(
-                recorrencia.id
-              )}"
-            >
-              ✏️ Editar
-            </button>
-
-            <button
-              type="button"
-              class="acao-pausar"
-              data-id="${escapeHtml(
-                recorrencia.id
-              )}"
-            >
-              ${
-                ativa
-                  ? "⏸ Pausar"
-                  : "▶ Reativar"
-              }
-            </button>
-
-            <button
-              type="button"
-              class="acao-excluir"
-              data-id="${escapeHtml(
-                recorrencia.id
-              )}"
-            >
-              🗑 Excluir
-            </button>
-
-          </div>
-
-        `;
-
-        listaRecorrencias.appendChild(
-          card
-        );
-
-      }
-    );
-
-  }
-
-/* =========================================================
-   LIMPAR RECORRÊNCIA
-   ========================================================= */
-
-function limparFormularioRecorrencia() {
-
-  recorrenciaEmEdicao = null;
-
-
-  /* -------------------------------------------------------
-     TIPO
-  ------------------------------------------------------- */
-
-  if (recTipo) {
-
-    recTipo.value = "";
-
-  }
-
-
-  /* -------------------------------------------------------
-     CATEGORIA
-  ------------------------------------------------------- */
-
-  if (recCategoria) {
-
-    recCategoria.innerHTML =
-      "<option value=''>Selecione uma categoria</option>";
-
-    recCategoria.value = "";
-
-    /*
-     * Enquanto nenhum tipo estiver selecionado,
-     * não há categorias para carregar.
-     */
-    recCategoria.disabled = true;
-
-  }
-
-
-  /* -------------------------------------------------------
-     DESCRIÇÃO
-  ------------------------------------------------------- */
-
-  if (recDescricao) {
-
-    recDescricao.value = "";
-
-  }
-
-
-  /* -------------------------------------------------------
-     VALOR
-  ------------------------------------------------------- */
-
-  if (recValor) {
-
-    recValor.value = "";
-
-  }
-
-
-  /* -------------------------------------------------------
-     FREQUÊNCIA
-  ------------------------------------------------------- */
-
-  if (recFrequencia) {
-
-    recFrequencia.value = "mensal";
-
-  }
-
-
-  /* -------------------------------------------------------
-     DIA DO LANÇAMENTO
-  ------------------------------------------------------- */
-
-  if (recDiaVencimento) {
-
-    recDiaVencimento.value = "";
-
-  }
-
-
-  /* -------------------------------------------------------
-     DATA DE INÍCIO
-  ------------------------------------------------------- */
-
-  if (recDataInicio) {
-
-    recDataInicio.value =
-      obterDataHoje();
-
-  }
-
-
-  /* -------------------------------------------------------
-     DATA DE TÉRMINO
-  ------------------------------------------------------- */
-
-  if (recDataFim) {
-
-    recDataFim.value = "";
-
-  }
-
-
-  /* -------------------------------------------------------
-     TÍTULO DO FORMULÁRIO
-  ------------------------------------------------------- */
-
-  if (tituloFormularioRecorrencia) {
-
-    tituloFormularioRecorrencia.innerText =
-      "Nova recorrência";
-
-  }
-
-
-  /* -------------------------------------------------------
-     BOTÃO SALVAR
-  ------------------------------------------------------- */
-
-  if (btnSalvarRecorrencia) {
-
-    btnSalvarRecorrencia.innerText =
-      "Criar recorrência";
-
-  }
-
-
-  /* -------------------------------------------------------
-     BOTÃO CANCELAR
-  ------------------------------------------------------- */
-
-  if (btnCancelarRecorrencia) {
-
-    btnCancelarRecorrencia.classList.add(
-      "hidden"
-    );
-
-  }
-
-}
-
-  /* =========================================================
-     SALVAR RECORRÊNCIA
-     ========================================================= */
-
-  async function salvarRecorrencia() {
-
-    try {
-
-      const user =
-        await obterUsuarioAtual();
-
-      if (
-        !user
-      ) {
-
-        alert(
-          "Sua sessão expirou. Faça login novamente."
-        );
-
-        mostrarLogin();
-
-        return;
-
-      }
-
-      const tipoSelecionado =
-        normalizarTipo(
-          recTipo?.value ||
-          ""
-        );
-
-      const categoriaId =
-        recCategoria?.value ||
-        "";
-
-      const descricaoSelecionada =
-        recDescricao?.value?.trim() ||
-        "";
-
-      const valorSelecionado =
-        numero(
-          recValor?.value ||
-          ""
-        );
-
-      const frequenciaSelecionada =
-        recFrequencia?.value ||
-        "";
-
-      const diaSelecionado =
-        recDiaVencimento?.value
-          ? Number(
-              recDiaVencimento.value
-            )
-          : null;
-
-      const dataInicioSelecionada =
-        recDataInicio?.value ||
-        "";
-
-      const dataFimSelecionada =
-        recDataFim?.value ||
-        null;
-
-      /* -----------------------------------------------------
-         VALIDAÇÕES
-         ----------------------------------------------------- */
-
-      if (
-        ![
-          "Receita",
-          "Despesa",
-          "Investimento"
-        ].includes(
-          tipoSelecionado
-        )
-      ) {
-
-        alert(
-          "Selecione um tipo válido."
-        );
-
-        return;
-
-      }
-
-      if (
-        !categoriaId
-      ) {
-
-        alert(
-          "Selecione uma categoria."
-        );
-
-        return;
-
-      }
-
-      if (
-        !descricaoSelecionada
-      ) {
-
-        alert(
-          "Informe uma descrição."
-        );
-
-        return;
-
-      }
-
-      if (
-
-        !Number.isFinite(
-          valorSelecionado
-        ) ||
-
-        valorSelecionado <=
-          0
-
-      ) {
-
-        alert(
-          "Informe um valor válido."
-        );
-
-        return;
-
-      }
-
-      if (
-
-        !frequenciaSelecionada ||
-
-        !dataInicioSelecionada
-
-      ) {
-
-        alert(
-          "Informe a frequência e a data de início."
-        );
-
-        return;
-
-      }
-
-      if (
-
-        [
-
-          "mensal",
-          "bimestral",
-          "trimestral",
-          "semestral",
-          "anual"
-
-        ].includes(
-          frequenciaSelecionada
-        )
-
-      ) {
-
-        if (
-
-          !Number.isInteger(
-            diaSelecionado
-          ) ||
-
-          diaSelecionado <
-            1 ||
-
-          diaSelecionado >
-            31
-
-        ) {
-
-          alert(
-            "Informe um dia de lançamento entre 1 e 31."
-          );
-
-          return;
-
-        }
-
-      }
-
-      if (
-
-        dataFimSelecionada &&
-
-        dataFimSelecionada <
-          dataInicioSelecionada
-
-      ) {
-
-        alert(
-          "A data de término não pode ser anterior à data de início."
-        );
-
-        return;
-
-      }
-
-      /* -----------------------------------------------------
-         NOME DA CATEGORIA
-         ----------------------------------------------------- */
-
-      const option =
-        recCategoria?.options?.[
-          recCategoria.selectedIndex
-        ];
-
-      const nomeCategoria =
-        option?.dataset?.nome ||
-
-        option?.textContent ||
-
-        "";
-
-      /* -----------------------------------------------------
-         REGISTRO
-         ----------------------------------------------------- */
-
-      const registro = {
-  user_id: user.id,
-  tipo: tipoRec,
-  categoria_id: categoriaId,
-  descricao: descricaoRec,
-  valor: valorRec,
-  frequencia: frequencia,
-  dia_vencimento: Number.isInteger(dia) ? dia : null,
-  data_inicio: dataInicio,
-  data_fim: dataFim,
-  ativo: true
-};
-
-let resultado;
-
-if (recorrenciaEmEdicao) {
-
-  resultado = await supabase
-    .from("lancamentos_recorrentes")
-    .update(registro)
-    .eq("id", recorrenciaEmEdicao)
-    .eq("user_id", user.id);
-
-} else {
-
-  resultado = await supabase
-    .from("lancamentos_recorrentes")
-    .insert(registro);
-
-}
-
-if (resultado.error) {
-
-  console.error(
-    "ERRO SUPABASE AO SALVAR RECORRÊNCIA:",
-    resultado.error
-  );
-
-  alert(
-    "Não foi possível salvar a recorrência.\n\n" +
-    resultado.error.message
-  );
-
-  return;
-}
-
-alert(
-  recorrenciaEmEdicao
-    ? "Recorrência atualizada com sucesso!"
-    : "Recorrência criada com sucesso!"
-);
-
-limparFormularioRecorrencia();
-
-await carregarRecorrencias();
-
-    } catch (erro) {
-
-      console.error(
-        "Erro inesperado ao salvar recorrência:",
-        erro
-      );
-
-      alert(
-        "Ocorreu um erro ao salvar a recorrência."
-      );
-
-    }
-
-  }
-
-  if (
-    btnSalvarRecorrencia
-  ) {
-
-    btnSalvarRecorrencia.addEventListener(
-      "click",
-      salvarRecorrencia
-    );
-
-  }
-
-  /* =========================================================
-     EDITAR RECORRÊNCIA
-     ========================================================= */
-
-  async function editarRecorrencia(
-    id
-  ) {
-
-    const recorrencia =
-      recorrenciasDados.find(
-        item =>
-          String(
-            item.id
-          ) ===
-          String(
-            id
-          )
-      );
-
-    if (
-      !recorrencia
-    ) {
-
-      alert(
-        "Recorrência não encontrada."
-      );
-
-      return;
-
-    }
-
-    recorrenciaEmEdicao =
-      recorrencia.id;
-
-    if (
-      recTipo
-    ) {
-
-      recTipo.value =
-        normalizarTipo(
-          recorrencia.tipo
-        );
-
-    }
-
-    await carregarCategoriasRecorrencia(
-
-      recorrencia.tipo,
-
-      recorrencia.categoria_id ||
-      recorrencia.categoria ||
-      ""
-
-    );
-
-    if (
-      recDescricao
-    ) {
-
-      recDescricao.value =
-        recorrencia.descricao ||
-        "";
-
-    }
-
-    if (
-      recValor
-    ) {
-
-      recValor.value =
-        formatarNumero(
-          recorrencia.valor
-        );
-
-    }
-
-    if (
-      recFrequencia
-    ) {
-
-      recFrequencia.value =
-        recorrencia.frequencia ||
-        "mensal";
-
-    }
-
-    if (
-      recDiaVencimento
-    ) {
-
-      recDiaVencimento.value =
-        recorrencia.dia_vencimento ??
-        "";
-
-    }
-
-    if (
-      recDataInicio
-    ) {
-
-      recDataInicio.value =
-        recorrencia.data_inicio ||
-        obterDataHoje();
-
-    }
-
-    if (
-      recDataFim
-    ) {
-
-      recDataFim.value =
-        recorrencia.data_fim ||
-        "";
-
-    }
-
-    if (
-      tituloFormularioRecorrencia
-    ) {
-
-      tituloFormularioRecorrencia.innerText =
-        "Editar recorrência";
-
-    }
-
-    if (
-      btnSalvarRecorrencia
-    ) {
-
-      btnSalvarRecorrencia.innerText =
-        "Atualizar recorrência";
-
-    }
-
-    if (
-      btnCancelarRecorrencia
-    ) {
-
-      btnCancelarRecorrencia.classList.remove(
-        "hidden"
-      );
-
-    }
-
-    mostrarTela(
-      recorrencias
-    );
-
-    const formulario =
-      $("formRecorrencia");
-
-    if (
-      formulario
-    ) {
-
-      formulario.scrollIntoView({
-
-        behavior:
-          "smooth",
-
-        block:
-          "start"
-
-      });
-
-    }
-
-  }
-
-  /* =========================================================
-     PAUSAR / REATIVAR
-     ========================================================= */
-
-  async function alternarStatusRecorrencia(
-    id
-  ) {
-
-    const recorrencia =
-      recorrenciasDados.find(
-        item =>
-          String(
-            item.id
-          ) ===
-          String(
-            id
-          )
-      );
-
-    if (
-      !recorrencia
-    ) {
-
-      return;
-
-    }
-
-    const atualmenteAtiva =
-      recorrencia.ativo !== false &&
-      recorrencia.ativa !== false;
-
-    const novoStatus =
-      !atualmenteAtiva;
-
-    const acao =
-      novoStatus
-        ? "reativar"
-        : "pausar";
-
-    if (
-      !confirm(
-        `Deseja ${acao} a recorrência "${recorrencia.descricao || "sem descrição"}"?`
-      )
-    ) {
-
-      return;
-
-    }
-
-    const user =
-      await obterUsuarioAtual();
-
-    if (
-      !user
-    ) {
-
-      mostrarLogin();
-
-      return;
-
-    }
-
-    try {
-
-      const {
-        error
-      } =
-        await supabase
-          .from(
-            "lancamentos_recorrentes"
-          )
-          .update({
-
-            ativo:
-              novoStatus
-
-          })
-          .eq(
-            "id",
-            recorrencia.id
-          )
-          .eq(
-            "user_id",
-            user.id
-          );
-
-      if (
-        error
-      ) {
-
-        alert(
-          `Não foi possível alterar o status.\n\n${error.message}`
-        );
-
-        return;
-
-      }
-
-      await carregarRecorrencias();
-
-    } catch (erro) {
-
-      console.error(
-        "Erro ao alterar status:",
-        erro
-      );
-
-      alert(
-        "Ocorreu um erro ao alterar o status."
-      );
-
-    }
-
-  }
-
-  /* =========================================================
-     EXCLUIR RECORRÊNCIA
-     ========================================================= */
-
-  async function excluirRecorrencia(
-    id
-  ) {
-
-    const recorrencia =
-      recorrenciasDados.find(
-        item =>
-          String(
-            item.id
-          ) ===
-          String(
-            id
-          )
-      );
-
-    if (
-      !recorrencia
-    ) {
-
-      return;
-
-    }
-
-    if (
-      !confirm(
-        `Tem certeza que deseja excluir a recorrência "${recorrencia.descricao || "sem descrição"}"?`
-      )
-    ) {
-
-      return;
-
-    }
-
-    const user =
-      await obterUsuarioAtual();
-
-    if (
-      !user
-    ) {
-
-      mostrarLogin();
-
-      return;
-
-    }
-
-    try {
-
-      const {
-        error
-      } =
-        await supabase
-          .from(
-            "lancamentos_recorrentes"
-          )
-          .delete()
-          .eq(
-            "id",
-            recorrencia.id
-          )
-          .eq(
-            "user_id",
-            user.id
-          );
-
-      if (
-        error
-      ) {
-
-        alert(
-          `Não foi possível excluir.\n\n${error.message}`
-        );
-
-        return;
-
-      }
-
-      if (
-        String(
-          recorrenciaEmEdicao
-        ) ===
-        String(
-          recorrencia.id
-        )
-      ) {
-
-        limparFormularioRecorrencia();
-
-      }
-
-      await carregarRecorrencias();
-
-      alert(
-        "Recorrência excluída com sucesso!"
-      );
-
-    } catch (erro) {
-
-      console.error(
-        "Erro ao excluir recorrência:",
-        erro
-      );
-
-      alert(
-        "Ocorreu um erro ao excluir a recorrência."
-      );
-
-    }
-
-  }
-
-  /* =========================================================
-     EVENTOS DA LISTA DE RECORRÊNCIAS
-     ========================================================= */
-
-  if (
-    listaRecorrencias
-  ) {
-
-    listaRecorrencias.addEventListener(
-      "click",
-      event => {
-
-        const botao =
-          event.target.closest(
-            "button[data-id]"
-          );
-
-        if (
-          !botao
-        ) {
-
-          return;
-
-        }
-
-        const id =
-          botao.dataset.id;
-
-        if (
-          botao.classList.contains(
-            "acao-editar"
-          )
-        ) {
-
-          editarRecorrencia(
-            id
-          );
-
-          return;
-
-        }
-
-        if (
-          botao.classList.contains(
-            "acao-pausar"
-          )
-        ) {
-
-          alternarStatusRecorrencia(
-            id
-          );
-
-          return;
-
-        }
-
-        if (
-          botao.classList.contains(
-            "acao-excluir"
-          )
-        ) {
-
-          excluirRecorrencia(
-            id
-          );
-
-        }
-
-      }
-    );
-
-  }
-
-  if (
-    btnCancelarRecorrencia
-  ) {
-
-    btnCancelarRecorrencia.addEventListener(
-      "click",
-      limparFormularioRecorrencia
-    );
-
+    Object.entries(campos).forEach(([id, texto]) => {
+      const elemento = $(id);
+      if (elemento) elemento.innerText = texto;
+    });
   }
 
   /* =========================================================
      NAVEGAÇÃO
      ========================================================= */
 
-  if (
-    btnDashboard
-  ) {
-
-    btnDashboard.addEventListener(
-      "click",
-      () => {
-
-        mostrarTela(
-          dashboard
-        );
-
-        ativarMenu(
-          btnDashboard
-        );
-
-        atualizarDashboard();
-
-      }
-    );
-
+  if (btnDashboard) {
+    btnDashboard.addEventListener("click", () => {
+      mostrarTela(dashboard);
+      ativarMenu(btnDashboard);
+      atualizarDashboard();
+    });
   }
 
-  if (
-    btnLancamentos
-  ) {
-
-    btnLancamentos.addEventListener(
-      "click",
-      () => {
-
-        mostrarTela(
-          lancamentos
-        );
-
-        ativarMenu(
-          btnLancamentos
-        );
-
-        renderizarLista();
-
-      }
-    );
-
+  if (btnLancamentos) {
+    btnLancamentos.addEventListener("click", () => {
+      mostrarTela(lancamentos);
+      ativarMenu(btnLancamentos);
+      renderizarLista();
+    });
   }
 
-  if (
-    btnRecorrencias
-  ) {
-
-    btnRecorrencias.addEventListener(
-      "click",
-      async () => {
-
-        mostrarTela(
-          recorrencias
-        );
-
-        ativarMenu(
-          btnRecorrencias
-        );
-
-        await carregarCategoriasRecorrencia(
-          recTipo?.value ||
-          ""
-        );
-
-        await carregarRecorrencias();
-
-      }
-    );
-
+  if (btnRelatorios) {
+    btnRelatorios.addEventListener("click", () => {
+      mostrarTela(relatorios);
+      ativarMenu(btnRelatorios);
+      atualizarRelatorios();
+    });
   }
 
-  if (
-    btnRelatorios
-  ) {
-
-    btnRelatorios.addEventListener(
-      "click",
-      () => {
-
-        mostrarTela(
-          relatorios
-        );
-
-        ativarMenu(
-          btnRelatorios
-        );
-
-        atualizarRelatorios();
-
-      }
-    );
-
-  }
-
-  if (
-    btnContas
-  ) {
-
-    btnContas.addEventListener(
-      "click",
-      () => {
-
-        mostrarTela(
-          contas
-        );
-
-        ativarMenu(
-          btnContas
-        );
-
-      }
-    );
-
-  }
 
   /* =========================================================
      FILTROS
      ========================================================= */
 
-  if (
-    filtroMes
-  ) {
+  if (filtroMes) {
+    filtroMes.value = obterMesAtual();
 
-    filtroMes.value =
-      obterMesAtual();
-
-    filtroMes.addEventListener(
-      "change",
-      () => {
-
-        atualizarPeriodoDashboard();
-
-        atualizarDashboard();
-
-        renderizarLista();
-
-      }
-    );
-
+    filtroMes.addEventListener("change", () => {
+      atualizarPeriodoDashboard();
+      atualizarDashboard();
+      renderizarLista();
+    });
   }
 
-  if (
-    btnLimparFiltro
-  ) {
+  if (btnLimparFiltro) {
+    btnLimparFiltro.addEventListener("click", () => {
+      if (filtroMes) filtroMes.value = "";
 
-    btnLimparFiltro.addEventListener(
-      "click",
-      () => {
-
-        if (
-          filtroMes
-        ) {
-
-          filtroMes.value =
-            "";
-
-        }
-
-        atualizarPeriodoDashboard();
-
-        atualizarDashboard();
-
-        renderizarLista();
-
-      }
-    );
-
+      atualizarPeriodoDashboard();
+      atualizarDashboard();
+      renderizarLista();
+    });
   }
 
-  if (
-    tipoGrafico
-  ) {
+  if (tipoGrafico) {
+    tipoGrafico.addEventListener("change", () => {
+      atualizarDashboard();
+    });
+  }
 
-    tipoGrafico.addEventListener(
-      "change",
-      atualizarDashboard
-    );
+  /* =========================================================
+     MENU MOBILE
+     ========================================================= */
 
+  if (btnMenu) {
+    btnMenu.addEventListener("click", () => {
+      if (sidebar) sidebar.classList.toggle("active");
+      if (menuOverlay) menuOverlay.classList.toggle("hidden");
+    });
+  }
+
+  if (menuOverlay) {
+    menuOverlay.addEventListener("click", fecharMenuMobile);
   }
 
   /* =========================================================
@@ -5009,742 +4568,469 @@ await carregarRecorrencias();
      ========================================================= */
 
   async function fazerLogout() {
-
     try {
-
-      if (
-        supabase
-      ) {
-
-        await supabase.auth.signOut();
-
+      if (supabaseClient) {
+        await supabaseClient.auth.signOut();
       }
-
-    } catch (erro) {
-
-      console.error(
-        "Logout:",
-        erro
-      );
-
+    } catch (error) {
+      console.error("Logout:", error);
     }
 
-    dados =
-      [];
-
-    recorrenciasDados =
-      [];
-
-    recorrenciaEmEdicao =
-      null;
-
-    idEmEdicao =
-      null;
+    usuarioAtual = null;
+    dados = [];
+    categoriasFinanceiras = [];
+    idEmEdicao = null;
+    sessaoPronta = false;
 
     mostrarLogin();
-
   }
 
-  if (
-    btnLogoutTop
-  ) {
-
-    btnLogoutTop.addEventListener(
-      "click",
-      fazerLogout
-    );
-
+  if (btnLogoutTop) {
+    btnLogoutTop.addEventListener("click", fazerLogout);
   }
 
-  if (
-    btnLogout
-  ) {
+  if (btnLogout) {
+    btnLogout.addEventListener("click", fazerLogout);
+  }
 
-    btnLogout.addEventListener(
-      "click",
-      () => {
+  /* =========================================================
+     SESSÃO
+     ========================================================= */
 
-        fecharMenuMobile();
+  async function iniciarSessao(user) {
+    if (!user) return;
 
-        fazerLogout();
+    /*
+      Evita que SIGNED_IN + login manual façam várias
+      inicializações simultâneas.
+    */
+    if (sessaoPronta && usuarioAtual?.id === user.id) {
+      return;
+    }
 
-      }
-    );
+    usuarioAtual = user;
+    sessaoPronta = true;
 
+    const nome =
+      user.user_metadata?.nome ||
+      user.user_metadata?.name ||
+      user.email?.split("@")[0] ||
+      "Usuário";
+
+    if (topbarUser) topbarUser.innerText = nome;
+    if (topbarPlano) topbarPlano.innerText = "FREE";
+    if (planoUsuario) planoUsuario.innerText = "Plano Free";
+    if (nomeCliente) nomeCliente.innerText = `Olá, ${nome}!`;
+
+    mostrarApp();
+    mostrarTela(dashboard);
+    ativarMenu(btnDashboard);
+
+    if (filtroMes && !filtroMes.value) {
+      filtroMes.value = obterMesAtual();
+    }
+
+    atualizarPeriodoDashboard();
+
+    await carregarCategoriasFinanceiras();
+    atualizarSelectCategorias(tipo?.value || "");
+    await carregarDados();
+
+    atualizarDashboard();
+    renderizarLista();
   }
 
   /* =========================================================
      LOGIN
      ========================================================= */
 
-  async function iniciarSessao(
-    user
-  ) {
+  if (btnLogin) {
+    btnLogin.addEventListener("click", async () => {
+      if (!supabaseClient) {
+        alert("Sistema ainda não inicializado.");
+        return;
+      }
 
-    if (
-      !user
-    ) {
+      if (aceiteTermos && !aceiteTermos.checked) {
+        alert("Você precisa aceitar os termos.");
+        return;
+      }
 
-      return;
+      const email = emailInput?.value?.trim() || "";
+      const senha = senhaInput?.value || "";
 
-    }
+      if (!email || !senha) {
+        alert("Informe email e senha.");
+        return;
+      }
 
-    const nome =
-      user.user_metadata?.nome ||
+      btnLogin.disabled = true;
+      const textoOriginal = btnLogin.innerText;
+      btnLogin.innerText = "Entrando...";
 
-      user.email?.split(
-        "@"
-      )[0] ||
+      try {
+        const { data, error } =
+          await supabaseClient.auth.signInWithPassword({
+            email,
+            password: senha
+          });
 
-      "Usuário";
-
-    if (
-      topbarUser
-    ) {
-
-      topbarUser.innerText =
-        nome;
-
-    }
-
-    if (
-      topbarPlano
-    ) {
-
-      topbarPlano.innerText =
-        planoUsuario;
-
-    }
-
-    if (
-      nomeCliente
-    ) {
-
-      nomeCliente.innerText =
-        `Olá, ${nome}!`;
-
-    }
-
-    mostrarApp();
-
-    mostrarTela(
-      dashboard
-    );
-
-    ativarMenu(
-      btnDashboard
-    );
-
-    if (
-      filtroMes &&
-      !filtroMes.value
-    ) {
-
-      filtroMes.value =
-        obterMesAtual();
-
-    }
-
-    atualizarPeriodoDashboard();
-
-    /*
-     * A partir daqui somente
-     * dados do usuário autenticado.
-     */
-
-    await garantirCategoriasPadrao();
-
-    await carregarCategoriasFinanceiras();
-
-    atualizarSelectCategorias(
-      tipo?.value ||
-      ""
-    );
-
-    await carregarDados();
-
-    atualizarDashboard();
-
-    renderizarLista();
-
-  }
-
-  if (
-    btnLogin
-  ) {
-
-    btnLogin.addEventListener(
-      "click",
-      async () => {
-
-        try {
-
-          if (
-            aceiteTermos &&
-            !aceiteTermos.checked
-          ) {
-
-            alert(
-              "Você precisa aceitar os termos."
-            );
-
-            return;
-
-          }
-
-          const email =
-            emailInput?.value?.trim() ||
-            "";
-
-          const senha =
-            senhaInput?.value ||
-            "";
-
-          if (
-            !email ||
-            !senha
-          ) {
-
-            alert(
-              "Informe email e senha."
-            );
-
-            return;
-
-          }
-
-          /*
-           * IMPORTANTE:
-           * o login acontece diretamente
-           * pelo cliente Supabase já inicializado.
-           */
-
-          const {
-            data,
-            error
-          } =
-            await supabase.auth.signInWithPassword({
-
-              email:
-                email,
-
-              password:
-                senha
-
-            });
-
-          if (
-            error
-          ) {
-
-            console.error(
-              "Erro de login:",
-              error
-            );
-
-            alert(
-              error.message
-            );
-
-            return;
-
-          }
-
-          if (
-            !data?.user
-          ) {
-
-            alert(
-              "Login não retornou um usuário válido."
-            );
-
-            return;
-
-          }
-
-          await iniciarSessao(
-            data.user
-          );
-
-        } catch (erro) {
-
-          console.error(
-            "LOGIN:",
-            erro
-          );
-
+        if (error) {
+          console.error("Erro de login:", error);
           alert(
-            "Não foi possível realizar o login. Verifique sua conexão, email e senha."
+            `Não foi possível entrar.\n\n${error.message}`
           );
-
+          return;
         }
 
-      }
-    );
+        if (!data?.user) {
+          alert(
+            "O Supabase não retornou um usuário válido."
+          );
+          return;
+        }
 
+        /*
+          Em algumas configurações o SIGNED_IN dispara
+          imediatamente; chamamos também aqui para garantir
+          que a interface seja aberta sem depender do callback.
+        */
+        await iniciarSessao(data.user);
+      } catch (error) {
+        console.error("LOGIN:", error);
+        alert(
+          "Não foi possível realizar o login. Verifique sua conexão, email e senha."
+        );
+      } finally {
+        btnLogin.disabled = false;
+        btnLogin.innerText = textoOriginal;
+      }
+    });
   }
 
   /* =========================================================
      CADASTRO
      ========================================================= */
 
-  if (
-    btnCadastro
-  ) {
+  if (btnCadastro) {
+    btnCadastro.addEventListener("click", async () => {
+      if (!supabaseClient) {
+        alert("Sistema ainda não inicializado.");
+        return;
+      }
 
-    btnCadastro.addEventListener(
-      "click",
-      async () => {
+      if (aceiteTermos && !aceiteTermos.checked) {
+        alert("Você precisa aceitar os termos.");
+        return;
+      }
 
-        try {
+      const email = emailInput?.value?.trim() || "";
+      const senha = senhaInput?.value || "";
 
-          if (
-            aceiteTermos &&
-            !aceiteTermos.checked
-          ) {
+      if (!email || !senha) {
+        alert("Informe email e senha.");
+        return;
+      }
 
-            alert(
-              "Você precisa aceitar os termos."
-            );
+      if (senha.length < 6) {
+        alert("A senha deve possuir pelo menos 6 caracteres.");
+        return;
+      }
 
-            return;
+      btnCadastro.disabled = true;
+      const textoOriginal = btnCadastro.innerText;
+      btnCadastro.innerText = "Criando...";
 
-          }
-
-          const email =
-            emailInput?.value?.trim() ||
-            "";
-
-          const senha =
-            senhaInput?.value ||
-            "";
-
-          if (
-            !email ||
-            !senha
-          ) {
-
-            alert(
-              "Informe email e senha."
-            );
-
-            return;
-
-          }
-
-          if (
-            senha.length <
-            6
-          ) {
-
-            alert(
-              "A senha deve possuir pelo menos 6 caracteres."
-            );
-
-            return;
-
-          }
-
-          const {
-            data,
-            error
-          } =
-            await supabase.auth.signUp({
-
-              email:
-                email,
-
-              password:
-                senha,
-
-              options: {
-
-                data: {
-
-                  nome:
-                    email.split(
-                      "@"
-                    )[0]
-
-                }
-
+      try {
+        const { data, error } =
+          await supabaseClient.auth.signUp({
+            email,
+            password: senha,
+            options: {
+              data: {
+                nome: email.split("@")[0]
               }
+            }
+          });
 
-            });
-
-          if (
-            error
-          ) {
-
-            alert(
-              error.message
-            );
-
-            return;
-
-          }
-
-          /*
-           * Se a confirmação de email estiver
-           * desativada, o Supabase pode retornar
-           * uma sessão imediatamente.
-           */
-
-          if (
-            data?.session &&
-            data?.user
-          ) {
-
-            await iniciarSessao(
-              data.user
-            );
-
-            return;
-
-          }
-
+        if (error) {
+          console.error("Cadastro:", error);
           alert(
-            "Conta criada com sucesso! Confirme seu email para continuar."
+            `Não foi possível criar a conta.\n\n${error.message}`
           );
-
-        } catch (erro) {
-
-          console.error(
-            "CADASTRO:",
-            erro
-          );
-
-          alert(
-            "Não foi possível criar a conta."
-          );
-
+          return;
         }
 
-      }
-    );
+        if (data?.session && data?.user) {
+          await iniciarSessao(data.user);
+          return;
+        }
 
+        alert(
+          "Conta criada com sucesso! Verifique seu email para confirmar o cadastro."
+        );
+      } catch (error) {
+        console.error("CADASTRO:", error);
+        alert("Não foi possível criar a conta.");
+      } finally {
+        btnCadastro.disabled = false;
+        btnCadastro.innerText = textoOriginal;
+      }
+    });
   }
 
   /* =========================================================
-     ESQUECI A SENHA
+     RECUPERAÇÃO DE SENHA
      ========================================================= */
 
-  if (
-    btnEsqueciSenha
-  ) {
+  if (btnEsqueciSenha) {
+    btnEsqueciSenha.addEventListener("click", async (event) => {
+      event.preventDefault();
 
-    btnEsqueciSenha.addEventListener(
-      "click",
-      async () => {
+      if (!supabaseClient) {
+        alert("Sistema ainda não inicializado.");
+        return;
+      }
 
-        try {
+      const email = emailInput?.value?.trim() || "";
 
-          const email =
-            emailInput?.value?.trim() ||
-            "";
+      if (!email) {
+        alert("Informe seu email primeiro.");
+        return;
+      }
 
-          if (
-            !email
-          ) {
+      try {
+        const { error } =
+          await supabaseClient.auth.resetPasswordForEmail(
+            email,
+            {
+              redirectTo:
+                window.location.origin +
+                window.location.pathname
+            }
+          );
 
-            alert(
-              "Informe seu email primeiro."
-            );
-
-            return;
-
-          }
-
-          const {
-            error
-          } =
-            await supabase.auth.resetPasswordForEmail(
-              email,
-              {
-
-                redirectTo:
-                  window.location.origin +
-                  window.location.pathname
-
-              }
-            );
-
-          if (
-            error
-          ) {
-
-            alert(
-              error.message
-            );
-
-            return;
-
-          }
-
+        if (error) {
           alert(
-            "Enviamos as instruções de recuperação para seu email."
+            `Não foi possível enviar a recuperação.\n\n${error.message}`
           );
-
-        } catch (erro) {
-
-          console.error(
-            "Recuperação de senha:",
-            erro
-          );
-
-          alert(
-            "Não foi possível enviar o email de recuperação."
-          );
-
+          return;
         }
 
+        alert(
+          "Enviamos as instruções de recuperação para seu email."
+        );
+      } catch (error) {
+        console.error("Recuperação:", error);
+        alert(
+          "Não foi possível enviar o email de recuperação."
+        );
       }
-    );
-
+    });
   }
 
   /* =========================================================
      EXPORTAÇÃO PDF
      ========================================================= */
 
-  if (
-    btnExportarPdf
-  ) {
-
-    btnExportarPdf.addEventListener(
-      "click",
-      () => {
-
-        try {
-
-          if (
-            !window.jspdf ||
-            !window.jspdf.jsPDF
-          ) {
-
-            alert(
-              "A biblioteca de PDF não foi carregada."
-            );
-
-            return;
-
-          }
-
-          const {
-            jsPDF
-          } =
-            window.jspdf;
-
-          const pdf =
-            new jsPDF();
-
-          pdf.setFontSize(
-            16
-          );
-
-          pdf.text(
-            "TCS Finance - Extrato Financeiro",
-            10,
-            15
-          );
-
-          pdf.setFontSize(
-            10
-          );
-
-          pdf.text(
-            `Período: ${formatarPeriodo(
-              filtroMes?.value ||
-              ""
-            )}`,
-            10,
-            23
-          );
-
-          let y =
-            35;
-
-          obterDadosFiltrados()
-            .forEach(
-              item => {
-
-                if (
-                  y >
-                  280
-                ) {
-
-                  pdf.addPage();
-
-                  y =
-                    20;
-
-                }
-
-                const linha =
-                  `${formatarData(
-                    item.data
-                  )} | ${
-                    item.tipo ||
-                    ""
-                  } | ${
-                    item.categoria ||
-                    ""
-                  } | ${
-                    formatarMoeda(
-                      item.valor
-                    )
-                  }`;
-
-                pdf.text(
-                  linha.substring(
-                    0,
-                    105
-                  ),
-                  10,
-                  y
-                );
-
-                y +=
-                  7;
-
-              }
-            );
-
-          pdf.save(
-            "extrato-financeiro.pdf"
-          );
-
-        } catch (erro) {
-
-          console.error(
-            "PDF:",
-            erro
-          );
-
+  if (btnExportarPdf) {
+    btnExportarPdf.addEventListener("click", () => {
+      try {
+        if (
+          !window.jspdf ||
+          typeof window.jspdf.jsPDF !== "function"
+        ) {
           alert(
-            "Não foi possível gerar o PDF."
+            "A biblioteca de PDF não foi carregada."
           );
-
+          return;
         }
 
-      }
-    );
+        const { jsPDF } = window.jspdf;
+        const pdf = new jsPDF();
 
+        const registros = obterDadosFiltrados();
+        const resumo = calcularResumo(registros);
+
+        pdf.setFontSize(16);
+        pdf.text(
+          "TCS Finance - Extrato Financeiro",
+          10,
+          15
+        );
+
+        pdf.setFontSize(10);
+        pdf.text(
+          `Período: ${formatarPeriodo(
+            filtroMes?.value || ""
+          )}`,
+          10,
+          23
+        );
+
+        pdf.text(
+          `Receitas: ${formatarMoeda(resumo.receita)}`,
+          10,
+          31
+        );
+
+        pdf.text(
+          `Despesas: ${formatarMoeda(resumo.despesa)}`,
+          10,
+          38
+        );
+
+        pdf.text(
+          `Investimentos: ${formatarMoeda(
+            resumo.investimento
+          )}`,
+          10,
+          45
+        );
+
+        pdf.text(
+          `Saldo: ${formatarMoeda(resumo.saldo)}`,
+          10,
+          52
+        );
+
+        let y = 65;
+
+        registros.forEach((item) => {
+          if (y > 280) {
+            pdf.addPage();
+            y = 20;
+          }
+
+          const linha =
+            `${formatarData(item.data)} | ` +
+            `${normalizarTipo(item.tipo)} | ` +
+            `${item.categoria || ""} | ` +
+            `${item.descricao || ""} | ` +
+            `${formatarMoeda(item.valor)}`;
+
+          pdf.text(
+            linha.substring(0, 105),
+            10,
+            y
+          );
+
+          y += 7;
+        });
+
+        pdf.save("TCS-Finance-Extrato.pdf");
+      } catch (error) {
+        console.error("PDF:", error);
+        alert("Não foi possível gerar o PDF.");
+      }
+    });
   }
 
   /* =========================================================
-     INICIALIZAÇÃO FINAL
+     AUTH STATE
      ========================================================= */
 
-  (async () => {
+  function configurarAuth() {
+    if (!supabaseClient) return;
+
+    supabaseClient.auth.onAuthStateChange(
+      (evento, session) => {
+        console.log(
+          "Auth event:",
+          evento
+        );
+
+        if (
+          evento === "SIGNED_IN" &&
+          session?.user
+        ) {
+          /*
+            Não fazemos chamadas pesadas diretamente dentro
+            do callback do Supabase. Isso evita deadlocks.
+          */
+          setTimeout(() => {
+            iniciarSessao(session.user);
+          }, 0);
+        }
+
+        if (
+          evento === "TOKEN_REFRESHED" &&
+          session?.user
+        ) {
+          usuarioAtual = session.user;
+        }
+
+        if (evento === "SIGNED_OUT") {
+          usuarioAtual = null;
+          sessaoPronta = false;
+          dados = [];
+          mostrarLogin();
+        }
+      }
+    );
+  }
+
+  /* =========================================================
+     INICIALIZAÇÃO
+     ========================================================= */
+
+  (async function iniciarSistema() {
+    if (inicializando) return;
+    inicializando = true;
 
     console.log(
-      "Inicializando TCS Finance..."
+      "TCS Finance — inicializando versão sem recorrências."
     );
 
-    /*
-     * Primeiro garante que o Supabase
-     * realmente existe.
-     */
+    const ok = inicializarSupabase();
 
-    const supabaseOK =
-      await inicializarSupabase();
-
-    if (
-      !supabaseOK
-    ) {
-
+    if (!ok) {
       mostrarLogin();
-
+      inicializando = false;
       return;
-
     }
-
-    /*
-     * Estado visual inicial.
-     */
 
     fecharMenuMobile();
-
     mostrarLogin();
 
-    if (
-      filtroMes
-    ) {
-
-      filtroMes.value =
-        obterMesAtual();
-
+    if (filtroMes) {
+      filtroMes.value = obterMesAtual();
     }
 
-    if (
-      dataInput
-    ) {
-
-      dataInput.value =
-        obterDataHoje();
-
+    if (dataInput) {
+      dataInput.value = obterDataHoje();
     }
 
-    if (
-      recDataInicio
-    ) {
-
-      recDataInicio.value =
-        obterDataHoje();
-
+    if (categoria) {
+      categoria.disabled = true;
     }
 
-    if (
-      categoria
-    ) {
-
-      categoria.disabled =
-        true;
-
-    }
-
-    if (
-      tipoGrafico &&
-      !tipoGrafico.value
-    ) {
-
-      tipoGrafico.value =
-        "geral";
-
+    if (tipoGrafico && !tipoGrafico.value) {
+      tipoGrafico.value = "geral";
     }
 
     atualizarPeriodoDashboard();
-
-    /*
-     * RECUPERAÇÃO DA SESSÃO
-     *
-     * Esta é uma das partes mais importantes.
-     */
+    configurarAuth();
 
     try {
-
+      /*
+        getSession recupera a sessão salva pelo Supabase.
+        Isso é o que mantém o usuário logado ao recarregar
+        a página.
+      */
       const {
         data,
         error
-      } =
-        await supabase.auth.getSession();
+      } = await supabaseClient.auth.getSession();
 
-      if (
-        error
-      ) {
-
+      if (error) {
         console.warn(
           "Erro ao recuperar sessão:",
           error.message
         );
-
       }
 
-      if (
-        data?.session?.user
-      ) {
-
+      if (data?.session?.user) {
         console.log(
           "Sessão existente encontrada."
         );
@@ -5752,103 +5038,26 @@ await carregarRecorrencias();
         await iniciarSessao(
           data.session.user
         );
-
       } else {
-
         console.log(
           "Nenhuma sessão existente."
         );
 
         mostrarLogin();
-
       }
-
-    } catch (erro) {
-
+    } catch (error) {
       console.error(
         "Erro na recuperação da sessão:",
-        erro
+        error
       );
 
       mostrarLogin();
-
-    }
-
-    /*
-     * MONITORAMENTO DA AUTENTICAÇÃO
-     */
-
-    supabase.auth.onAuthStateChange(
-      (
-        evento,
-        session
-      ) => {
-
-        console.log(
-          "Auth event:",
-          evento
-        );
-
-        if (
-
-          evento ===
-            "SIGNED_IN" &&
-
-          session?.user
-
-        ) {
-
-          /*
-           * setTimeout evita chamadas encadeadas
-           * dentro do callback do Supabase.
-           */
-
-          setTimeout(
-            () => {
-
-              iniciarSessao(
-                session.user
-              );
-
-            },
-            0
-          );
-
-        }
-
-        if (
-          evento ===
-          "SIGNED_OUT"
-        ) {
-
-          mostrarLogin();
-
-        }
-
-      }
-    );
-
-    /*
-     * Carrega categorias de recorrência
-     * somente depois que a sessão estiver
-     * disponível.
-     */
-
-    const user =
-      await obterUsuarioAtual();
-
-    if (
-      user
-    ) {
-
-      await carregarCategoriasRecorrencia();
-
     }
 
     console.log(
       "TCS Finance: inicialização concluída."
     );
 
+    inicializando = false;
   })();
-
 });
