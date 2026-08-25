@@ -21,6 +21,8 @@
 
 console.log("TCS Finance: carregando Script.js...");
 
+console.log("TCS FINANCE — SCRIPT CORRIGIDO — 25/08/2026 — VERSÃO 20260825-01");
+
 document.addEventListener("DOMContentLoaded", () => {
 
   "use strict";
@@ -3883,237 +3885,150 @@ document.addEventListener("DOMContentLoaded", () => {
 
   }
 
-  /* =========================================================
-     CARREGAR RECORRÊNCIAS
-     ========================================================= */
+/* =========================================================
+   LIMPAR RECORRÊNCIA
+   ========================================================= */
 
-  async function carregarRecorrencias() {
+function limparFormularioRecorrencia() {
 
-    if (
-      !listaRecorrencias
-    ) {
+  recorrenciaEmEdicao = null;
 
-      return;
 
-    }
+  /* -------------------------------------------------------
+     TIPO
+  ------------------------------------------------------- */
 
-    const user =
-      await obterUsuarioAtual();
+  if (recTipo) {
 
-    if (
-      !user
-    ) {
-
-      recorrenciasDados =
-        [];
-
-      renderizarRecorrencias();
-
-      return;
-
-    }
-
-    try {
-
-      const {
-        data,
-        error
-      } =
-        await supabase
-          .from(
-            "lancamentos_recorrentes"
-          )
-          .select(
-            "*"
-          )
-          .eq(
-            "user_id",
-            user.id
-          )
-          .order(
-            "created_at",
-            {
-              ascending:
-                false
-            }
-          );
-
-      if (
-        error
-      ) {
-
-        console.error(
-          "Erro ao carregar recorrências:",
-          error
-        );
-
-        listaRecorrencias.innerHTML = `
-
-          <div class="recorrencias-vazio">
-
-            <strong>
-              Não foi possível carregar.
-            </strong>
-
-            <p>
-              ${escapeHtml(
-                error.message
-              )}
-            </p>
-
-          </div>
-
-        `;
-
-        return;
-
-      }
-
-      recorrenciasDados =
-        data ||
-        [];
-
-      await carregarNomesCategorias();
-
-      renderizarRecorrencias();
-
-    } catch (erro) {
-
-      console.error(
-        "Erro inesperado nas recorrências:",
-        erro
-      );
-
-      listaRecorrencias.innerHTML = `
-
-        <div class="recorrencias-vazio">
-
-          <strong>
-            Erro inesperado.
-          </strong>
-
-          <p>
-            Não foi possível carregar suas recorrências.
-          </p>
-
-        </div>
-
-      `;
-
-    }
+    recTipo.value = "";
 
   }
 
-  /* =========================================================
-     LIMPAR RECORRÊNCIA
-     ========================================================= */
 
-  function limparFormularioRecorrencia() {
+  /* -------------------------------------------------------
+     CATEGORIA
+  ------------------------------------------------------- */
 
-    recorrenciaEmEdicao =
-      null;
+  if (recCategoria) {
 
-    if (
-      recTipo
-    ) {
+    recCategoria.innerHTML =
+      "<option value=''>Selecione uma categoria</option>";
 
-      recTipo.value =
-        "";
+    recCategoria.value = "";
 
-    }
-
-    if (
-      recCategoria
-    ) {
-
-      recCategoria.innerHTML =
-        "<option value=''>Selecione uma categoria</option>";
-
-    }
-
-    if (
-      recDescricao
-    ) {
-
-      recDescricao.value =
-        "";
-
-    }
-
-    if (
-      recValor
-    ) {
-
-      recValor.value =
-        "";
-
-    }
-
-    if (
-      recFrequencia
-    ) {
-
-      recFrequencia.value =
-        "mensal";
-
-    }
-
-    if (
-      recDiaVencimento
-    ) {
-
-      recDiaVencimento.value =
-        "";
-
-    }
-
-    if (
-      recDataInicio
-    ) {
-
-      recDataInicio.value =
-        obterDataHoje();
-
-    }
-
-    if (
-      recDataFim
-    ) {
-
-      recDataFim.value =
-        "";
-
-    }
-
-    if (
-      tituloFormularioRecorrencia
-    ) {
-
-      tituloFormularioRecorrencia.innerText =
-        "Nova recorrência";
-
-    }
-
-    if (
-      btnSalvarRecorrencia
-    ) {
-
-      btnSalvarRecorrencia.innerText =
-        "Criar recorrência";
-
-    }
-
-    if (
-      btnCancelarRecorrencia
-    ) {
-
-      btnCancelarRecorrencia.classList.add(
-        "hidden"
-      );
-
-    }
+    /*
+     * Enquanto nenhum tipo estiver selecionado,
+     * não há categorias para carregar.
+     */
+    recCategoria.disabled = true;
 
   }
+
+
+  /* -------------------------------------------------------
+     DESCRIÇÃO
+  ------------------------------------------------------- */
+
+  if (recDescricao) {
+
+    recDescricao.value = "";
+
+  }
+
+
+  /* -------------------------------------------------------
+     VALOR
+  ------------------------------------------------------- */
+
+  if (recValor) {
+
+    recValor.value = "";
+
+  }
+
+
+  /* -------------------------------------------------------
+     FREQUÊNCIA
+  ------------------------------------------------------- */
+
+  if (recFrequencia) {
+
+    recFrequencia.value = "mensal";
+
+  }
+
+
+  /* -------------------------------------------------------
+     DIA DO LANÇAMENTO
+  ------------------------------------------------------- */
+
+  if (recDiaVencimento) {
+
+    recDiaVencimento.value = "";
+
+  }
+
+
+  /* -------------------------------------------------------
+     DATA DE INÍCIO
+  ------------------------------------------------------- */
+
+  if (recDataInicio) {
+
+    recDataInicio.value =
+      obterDataHoje();
+
+  }
+
+
+  /* -------------------------------------------------------
+     DATA DE TÉRMINO
+  ------------------------------------------------------- */
+
+  if (recDataFim) {
+
+    recDataFim.value = "";
+
+  }
+
+
+  /* -------------------------------------------------------
+     TÍTULO DO FORMULÁRIO
+  ------------------------------------------------------- */
+
+  if (tituloFormularioRecorrencia) {
+
+    tituloFormularioRecorrencia.innerText =
+      "Nova recorrência";
+
+  }
+
+
+  /* -------------------------------------------------------
+     BOTÃO SALVAR
+  ------------------------------------------------------- */
+
+  if (btnSalvarRecorrencia) {
+
+    btnSalvarRecorrencia.innerText =
+      "Criar recorrência";
+
+  }
+
+
+  /* -------------------------------------------------------
+     BOTÃO CANCELAR
+  ------------------------------------------------------- */
+
+  if (btnCancelarRecorrencia) {
+
+    btnCancelarRecorrencia.classList.add(
+      "hidden"
+    );
+
+  }
+
+}
 
   /* =========================================================
      SALVAR RECORRÊNCIA
@@ -4338,118 +4253,60 @@ document.addEventListener("DOMContentLoaded", () => {
          ----------------------------------------------------- */
 
       const registro = {
+  user_id: user.id,
+  tipo: tipoRec,
+  categoria_id: categoriaId,
+  descricao: descricaoRec,
+  valor: valorRec,
+  frequencia: frequencia,
+  dia_vencimento: Number.isInteger(dia) ? dia : null,
+  data_inicio: dataInicio,
+  data_fim: dataFim,
+  ativo: true
+};
 
-        user_id:
-          user.id,
+let resultado;
 
-        tipo:
-          normalizarTipoBanco(
-            tipoSelecionado
-          ),
+if (recorrenciaEmEdicao) {
 
-        categoria_id:
-          categoriaId,
+  resultado = await supabase
+    .from("lancamentos_recorrentes")
+    .update(registro)
+    .eq("id", recorrenciaEmEdicao)
+    .eq("user_id", user.id);
 
-        categoria:
-          nomeCategoria,
+} else {
 
-        descricao:
-          descricaoSelecionada,
+  resultado = await supabase
+    .from("lancamentos_recorrentes")
+    .insert(registro);
 
-        valor:
-          valorSelecionado,
+}
 
-        frequencia:
-          frequenciaSelecionada,
+if (resultado.error) {
 
-        dia_vencimento:
-          Number.isInteger(
-            diaSelecionado
-          )
-            ? diaSelecionado
-            : null,
+  console.error(
+    "ERRO SUPABASE AO SALVAR RECORRÊNCIA:",
+    resultado.error
+  );
 
-        data_inicio:
-          dataInicioSelecionada,
+  alert(
+    "Não foi possível salvar a recorrência.\n\n" +
+    resultado.error.message
+  );
 
-        data_fim:
-          dataFimSelecionada,
+  return;
+}
 
-        ativo:
-          true
+alert(
+  recorrenciaEmEdicao
+    ? "Recorrência atualizada com sucesso!"
+    : "Recorrência criada com sucesso!"
+);
 
-      };
+limparFormularioRecorrencia();
 
-      /* -----------------------------------------------------
-         SALVAR OU ATUALIZAR
-         ----------------------------------------------------- */
-
-      let resultado;
-
-      if (
-        recorrenciaEmEdicao
-      ) {
-
-        resultado =
-          await supabase
-            .from(
-              "lancamentos_recorrentes"
-            )
-            .update(
-              registro
-            )
-            .eq(
-              "id",
-              recorrenciaEmEdicao
-            )
-            .eq(
-              "user_id",
-              user.id
-            );
-
-      } else {
-
-        resultado =
-          await supabase
-            .from(
-              "lancamentos_recorrentes"
-            )
-            .insert(
-              registro
-            );
-
-      }
-
-      if (
-        resultado.error
-      ) {
-
-        console.error(
-          "Erro ao salvar recorrência:",
-          resultado.error
-        );
-
-        alert(
-          `Não foi possível salvar a recorrência.\n\n${resultado.error.message}`
-        );
-
-        return;
-
-      }
-
-      alert(
-
-        recorrenciaEmEdicao
-
-          ? "Recorrência atualizada com sucesso!"
-
-          : "Recorrência criada com sucesso!"
-
-      );
-
-      limparFormularioRecorrencia();
-
-      await carregarRecorrencias();
+await carregarRecorrencias();
 
     } catch (erro) {
 
