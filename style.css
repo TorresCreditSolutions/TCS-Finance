@@ -2803,12 +2803,3 @@ body.dark .recorrencia-item-acoes button {
   }
 
 }
-
-/* =========================================================
-   TCS FINANCE — RELATÓRIOS SEM RECORRÊNCIAS
-   ========================================================= */
-.relatorios-cards{margin-top:18px}
-.relatorio-resumo>div{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px;display:flex;flex-direction:column;gap:7px}
-.relatorio-resumo span{color:var(--muted);font-size:12px;text-transform:uppercase;font-weight:700;letter-spacing:.04em}
-.relatorio-resumo strong{font-size:20px}
-@media(max-width:700px){.relatorio-resumo{grid-template-columns:1fr 1fr!important}.relatorios-cards{grid-template-columns:1fr 1fr!important}}
