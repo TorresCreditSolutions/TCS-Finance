@@ -28,6 +28,17 @@ body{
   color:var(--tcs-text);
 }
 
+.status-lancamento{
+  vertical-align:middle;
+}
+
+@media (max-width: 768px){
+  .status-lancamento{
+    margin-left:4px;
+    font-size:10px;
+  }
+}
+
 .content{
   max-width:1500px;
   margin:0 auto;

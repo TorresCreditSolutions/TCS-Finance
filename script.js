@@ -125,6 +125,7 @@ if (btnRelatorios) {
   const descricao = document.getElementById("descricao");
   const valor = document.getElementById("valor");
   const dataInput = document.getElementById("data");
+  const status = document.getElementById("status");
 
   const filtroMes = document.getElementById("filtroMes");
   const btnLimparFiltro = document.getElementById("btnLimparFiltro");
@@ -822,7 +823,9 @@ function atualizarRelatorios() {
 
                 valor: valorNumerico,
 
-                data: dataInput.value
+                data: dataInput.value,
+
+                status: status?.value || "Pago"
 
               })
               .eq("id", idEmEdicao);
@@ -848,7 +851,9 @@ function atualizarRelatorios() {
 
                 valor: valorNumerico,
 
-                data: dataInput.value
+                data: dataInput.value,
+
+                 status: status?.value || "Pago"
 
               });
 
@@ -936,6 +941,12 @@ function atualizarRelatorios() {
     if (dataInput) {
 
       dataInput.value = "";
+
+    }
+
+    if (status) {
+
+      status.value = "Pago";
 
     }
 
@@ -1757,7 +1768,13 @@ function renderizarGraficoComparativo() {
               ? ` • ${l.descricao}`
               : ""
           }
-
+          <span class="status-lancamento ${
+            (l.status || "Pago") === "Pago"
+              ? "status-pago"
+              : "status-aberto"
+          }">
+            ${l.status || "Pago"}
+          </span>
         </div>
 
         <div class="linha-acoes">
@@ -1885,6 +1902,13 @@ function renderizarGraficoComparativo() {
 
       dataInput.value =
         lancamento.data;
+
+    }
+
+    if (status) {
+
+      status.value =
+        lancamento.status || "Pago";
 
     }
 
@@ -2030,8 +2054,9 @@ function renderizarGraficoComparativo() {
         const linha =
           `${formatarData(l.data)} | ` +
           `${l.tipo} | ` +
-          `${l.categoria || ""} | ` +
-          `${formatarMoeda(l.valor)}`;
+          ``${l.categoria || ""} | ` +
+          `${formatarMoeda(l.valor)} | ` +
+          `${l.status || "Pago"}`;
 
         pdf.text(
           linha,
