@@ -48,17 +48,10 @@
         <span class="nav-icon">⇄</span><span>Lançamentos</span>
       </button>
 
-      <button type="button" id="btnRecorrencias" class="nav-item">
-      <span class="nav-icon">↻</span><span>Recorrências</span>
-      </button>
-
-      <button type="button" id="btnContas" class="nav-item">
-        <span class="nav-icon">▣</span><span>Contas</span>
-      </button>
-
-      <button type="button" id="btnRelatorios" class="nav-item visual-only">
-        <span class="nav-icon">◔</span><span>Relatórios</span>
-      </button>
+      <button type="button" id="btnRelatorios" class="nav-item">
+    <span class="nav-icon">◔</span>
+    <span>Relatórios</span>
+</button>
     </nav>
 
     <div class="sidebar-account">
@@ -80,7 +73,9 @@
 
   <header class="topbar">
     <div class="topbar-left">
-      <button type="button" id="btnMenu" class="btn-menu" aria-label="Abrir menu">☰</button>
+      <button type="button" id="btnMenu" aria-label="Abrir menu" aria-expanded="false">
+    ☰
+</button>
       <span class="topbar-title">TCS Finance</span>
     </div>
 
@@ -249,313 +244,87 @@
         <button id="btnExportarPdf">Exportar PDF</button>
       </div>
     </section>
-    <!-- =====================================================
-         RECORRÊNCIAS
-    ====================================================== -->
 
-    <section id="recorrencias" class="hidden">
+    <section id="relatorios" class="hidden">
 
-      <div class="page-heading">
-        <span class="eyebrow">AUTOMAÇÃO FINANCEIRA</span>
-        <h2>Recorrências</h2>
-        <p>
-          Cadastre receitas, despesas e investimentos que se repetem automaticamente.
-        </p>
-      </div>
+    <div class="page-heading">
+        <span class="eyebrow">ANÁLISE</span>
+        <h2>Relatórios Financeiros</h2>
+        <p>Consulte uma visão detalhada da sua movimentação financeira.</p>
+    </div>
 
-      <!-- FORMULÁRIO -->
+    <div class="relatorios-grid">
 
-      <div class="recorrencias-form-card">
-
-        <div class="section-card-heading">
-          <div>
-            <h3 id="tituloFormularioRecorrencia">
-              Nova recorrência
-            </h3>
-
-            <p>
-              O sistema lançará automaticamente os valores conforme a frequência definida.
-            </p>
-          </div>
-        </div>
-
-        <div class="form-grid recorrencia-form-grid">
-
-          <label class="field-group">
-            <span>Tipo</span>
-
-            <select id="recTipo">
-              <option value="">Selecione</option>
-              <option value="Receita">Receita</option>
-              <option value="Despesa">Despesa</option>
-              <option value="Investimento">Investimento</option>
-            </select>
-          </label>
-
-
-          <label class="field-group">
-            <span>Categoria</span>
-
-            <select id="recCategoria">
-              <option value="">Selecione uma categoria</option>
-            </select>
-          </label>
-
-
-          <label class="field-group">
-            <span>Descrição</span>
-
-            <input
-              type="text"
-              id="recDescricao"
-              placeholder="Ex.: Aluguel, salário, aporte..."
-            >
-          </label>
-
-
-          <label class="field-group">
-            <span>Valor</span>
-
-            <input
-              type="number"
-              id="recValor"
-              placeholder="0,00"
-              step="0.01"
-              min="0"
-            >
-          </label>
-
-
-          <label class="field-group">
-            <span>Frequência</span>
-
-            <select id="recFrequencia">
-              <option value="">Selecione</option>
-              <option value="diaria">Diária</option>
-              <option value="semanal">Semanal</option>
-              <option value="quinzenal">Quinzenal</option>
-              <option value="mensal">Mensal</option>
-              <option value="bimestral">Bimestral</option>
-              <option value="trimestral">Trimestral</option>
-              <option value="semestral">Semestral</option>
-              <option value="anual">Anual</option>
-            </select>
-          </label>
-
-
-          <label class="field-group">
-            <span>Dia do lançamento</span>
-
-            <input
-              type="number"
-              id="recDiaVencimento"
-              min="1"
-              max="31"
-              placeholder="Ex.: 10"
-            >
-          </label>
-
-
-          <label class="field-group">
-            <span>Data de início</span>
-
-            <input
-              type="date"
-              id="recDataInicio"
-            >
-          </label>
-
-
-          <label class="field-group">
-            <span>Data de término</span>
-
-            <input
-              type="date"
-              id="recDataFim"
-            >
-          </label>
-
-        </div>
-
-
-        <div class="recorrencia-info-box">
-          <span class="recorrencia-info-icon">↻</span>
-
-          <div>
-            <strong>Automação ativa</strong>
-
-            <p>
-              Depois de cadastrada, a recorrência será processada automaticamente pelo sistema.
-            </p>
-          </div>
-        </div>
-
-
-        <div class="contas-form-actions">
-
-          <button
-            type="button"
-            id="btnSalvarRecorrencia"
-            class="btn-primary-tcs"
-          >
-            Criar recorrência
-          </button>
-
-          <button
-            type="button"
-            id="btnCancelarRecorrencia"
-            class="btn-secondary-tcs hidden"
-          >
-            Cancelar edição
-          </button>
-
-        </div>
-
-      </div>
-
-
-      <!-- RESUMO -->
-
-      <div class="recorrencias-resumo-grid">
-
-        <div class="recorrencia-resumo-card">
-          <span class="recorrencia-resumo-icon">↻</span>
-
-          <div>
-            <span>RECORRÊNCIAS</span>
-            <strong id="totalRecorrencias">0</strong>
-          </div>
-        </div>
-
-
-        <div class="recorrencia-resumo-card">
-          <span class="recorrencia-resumo-icon">✓</span>
-
-          <div>
-            <span>ATIVAS</span>
-            <strong id="recorrenciasAtivas">0</strong>
-          </div>
-        </div>
-
-
-        <div class="recorrencia-resumo-card">
-          <span class="recorrencia-resumo-icon">⏸</span>
-
-          <div>
-            <span>PAUSADAS</span>
-            <strong id="recorrenciasPausadas">0</strong>
-          </div>
-        </div>
-
-      </div>
-
-
-      <!-- LISTA -->
-
-      <div class="recorrencias-lista-card">
-
-        <div class="section-card-heading">
-
-          <div>
-            <h3>Minhas recorrências</h3>
-
-            <p id="contadorRecorrencias">
-              Nenhuma recorrência cadastrada.
-            </p>
-          </div>
-
-        </div>
-
-
-        <div
-          id="listaRecorrencias"
-          class="recorrencias-grid"
-        ></div>
-
-      </div>
-
-    </section>
-
-    <section id="contas" class="hidden">
-      <div class="page-heading">
-        <span class="eyebrow">ORGANIZAÇÃO FINANCEIRA</span>
-        <h2>Minhas contas</h2>
-        <p>Organize onde seu dinheiro está e acompanhe o saldo de cada conta.</p>
-      </div>
-
-      <div class="contas-layout">
-        <div class="contas-form-card">
-          <div class="section-card-heading">
+        <div class="relatorio-card">
+            <span class="relatorio-icon">↑</span>
             <div>
-              <h3>Adicionar conta</h3>
-              <p>Cadastre contas correntes, poupanças, carteiras e outras reservas.</p>
+                <small>RECEITAS</small>
+                <strong id="relatorioReceitas">R$ 0,00</strong>
             </div>
-          </div>
-
-          <div class="form-grid contas-form-grid">
-            <label class="field-group">
-              <span>Nome da conta</span>
-              <input type="text" id="contaNome" placeholder="Ex.: Nubank, Itaú, Carteira">
-            </label>
-
-            <label class="field-group">
-              <span>Tipo</span>
-              <select id="contaTipo">
-                <option value="Conta corrente">Conta corrente</option>
-                <option value="Conta digital">Conta digital</option>
-                <option value="Poupança">Poupança</option>
-                <option value="Carteira">Carteira</option>
-                <option value="Investimentos">Investimentos</option>
-                <option value="Outro">Outro</option>
-              </select>
-            </label>
-
-            <label class="field-group">
-              <span>Saldo inicial</span>
-              <input type="number" id="contaSaldoInicial" placeholder="0,00" step="0.01" min="0">
-            </label>
-
-            <label class="field-group">
-              <span>Identificação</span>
-              <select id="contaCor">
-                <option value="blue">Azul</option>
-                <option value="green">Verde</option>
-                <option value="purple">Roxo</option>
-                <option value="orange">Laranja</option>
-                <option value="slate">Cinza</option>
-              </select>
-            </label>
-          </div>
-
-          <div class="contas-form-actions">
-            <button type="button" id="btnSalvarConta" class="btn-primary-tcs">Adicionar conta</button>
-            <button type="button" id="btnCancelarConta" class="btn-secondary-tcs hidden">Cancelar edição</button>
-          </div>
         </div>
 
-        <div class="contas-resumo-card">
-          <span class="eyebrow">VISÃO CONSOLIDADA</span>
-          <span class="contas-resumo-label">Saldo cadastrado</span>
-          <strong id="saldoTotalContas">R$ 0,00</strong>
-          <small>Baseado nos saldos iniciais e movimentações vinculadas.</small>
+        <div class="relatorio-card">
+            <span class="relatorio-icon">↓</span>
+            <div>
+                <small>DESPESAS</small>
+                <strong id="relatorioDespesas">R$ 0,00</strong>
+            </div>
         </div>
-      </div>
 
-      <div class="contas-lista-card">
-        <div class="section-card-heading">
-          <div>
-            <h3>Contas cadastradas</h3>
-            <p id="contadorContas">Nenhuma conta cadastrada.</p>
-          </div>
+        <div class="relatorio-card">
+            <span class="relatorio-icon">◔</span>
+            <div>
+                <small>INVESTIMENTOS</small>
+                <strong id="relatorioInvestimentos">R$ 0,00</strong>
+            </div>
         </div>
-        <div id="listaContas" class="contas-grid"></div>
-      </div>
-    </section>
 
+        <div class="relatorio-card relatorio-saldo">
+            <span class="relatorio-icon">▱</span>
+            <div>
+                <small>SALDO</small>
+                <strong id="relatorioSaldo">R$ 0,00</strong>
+            </div>
+        </div>
+
+    </div>
+
+    <div class="relatorio-resumo">
+
+        <div>
+            <h3>Resumo financeiro</h3>
+            <p id="relatorioPeriodo">
+                Período atual
+            </p>
+        </div>
+
+        <div class="relatorio-linha">
+            <span>Receitas</span>
+            <strong id="relatorioResumoReceitas">R$ 0,00</strong>
+        </div>
+
+        <div class="relatorio-linha">
+            <span>Despesas</span>
+            <strong id="relatorioResumoDespesas">R$ 0,00</strong>
+        </div>
+
+        <div class="relatorio-linha">
+            <span>Investimentos</span>
+            <strong id="relatorioResumoInvestimentos">R$ 0,00</strong>
+        </div>
+
+        <div class="relatorio-linha destaque">
+            <span>Saldo</span>
+            <strong id="relatorioResumoSaldo">R$ 0,00</strong>
+        </div>
+
+    </div>
+
+</section>
     <footer class="creditos-app">© TCS Finance • Dados criptografados • Uso profissional</footer>
   </main>
 </div>
 
-<script src="Script.js?v=20260826-01"></script>
+<script src="script.js"></script>
 </body>
 </html>

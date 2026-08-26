@@ -1,1236 +1,1771 @@
-/* =========================================================
+/* ======================================================
    TCS FINANCE
-   SCRIPT.JS — VERSÃO SEM RECORRÊNCIAS
-   25/08/2026
-   =========================================================
-   Recursos:
-   - Login / sessão persistente / logout
-   - Cadastro / recuperação de senha
-   - Lançamentos: Receita, Despesa, Investimento
-   - Categorias por tipo
-   - Tipos de investimento detalhados por categoria
-   - Editar / excluir lançamentos
-   - Filtro mensal
-   - Dashboard financeiro
-   - Gastos por categoria
-   - Investimentos por categoria
-   - Gráficos Chart.js
-   - Alertas financeiros
-   - Exportação PDF
-   - Compatível com o HTML atual
-   - NÃO usa lancamentos_recorrentes
-   ========================================================= */
+   SCRIPT PRINCIPAL
+   VERSÃO DASHBOARD PRO
+====================================================== */
 
-console.log("TCS Finance: carregando Script.js...");
+console.log("SCRIPT CARREGADO");
 
-document.addEventListener("DOMContentLoaded", () => {
-  "use strict";
+document.addEventListener("DOMContentLoaded", async () => {
 
-  /* =========================================================
-     CONFIGURAÇÃO
-     ========================================================= */
+  /* ======================================================
+     SUPABASE
+  ====================================================== */
 
-  const SUPABASE_URL = "https://figkamlmpangolnasaby.supabase.co";
-  const SUPABASE_KEY = "sb_publishable_qkDLfEnWNNXyqQVdogQzBQ_Sre7CVBL";
+  const supabase = window.supabase.createClient(
+    "https://figkamlmpangolnasaby.supabase.co",
+    "sb_publishable_qkDLfEnWNNXyqQVdogQzBQ_Sre7CVBL"
+  );
 
-  const LIMITE_FREE = 30;
-  const $ = (id) => document.getElementById(id);
+  /* ======================================================
+     ESTADO GLOBAL
+  ====================================================== */
 
-  let supabaseClient = null;
-  let usuarioAtual = null;
   let dados = [];
-  let categoriasFinanceiras = [];
-  let idEmEdicao = null;
 
   let grafico = null;
   let graficoMensal = null;
   let graficoComparativo = null;
 
-  let inicializando = false;
-  let sessaoPronta = false;
+  let idEmEdicao = null;
 
-  /* =========================================================
-     ELEMENTOS
-     ========================================================= */
+  const LIMITE_FREE = 30;
+  let planoUsuario = "FREE";
 
-  const loginContainer = $("login-container");
-  const app = $("app");
-  const dashboard = $("dashboard");
-  const lancamentos = $("lancamentos");
-  const relatorios = $("relatorios");
-  const contas = $("contas");
-  const categoriasView = $("categorias");
+  /* ======================================================
+     CATEGORIAS
+  ====================================================== */
 
-  const emailInput = $("email");
-  const senhaInput = $("senha");
-  const aceiteTermos = $("aceiteTermos");
+  const categoriasPorTipo = {
 
-  const btnLogin = $("btnLogin");
-  const btnCadastro = $("btnCadastro");
-  const btnEsqueciSenha = $("btnEsqueciSenha");
-  const btnLogout = $("btnLogout");
-  const btnLogoutTop = $("btnLogoutTop");
-
-  const btnDashboard = $("btnDashboard");
-  const btnLancamentos = $("btnLancamentos");
-  const btnRelatorios = $("btnRelatorios");
-  const btnContas = $("btnContas");
-
-  const btnSalvar = $("btnSalvar");
-  const tipo = $("tipo");
-  const categoria = $("categoria");
-  const descricao = $("descricao");
-  const valor = $("valor");
-  const dataInput = $("data");
-  const lista = $("listaLancamentos");
-
-  const filtroMes = $("filtroMes");
-  const btnLimparFiltro = $("btnLimparFiltro");
-  const dashboardPeriodo = $("dashboardPeriodo");
-  const tipoGrafico = $("tipoGrafico");
-
-  const totalReceitas = $("totalReceitas");
-  const totalDespesas = $("totalDespesas");
-  const totalInvestimentos = $("totalInvestimentos");
-  const saldo = $("saldo");
-
-  const nomeCliente = $("nomeCliente");
-  const topbarUser = $("topbarUser");
-  const topbarPlano = $("topbarPlano");
-  const planoUsuario = $("planoUsuario");
-
-  const btnExportarPdf = $("btnExportarPdf");
-
-  const btnMenu = $("btnMenu");
-  const sidebar = document.querySelector(".sidebar");
-  const menuOverlay = $("menuOverlay");
-
-  /* =========================================================
-     CATEGORIAS PADRÃO LOCAIS
-     =========================================================
-     Importante:
-     Não gravamos automaticamente essas categorias no banco.
-     Isso evita quebrar instalações antigas com CHECK/FK diferentes.
-     O lançamento grava o NOME da categoria na coluna "categoria".
-     ========================================================= */
-
-  const categoriasPadrao = {
     Receita: [
       "Salário",
       "Renda Extra",
+      "Mesada",
       "Freelance",
       "Vendas",
-      "Comissões",
-      "Benefícios",
-      "Aluguéis",
-      "Dividendos",
-      "Juros",
-      "Reembolsos",
-      "Outras Receitas"
+      "Outros"
     ],
 
     Despesa: [
       "Moradia",
+      "Saúde",
+      "Cartão de Crédito",
       "Alimentação",
       "Transporte",
-      "Saúde",
       "Educação",
-      "Lazer",
-      "Compras",
-      "Cartão de Crédito",
-      "Contas",
-      "Impostos",
       "Empréstimos",
-      "Seguros",
-      "Assinaturas",
-      "Viagens",
-      "Pets",
       "Compras diversas",
-      "Outras Despesas"
+      "Lazer",
+      "Outros"
     ],
 
     Investimento: [
-      "Tesouro Direto",
-      "CDB",
-      "LCI/LCA",
-      "Ações",
-      "FIIs",
-      "ETFs",
-      "Criptomoedas",
-      "Previdência",
-      "Poupança",
       "Renda Fixa",
-      "Outros Investimentos"
+      "Ações",
+      "Criptomoedas",
+      "Outros"
     ]
+
   };
 
-  /* =========================================================
-     UTILITÁRIOS
-     ========================================================= */
+  /* ======================================================
+     ELEMENTOS DO DOM
+  ====================================================== */
 
-  function escapeHtml(value) {
-    return String(value ?? "").replace(/[&<>'"]/g, (char) => {
-      const map = {
-        "&": "&amp;",
-        "<": "&lt;",
-        ">": "&gt;",
-        "'": "&#39;",
-        '"': "&quot;"
-      };
-      return map[char];
+  const loginContainer = document.getElementById("login-container");
+  const app = document.getElementById("app");
+
+  const dashboard = document.getElementById("dashboard");
+  const lancamentos = document.getElementById("lancamentos");
+
+  const nomeCliente = document.getElementById("nomeCliente");
+
+  const emailInput = document.getElementById("email");
+  const senhaInput = document.getElementById("senha");
+  const aceiteTermos = document.getElementById("aceiteTermos");
+
+  const btnLogin = document.getElementById("btnLogin");
+  const btnCadastro = document.getElementById("btnCadastro");
+
+  const btnLogoutTop = document.getElementById("btnLogoutTop");
+  const btnLogout = document.getElementById("btnLogout");
+
+  const btnRelatorios = document.getElementById("btnRelatorios");
+  const relatorios = document.getElementById("relatorios");
+
+  const btnDashboard = document.getElementById("btnDashboard");
+  const btnLancamentos = document.getElementById("btnLancamentos");
+  /* ======================================================
+   RELATÓRIOS
+====================================================== */
+
+if (btnRelatorios) {
+
+    btnRelatorios.onclick = () => {
+
+        dashboard.classList.add("hidden");
+        lancamentos.classList.add("hidden");
+
+        if (relatorios) {
+            relatorios.classList.remove("hidden");
+        }
+
+        fecharMenuMobile();
+
+        atualizarRelatorios();
+    };
+
+}
+
+  const btnSalvar = document.getElementById("btnSalvar");
+
+  const tipo = document.getElementById("tipo");
+  const categoria = document.getElementById("categoria");
+  const descricao = document.getElementById("descricao");
+  const valor = document.getElementById("valor");
+  const dataInput = document.getElementById("data");
+
+  const filtroMes = document.getElementById("filtroMes");
+  const btnLimparFiltro = document.getElementById("btnLimparFiltro");
+
+  const totalReceitas = document.getElementById("totalReceitas");
+  const totalDespesas = document.getElementById("totalDespesas");
+  const totalInvestimentos = document.getElementById("totalInvestimentos");
+  const saldo = document.getElementById("saldo");
+
+  const lista = document.getElementById("listaLancamentos");
+
+  const tipoGrafico = document.getElementById("tipoGrafico");
+
+  const btnMenu = document.getElementById("btnMenu");
+  const sidebar = document.querySelector(".sidebar");
+  const menuOverlay = document.getElementById("menuOverlay");
+
+  const dashboardPeriodo = document.getElementById("dashboardPeriodo");
+  /* ======================================================
+   ATUALIZAR RELATÓRIOS
+====================================================== */
+
+function atualizarRelatorios() {
+
+    const filtrados = obterDadosFiltrados();
+
+    let receita = 0;
+    let despesa = 0;
+    let investimento = 0;
+
+    filtrados.forEach(l => {
+
+        const valorLancamento =
+            Number(l.valor) || 0;
+
+        if (l.tipo === "Receita") {
+            receita += valorLancamento;
+        }
+
+        if (l.tipo === "Despesa") {
+            despesa += valorLancamento;
+        }
+
+        if (l.tipo === "Investimento") {
+            investimento += valorLancamento;
+        }
+
     });
-  }
 
-  function normalizarTipo(value) {
-    const texto = String(value ?? "").trim().toLowerCase();
+    const saldoAtual =
+        receita - despesa;
 
-    if (texto === "receita") return "Receita";
-    if (texto === "despesa") return "Despesa";
-    if (texto === "investimento") return "Investimento";
+    const elementos = {
 
-    return String(value ?? "");
-  }
+        relatorioReceitas:
+            formatarMoeda(receita),
 
-  function numero(value) {
-    if (typeof value === "number") {
-      return Number.isFinite(value) ? value : 0;
-    }
+        relatorioDespesas:
+            formatarMoeda(despesa),
 
-    let texto = String(value ?? "").trim();
+        relatorioInvestimentos:
+            formatarMoeda(investimento),
 
-    if (!texto) return 0;
+        relatorioSaldo:
+            formatarMoeda(saldoAtual),
 
-    /*
-      Aceita:
-      1234.56
-      1234,56
-      1.234,56
-    */
-    if (texto.includes(",")) {
-      texto = texto.replace(/\./g, "").replace(",", ".");
-    }
+        relatorioResumoReceitas:
+            formatarMoeda(receita),
 
-    const n = Number(texto);
-    return Number.isFinite(n) ? n : 0;
-  }
+        relatorioResumoDespesas:
+            formatarMoeda(despesa),
 
-  function formatarMoeda(value) {
-    return numero(value).toLocaleString("pt-BR", {
+        relatorioResumoInvestimentos:
+            formatarMoeda(investimento),
+
+        relatorioResumoSaldo:
+            formatarMoeda(saldoAtual),
+
+        relatorioPeriodo:
+            formatarPeriodo(
+                filtroMes?.value || ""
+            )
+
+    };
+
+    Object.entries(elementos).forEach(
+        ([id, valor]) => {
+
+            const elemento =
+                document.getElementById(id);
+
+            if (elemento) {
+                elemento.innerText = valor;
+            }
+
+        }
+    );
+}
+
+  /* ======================================================
+     FORMATAÇÃO
+  ====================================================== */
+
+  function formatarMoeda(valorNumerico) {
+
+    const numero = Number(valorNumerico) || 0;
+
+    return numero.toLocaleString("pt-BR", {
       style: "currency",
       currency: "BRL"
     });
+
   }
 
-  function formatarNumero(value) {
-    return numero(value).toLocaleString("pt-BR", {
+  function formatarNumero(valorNumerico) {
+
+    const numero = Number(valorNumerico) || 0;
+
+    return numero.toLocaleString("pt-BR", {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2
     });
+
   }
 
-  function formatarData(value) {
-    if (!value) return "";
+  function formatarData(data) {
 
-    const texto = String(value).slice(0, 10);
-    const partes = texto.split("-");
+    if (!data) return "";
 
-    if (partes.length === 3) {
-      return `${partes[2]}/${partes[1]}/${partes[0]}`;
-    }
+    const partes = data.split("-");
 
-    return texto;
-  }
+    if (partes.length !== 3) return data;
 
-  function obterDataHoje() {
-    const hoje = new Date();
+    return `${partes[2]}/${partes[1]}/${partes[0]}`;
 
-    return [
-      hoje.getFullYear(),
-      String(hoje.getMonth() + 1).padStart(2, "0"),
-      String(hoje.getDate()).padStart(2, "0")
-    ].join("-");
   }
 
   function obterMesAtual() {
-    const hoje = new Date();
 
-    return [
-      hoje.getFullYear(),
-      String(hoje.getMonth() + 1).padStart(2, "0")
-    ].join("-");
+    const agora = new Date();
+
+    const ano = agora.getFullYear();
+
+    const mes = String(agora.getMonth() + 1).padStart(2, "0");
+
+    return `${ano}-${mes}`;
+
   }
 
-  function formatarPeriodo(value) {
-    if (!value) return "Todos os períodos";
+  function formatarPeriodo(mes) {
 
-    const partes = String(value).split("-");
+    if (!mes) return "Todos os períodos";
 
-    if (partes.length !== 2) return value;
+    const partes = mes.split("-");
 
-    const data = new Date(
-      Number(partes[0]),
-      Number(partes[1]) - 1,
-      1
-    );
+    if (partes.length !== 2) return mes;
+
+    const ano = Number(partes[0]);
+
+    const numeroMes = Number(partes[1]);
+
+    const data = new Date(ano, numeroMes - 1, 1);
 
     return data.toLocaleDateString("pt-BR", {
       month: "long",
       year: "numeric"
     });
+
   }
 
-  function obterNomeCategoriaDoSelect() {
-    if (!categoria) return "";
+  /* ======================================================
+     MENU MOBILE
+  ====================================================== */
 
-    const option = categoria.options[categoria.selectedIndex];
-
-    return (
-      option?.dataset?.nome ||
-      option?.textContent ||
-      categoria.value ||
-      ""
-    ).trim();
+  if (sidebar) {
+    sidebar.classList.remove("active");
   }
 
-  function mostrarErroSupabase(prefixo, error) {
-    console.error(prefixo, error);
-
-    const mensagem = error?.message || "Erro desconhecido.";
-
-    alert(`${prefixo}\n\n${mensagem}`);
-  }
-
-  /* =========================================================
-     VISUAL
-     ========================================================= */
-
-  function mostrarLogin() {
-    if (app) {
-      app.classList.add("hidden");
-      app.style.display = "none";
-    }
-
-    if (loginContainer) {
-      loginContainer.classList.remove("hidden");
-      loginContainer.style.display = "flex";
-    }
-  }
-
-  function mostrarApp() {
-    if (loginContainer) {
-      loginContainer.classList.add("hidden");
-      loginContainer.style.display = "none";
-    }
-
-    if (app) {
-      app.classList.remove("hidden");
-      app.style.display = "flex";
-    }
-  }
-
-  function mostrarTela(tela) {
-    [
-      dashboard,
-      lancamentos,
-      relatorios,
-      contas,
-      categoriasView
-    ].forEach((elemento) => {
-      if (elemento) elemento.classList.add("hidden");
-    });
-
-    if (tela) tela.classList.remove("hidden");
-
-    fecharMenuMobile();
-  }
-
-  function ativarMenu(botao) {
-    document
-      .querySelectorAll(".sidebar .nav-item, .sidebar button")
-      .forEach((elemento) => elemento.classList.remove("active"));
-
-    if (botao) botao.classList.add("active");
+  if (menuOverlay) {
+    menuOverlay.classList.add("hidden");
   }
 
   function fecharMenuMobile() {
-    if (sidebar) sidebar.classList.remove("active");
-    if (menuOverlay) menuOverlay.classList.add("hidden");
-  }
 
-  /* =========================================================
-     SUPABASE
-     ========================================================= */
-
-  function inicializarSupabase() {
-    if (
-      !window.supabase ||
-      typeof window.supabase.createClient !== "function"
-    ) {
-      console.error("Supabase JS não encontrado.");
-      alert(
-        "O Supabase não foi carregado. Verifique se o script do Supabase está no HTML antes do script.js."
-      );
-      return false;
+    if (sidebar) {
+      sidebar.classList.remove("active");
     }
 
-    try {
-      supabaseClient = window.supabase.createClient(
-        SUPABASE_URL,
-        SUPABASE_KEY,
-        {
-          auth: {
-            persistSession: true,
-            autoRefreshToken: true,
-            detectSessionInUrl: true
-          }
+    if (menuOverlay) {
+      menuOverlay.classList.add("hidden");
+    }
+
+  }
+
+  if (btnMenu && sidebar && menuOverlay) {
+
+    btnMenu.onclick = () => {
+
+      const aberto = sidebar.classList.contains("active");
+
+      if (aberto) {
+
+        sidebar.classList.remove("active");
+        menuOverlay.classList.add("hidden");
+
+      } else {
+
+        sidebar.classList.add("active");
+        menuOverlay.classList.remove("hidden");
+
+      }
+
+    };
+
+    menuOverlay.onclick = () => {
+
+      fecharMenuMobile();
+
+    };
+
+  }
+
+  /* ======================================================
+     NAVEGAÇÃO
+  ====================================================== */
+
+ if (btnDashboard) {
+
+    btnDashboard.onclick = () => {
+
+        dashboard.classList.remove("hidden");
+
+        lancamentos.classList.add("hidden");
+
+        if (relatorios) {
+            relatorios.classList.add("hidden");
         }
-      );
 
-      console.log("Supabase inicializado.");
-      return true;
-    } catch (error) {
-      console.error("Erro ao inicializar Supabase:", error);
-      alert("Não foi possível inicializar o sistema.");
-      return false;
+        fecharMenuMobile();
+
+        atualizarDashboard();
+    };
+
+}
+
+  if (btnLancamentos) {
+
+    btnLancamentos.onclick = () => {
+
+        dashboard.classList.add("hidden");
+
+        lancamentos.classList.remove("hidden");
+
+        if (relatorios) {
+            relatorios.classList.add("hidden");
+        }
+
+        fecharMenuMobile();
+
+        renderizarLista();
+    };
+
+}
+
+  /* ======================================================
+     LOGOUT
+  ====================================================== */
+
+  async function fazerLogout() {
+
+    await supabase.auth.signOut();
+
+    if (app) {
+
+      app.classList.add("hidden");
+
+      app.style.display = "none";
+
     }
+
+    if (loginContainer) {
+
+      loginContainer.style.display = "flex";
+
+    }
+
   }
 
-  async function obterUsuarioAtual() {
-    if (!supabaseClient) return null;
+  if (btnLogoutTop) {
 
-    try {
-      const { data, error } = await supabaseClient.auth.getUser();
+    btnLogoutTop.onclick = async () => {
 
-      if (error) {
-        console.warn("getUser:", error.message);
-        return null;
-      }
+      await fazerLogout();
 
-      return data?.user || null;
-    } catch (error) {
-      console.error("Erro getUser:", error);
-      return null;
-    }
+    };
+
   }
 
-  /* =========================================================
+  if (btnLogout) {
+
+    btnLogout.onclick = async () => {
+
+      fecharMenuMobile();
+
+      await fazerLogout();
+
+    };
+
+  }
+
+  /* ======================================================
      CATEGORIAS
-     ========================================================= */
+  ====================================================== */
 
-  async function carregarCategoriasFinanceiras() {
-    const user = usuarioAtual || (await obterUsuarioAtual());
-
-    if (!user) {
-      categoriasFinanceiras = [];
-      return;
-    }
-
-    /*
-      Tentamos buscar as categorias já existentes.
-      Se a tabela não existir ou estiver incompatível,
-      o sistema continua funcionando com as categorias locais.
-    */
-
-    try {
-      const resultado = await supabaseClient
-        .from("categorias_financeiras")
-        .select("id,nome,tipo,ativa")
-        .eq("user_id", user.id)
-        .eq("ativa", true)
-        .order("nome", { ascending: true });
-
-      if (!resultado.error && Array.isArray(resultado.data)) {
-        categoriasFinanceiras = resultado.data;
-        return;
-      }
-
-      console.warn(
-        "Tabela categorias_financeiras indisponível. Usando categorias locais."
-      );
-    } catch (error) {
-      console.warn("Erro ao consultar categorias:", error);
-    }
-
-    categoriasFinanceiras = [];
-  }
-
-  function obterCategoriasParaTipo(tipoSelecionado) {
-    const tipoNormalizado = normalizarTipo(tipoSelecionado);
-
-    const categoriasDoBanco = categoriasFinanceiras
-      .filter(
-        (item) =>
-          normalizarTipo(item.tipo) === tipoNormalizado &&
-          item.nome
-      )
-      .map((item) => ({
-        id: item.id,
-        nome: item.nome
-      }));
-
-    if (categoriasDoBanco.length) {
-      return categoriasDoBanco;
-    }
-
-    return (categoriasPadrao[tipoNormalizado] || []).map((nome) => ({
-      id: nome,
-      nome
-    }));
-  }
-
-  function atualizarSelectCategorias(
-    tipoSelecionado = "",
+  function popularCategorias(
+    tipoSelecionado,
     categoriaSelecionada = ""
   ) {
+
     if (!categoria) return;
 
     categoria.innerHTML =
-      "<option value=''>Selecione uma categoria</option>";
+      "<option value=''>Categoria</option>";
 
-    if (!tipoSelecionado) {
-      categoria.disabled = true;
+    if (!categoriasPorTipo[tipoSelecionado]) {
+
       return;
+
     }
 
-    categoria.disabled = false;
+    categoriasPorTipo[tipoSelecionado].forEach(cat => {
 
-    const listaCategorias =
-      obterCategoriasParaTipo(tipoSelecionado);
-
-    listaCategorias.forEach((item) => {
       const option = document.createElement("option");
 
-      /*
-        O valor é o ID somente quando a categoria veio do banco.
-        Porém o texto/nome é o que será salvo em lancamentos.
-      */
-      option.value = item.id ?? item.nome;
-      option.textContent = item.nome;
-      option.dataset.nome = item.nome;
+      option.value = cat;
 
-      if (
-        String(categoriaSelecionada) === String(item.id) ||
-        String(categoriaSelecionada) === String(item.nome)
-      ) {
+      option.textContent = cat;
+
+      if (cat === categoriaSelecionada) {
+
         option.selected = true;
+
       }
 
       categoria.appendChild(option);
+
     });
+
   }
 
   if (tipo) {
-    tipo.addEventListener("change", () => {
-      atualizarSelectCategorias(tipo.value);
-    });
+
+    tipo.onchange = () => {
+
+      popularCategorias(tipo.value);
+
+    };
+
   }
 
-  /* =========================================================
-     LANÇAMENTOS — CARREGAR
-     ========================================================= */
+  /* ======================================================
+     LOGIN
+  ====================================================== */
 
-  async function carregarDados() {
-    const user = usuarioAtual || (await obterUsuarioAtual());
+  if (btnLogin) {
 
-    if (!user) {
-      dados = [];
-      return;
-    }
+    btnLogin.onclick = async () => {
 
-    try {
-      const { data, error } = await supabaseClient
-        .from("lancamentos")
-        .select("*")
-        .eq("user_id", user.id)
-        .order("data", { ascending: false });
+      if (!aceiteTermos.checked) {
+
+        alert("Você precisa aceitar os termos.");
+
+        return;
+
+      }
+
+      if (!emailInput.value || !senhaInput.value) {
+
+        alert("Informe seu email e senha.");
+
+        return;
+
+      }
+
+      const { data, error } =
+        await supabase.auth.signInWithPassword({
+
+          email: emailInput.value.trim(),
+
+          password: senhaInput.value
+
+        });
 
       if (error) {
-        console.error("Erro ao carregar lançamentos:", error);
-        dados = [];
+
+        alert(error.message);
+
         return;
+
       }
 
-      dados = Array.isArray(data) ? data : [];
-    } catch (error) {
-      console.error("Erro inesperado ao carregar lançamentos:", error);
-      dados = [];
-    }
-  }
+      await iniciarSessao(data.user);
 
-  /* =========================================================
-     LANÇAMENTOS — LIMPAR
-     ========================================================= */
-
-  function limparFormulario() {
-    idEmEdicao = null;
-
-    if (tipo) tipo.value = "";
-
-    if (categoria) {
-      categoria.innerHTML =
-        "<option value=''>Selecione uma categoria</option>";
-      categoria.disabled = true;
-    }
-
-    if (descricao) descricao.value = "";
-    if (valor) valor.value = "";
-    if (dataInput) dataInput.value = obterDataHoje();
-
-    if (btnSalvar) btnSalvar.innerText = "Salvar";
-  }
-
-  /* =========================================================
-     LANÇAMENTOS — SALVAR / EDITAR
-     ========================================================= */
-
-  async function salvarLancamento() {
-    if (!supabaseClient) {
-      alert("Sistema ainda não inicializado.");
-      return;
-    }
-
-    if (
-      !tipo?.value ||
-      !categoria?.value ||
-      !valor?.value ||
-      !dataInput?.value
-    ) {
-      alert("Preencha tipo, categoria, valor e data.");
-      return;
-    }
-
-    const valorNumerico = numero(valor.value);
-
-    if (!Number.isFinite(valorNumerico) || valorNumerico <= 0) {
-      alert("Informe um valor válido.");
-      return;
-    }
-
-    if (
-      usuarioAtual?.user_metadata?.plano?.toUpperCase?.() === "FREE" &&
-      dados.length >= LIMITE_FREE &&
-      !idEmEdicao
-    ) {
-      alert(
-        `O plano gratuito permite até ${LIMITE_FREE} lançamentos.`
-      );
-      return;
-    }
-
-    const user = usuarioAtual || (await obterUsuarioAtual());
-
-    if (!user) {
-      alert("Sua sessão expirou. Faça login novamente.");
-      mostrarLogin();
-      return;
-    }
-
-    const nomeCategoria = obterNomeCategoriaDoSelect();
-
-    const registro = {
-      tipo: normalizarTipo(tipo.value),
-      categoria: nomeCategoria,
-      descricao: descricao?.value?.trim() || "",
-      valor: valorNumerico,
-      data: dataInput.value
     };
 
-    try {
-      let resultado;
+  }
 
-      if (idEmEdicao) {
-        resultado = await supabaseClient
-          .from("lancamentos")
-          .update(registro)
-          .eq("id", idEmEdicao)
-          .eq("user_id", user.id);
-      } else {
-        resultado = await supabaseClient
-          .from("lancamentos")
-          .insert({
-            user_id: user.id,
-            ...registro
-          });
-      }
+  /* ======================================================
+     CADASTRO
+  ====================================================== */
 
-      if (resultado.error) {
-        mostrarErroSupabase(
-          "Não foi possível salvar o lançamento.",
-          resultado.error
-        );
+  if (btnCadastro) {
+
+    btnCadastro.onclick = async () => {
+
+      if (!aceiteTermos.checked) {
+
+        alert("Você precisa aceitar os termos.");
+
         return;
+
       }
 
-      limparFormulario();
-      await carregarDados();
-      atualizarDashboard();
-      renderizarLista();
+      if (!emailInput.value || !senhaInput.value) {
+
+        alert("Informe email e senha.");
+
+        return;
+
+      }
+
+      if (senhaInput.value.length < 6) {
+
+        alert("A senha deve possuir pelo menos 6 caracteres.");
+
+        return;
+
+      }
+
+      const { error } =
+        await supabase.auth.signUp({
+
+          email: emailInput.value.trim(),
+
+          password: senhaInput.value,
+
+          options: {
+
+            data: {
+
+              nome:
+                emailInput.value
+                  .split("@")[0]
+
+            }
+
+          }
+
+        });
+
+      if (error) {
+
+        alert(error.message);
+
+        return;
+
+      }
 
       alert(
-        idEmEdicao
-          ? "Lançamento atualizado com sucesso!"
-          : "Lançamento salvo com sucesso!"
+        "Conta criada com sucesso! Confirme seu email para continuar."
       );
-    } catch (error) {
-      console.error("Salvar lançamento:", error);
-      alert("Ocorreu um erro ao salvar o lançamento.");
-    }
-  }
 
-  if (btnSalvar) {
-    btnSalvar.addEventListener("click", salvarLancamento);
-  }
-
-  /* =========================================================
-     FILTRO
-     ========================================================= */
-
-  function obterDadosFiltrados() {
-    if (!filtroMes?.value) {
-      return [...dados];
-    }
-
-    return dados.filter((item) =>
-      String(item.data || "").startsWith(filtroMes.value)
-    );
-  }
-
-  /* =========================================================
-     RESUMOS
-     ========================================================= */
-
-  function calcularResumo(registros) {
-    const resumo = {
-      receita: 0,
-      despesa: 0,
-      investimento: 0
     };
 
-    registros.forEach((item) => {
-      const valorItem = numero(item.valor);
-      const tipoItem = normalizarTipo(item.tipo);
-
-      if (tipoItem === "Receita") resumo.receita += valorItem;
-      if (tipoItem === "Despesa") resumo.despesa += valorItem;
-      if (tipoItem === "Investimento") resumo.investimento += valorItem;
-    });
-
-    resumo.saldo = resumo.receita - resumo.despesa;
-
-    return resumo;
   }
 
-  function agruparPorCategoria(registros, tipoDesejado) {
-    const mapa = {};
+  /* ======================================================
+     INICIAR SESSÃO
+  ====================================================== */
 
-    registros.forEach((item) => {
-      if (normalizarTipo(item.tipo) !== tipoDesejado) return;
+  async function iniciarSessao(user) {
 
-      const nome =
-        String(item.categoria || "Sem categoria").trim() ||
-        "Sem categoria";
+    if (!user) return;
 
-      mapa[nome] = (mapa[nome] || 0) + numero(item.valor);
-    });
+    const topbarUser =
+      document.getElementById("topbarUser");
 
-    return Object.entries(mapa)
-      .sort((a, b) => b[1] - a[1])
-      .map(([categoriaNome, total]) => ({
-        categoria: categoriaNome,
-        total
-      }));
-  }
+    const topbarPlano =
+      document.getElementById("topbarPlano");
 
-  function agruparPorMes(registros) {
-    const mapa = {};
+    const nomeUsuario =
+      user.user_metadata?.nome ||
+      user.email?.split("@")[0] ||
+      "Usuário";
 
-    registros.forEach((item) => {
-      const mes = String(item.data || "").slice(0, 7);
+    if (topbarUser) {
 
-      if (!mes) return;
+      topbarUser.innerText = nomeUsuario;
 
-      if (!mapa[mes]) {
-        mapa[mes] = {
-          receita: 0,
-          despesa: 0,
-          investimento: 0
-        };
-      }
-
-      const tipoItem = normalizarTipo(item.tipo);
-      const valorItem = numero(item.valor);
-
-      if (tipoItem === "Receita") mapa[mes].receita += valorItem;
-      if (tipoItem === "Despesa") mapa[mes].despesa += valorItem;
-      if (tipoItem === "Investimento") {
-        mapa[mes].investimento += valorItem;
-      }
-    });
-
-    return mapa;
-  }
-
-  /* =========================================================
-     DASHBOARD
-     ========================================================= */
-
-  function atualizarPeriodoDashboard() {
-    if (dashboardPeriodo) {
-      dashboardPeriodo.innerText = formatarPeriodo(
-        filtroMes?.value || ""
-      );
-    }
-  }
-
-  function destruirGrafico(referencia) {
-    if (referencia) {
-      try {
-        referencia.destroy();
-      } catch (_) {}
-    }
-  }
-
-  function atualizarDashboard() {
-    const filtrados = obterDadosFiltrados();
-    const resumo = calcularResumo(filtrados);
-
-    if (totalReceitas) {
-      totalReceitas.innerText = formatarMoeda(resumo.receita);
     }
 
-    if (totalDespesas) {
-      totalDespesas.innerText = formatarMoeda(resumo.despesa);
+    if (topbarPlano) {
+
+      topbarPlano.innerText = planoUsuario;
+
     }
 
-    if (totalInvestimentos) {
-      totalInvestimentos.innerText =
-        formatarMoeda(resumo.investimento);
+    if (loginContainer) {
+
+      loginContainer.style.display = "none";
+
     }
 
-    if (saldo) {
-      saldo.innerText = formatarMoeda(resumo.saldo);
+    if (app) {
+
+      app.style.display = "flex";
+
+      app.classList.remove("hidden");
+
+    }
+
+    if (dashboard) {
+
+      dashboard.classList.remove("hidden");
+
+    }
+
+    if (lancamentos) {
+
+      lancamentos.classList.add("hidden");
+
+    }
+
+    if (nomeCliente) {
+
+      nomeCliente.innerText =
+        `Olá, ${nomeUsuario}!`;
+
+    }
+
+    /* Define mês atual somente se não houver filtro */
+
+    if (filtroMes && !filtroMes.value) {
+
+      filtroMes.value = obterMesAtual();
+
     }
 
     atualizarPeriodoDashboard();
 
-    renderizarGrafico(
-      filtrados,
-      resumo.receita,
-      resumo.despesa,
-      resumo.investimento
-    );
+    await carregarDados();
 
-    renderizarGraficoMensal(filtrados);
-    renderizarGraficoComparativo(filtrados);
-    renderizarAnaliseCategorias(filtrados);
-    renderizarAlertas(filtrados);
-    atualizarRelatorios();
+    atualizarDashboard();
+
+    renderizarLista();
+
   }
 
-  /* =========================================================
+  /* ======================================================
+     CARREGAR DADOS
+  ====================================================== */
+
+  async function carregarDados() {
+
+    try {
+
+      const {
+        data,
+        error
+      } = await supabase
+        .from("lancamentos")
+        .select("*")
+        .order("data", {
+          ascending: false
+        });
+
+      if (error) {
+
+        console.error(
+          "Erro ao carregar lançamentos:",
+          error
+        );
+
+        alert(
+          "Não foi possível carregar seus lançamentos."
+        );
+
+        dados = [];
+
+        return;
+
+      }
+
+      dados = data || [];
+
+    } catch (erro) {
+
+      console.error(
+        "Erro inesperado ao carregar dados:",
+        erro
+      );
+
+      dados = [];
+
+    }
+
+  }
+
+  /* ======================================================
+     SALVAR LANÇAMENTO
+  ====================================================== */
+
+  if (btnSalvar) {
+
+    btnSalvar.onclick = async () => {
+
+      if (
+        !tipo.value ||
+        !categoria.value ||
+        !valor.value ||
+        !dataInput.value
+      ) {
+
+        alert(
+          "Preencha tipo, categoria, valor e data."
+        );
+
+        return;
+
+      }
+
+      const valorNumerico =
+        Number(
+          String(valor.value)
+            .replace(",", ".")
+        );
+
+      if (
+        !Number.isFinite(valorNumerico) ||
+        valorNumerico <= 0
+      ) {
+
+        alert("Informe um valor válido.");
+
+        return;
+
+      }
+
+      if (
+        planoUsuario === "FREE" &&
+        dados.length >= LIMITE_FREE &&
+        !idEmEdicao
+      ) {
+
+        alert(
+          "Limite do plano gratuito atingido."
+        );
+
+        return;
+
+      }
+
+      try {
+
+        const {
+          data: userData,
+          error: userError
+        } = await supabase.auth.getUser();
+
+        if (userError || !userData?.user) {
+
+          alert(
+            "Sua sessão expirou. Faça login novamente."
+          );
+
+          return;
+
+        }
+
+        let erroOperacao = null;
+
+        if (idEmEdicao) {
+
+          const resultado =
+            await supabase
+              .from("lancamentos")
+              .update({
+
+                tipo: tipo.value,
+
+                categoria: categoria.value,
+
+                descricao:
+                  descricao.value.trim(),
+
+                valor: valorNumerico,
+
+                data: dataInput.value
+
+              })
+              .eq("id", idEmEdicao);
+
+          erroOperacao = resultado.error;
+
+        } else {
+
+          const resultado =
+            await supabase
+              .from("lancamentos")
+              .insert({
+
+                user_id:
+                  userData.user.id,
+
+                tipo: tipo.value,
+
+                categoria: categoria.value,
+
+                descricao:
+                  descricao.value.trim(),
+
+                valor: valorNumerico,
+
+                data: dataInput.value
+
+              });
+
+          erroOperacao = resultado.error;
+
+        }
+
+        if (erroOperacao) {
+
+          console.error(
+            "Erro ao salvar:",
+            erroOperacao
+          );
+
+          alert(
+            "Não foi possível salvar o lançamento."
+          );
+
+          return;
+
+        }
+
+        idEmEdicao = null;
+
+        await carregarDados();
+
+        atualizarDashboard();
+
+        renderizarLista();
+
+        limparFormulario();
+
+        alert("Lançamento salvo com sucesso!");
+
+      } catch (erro) {
+
+        console.error(
+          "Erro inesperado:",
+          erro
+        );
+
+        alert(
+          "Ocorreu um erro ao salvar o lançamento."
+        );
+
+      }
+
+    };
+
+  }
+
+  /* ======================================================
+     LIMPAR FORMULÁRIO
+  ====================================================== */
+
+  function limparFormulario() {
+
+    idEmEdicao = null;
+
+    if (tipo) {
+
+      tipo.value = "";
+
+    }
+
+    if (categoria) {
+
+      categoria.innerHTML =
+        "<option value=''>Categoria</option>";
+
+    }
+
+    if (descricao) {
+
+      descricao.value = "";
+
+    }
+
+    if (valor) {
+
+      valor.value = "";
+
+    }
+
+    if (dataInput) {
+
+      dataInput.value = "";
+
+    }
+
+    if (btnSalvar) {
+
+      btnSalvar.innerText = "Salvar";
+
+    }
+
+  }
+
+  /* ======================================================
+     FILTRO
+  ====================================================== */
+
+  function obterDadosFiltrados() {
+
+    let filtrados = [...dados];
+
+    if (filtroMes && filtroMes.value) {
+
+      filtrados =
+        filtrados.filter(l => {
+
+          if (!l.data) return false;
+
+          return l.data.startsWith(
+            filtroMes.value
+          );
+
+        });
+
+    }
+
+    return filtrados;
+
+  }
+
+  if (filtroMes) {
+
+    filtroMes.addEventListener(
+      "change",
+      () => {
+
+        atualizarPeriodoDashboard();
+
+        atualizarDashboard();
+
+      }
+    );
+
+  }
+
+  if (btnLimparFiltro) {
+
+    btnLimparFiltro.onclick = () => {
+
+      filtroMes.value = "";
+
+      atualizarPeriodoDashboard();
+
+      atualizarDashboard();
+
+    };
+
+  }
+
+  /* ======================================================
+     PERÍODO DO DASHBOARD
+  ====================================================== */
+
+  function atualizarPeriodoDashboard() {
+
+    if (!dashboardPeriodo) return;
+
+    dashboardPeriodo.innerText =
+      formatarPeriodo(
+        filtroMes?.value || ""
+      );
+
+  }
+
+  /* ======================================================
+     DASHBOARD
+  ====================================================== */
+
+  function atualizarDashboard() {
+
+    const filtrados =
+      obterDadosFiltrados();
+
+    let receita = 0;
+    let despesa = 0;
+    let investimento = 0;
+
+    filtrados.forEach(l => {
+
+      const valorLancamento =
+        Number(l.valor) || 0;
+
+      if (l.tipo === "Receita") {
+
+        receita += valorLancamento;
+
+      }
+
+      if (l.tipo === "Despesa") {
+
+        despesa += valorLancamento;
+
+      }
+
+      if (l.tipo === "Investimento") {
+
+        investimento += valorLancamento;
+
+      }
+
+    });
+
+    const saldoAtual =
+      receita - despesa;
+
+    if (totalReceitas) {
+
+      totalReceitas.innerText =
+        formatarMoeda(receita);
+
+    }
+
+    if (totalDespesas) {
+
+      totalDespesas.innerText =
+        formatarMoeda(despesa);
+
+    }
+
+    if (totalInvestimentos) {
+
+      totalInvestimentos.innerText =
+        formatarMoeda(investimento);
+
+    }
+
+    if (saldo) {
+
+      saldo.innerText =
+        formatarMoeda(saldoAtual);
+
+    }
+
+    atualizarPeriodoDashboard();
+
+    renderizarAlertas(filtrados);
+
+    renderizarGrafico(
+      filtrados,
+      receita,
+      despesa,
+      investimento
+    );
+
+    renderizarGraficoMensal(
+      filtrados
+    );
+
+    // renderizarGraficoComparativo(filtrados);
+    renderizarGraficoComparativo(
+      filtrados
+    );
+
+  }
+
+  /* ======================================================
+     ALERTAS
+  ====================================================== */
+
+  function renderizarAlertas(dadosFiltrados) {
+
+    const container =
+      document.getElementById(
+        "alertasInteligentes"
+      );
+
+    if (!container) return;
+
+    container.innerHTML = "";
+
+    let receita = 0;
+    let despesa = 0;
+    let investimento = 0;
+
+    dadosFiltrados.forEach(l => {
+
+      const valorLancamento =
+        Number(l.valor) || 0;
+
+      if (l.tipo === "Receita") {
+
+        receita += valorLancamento;
+
+      }
+
+      if (l.tipo === "Despesa") {
+
+        despesa += valorLancamento;
+
+      }
+
+      if (l.tipo === "Investimento") {
+
+        investimento += valorLancamento;
+
+      }
+
+    });
+
+    const saldoAtual =
+      receita - despesa;
+
+    const percentualDespesa =
+      receita > 0
+        ? (despesa / receita) * 100
+        : 0;
+
+    function criarAlerta(
+      texto,
+      classe
+    ) {
+
+      const div =
+        document.createElement("div");
+
+      div.className =
+        `alerta ${classe}`;
+
+      div.innerText = texto;
+
+      container.appendChild(div);
+
+    }
+
+    if (saldoAtual < 0) {
+
+      criarAlerta(
+        "🔴 Seu saldo está negativo. Atenção imediata ao controle de despesas.",
+        "vermelho"
+      );
+
+    }
+
+    if (
+      despesa > receita &&
+      receita > 0
+    ) {
+
+      criarAlerta(
+        "⚠️ Suas despesas estão maiores que suas receitas neste período.",
+        "amarelo"
+      );
+
+    }
+
+    if (
+      percentualDespesa > 70 &&
+      percentualDespesa <= 90 &&
+      despesa <= receita
+    ) {
+
+      criarAlerta(
+        `🟡 Você está comprometendo ${percentualDespesa.toFixed(0)}% da sua receita com despesas. O ideal é manter abaixo de 70%.`,
+        "amarelo"
+      );
+
+    }
+
+    if (
+      percentualDespesa > 90 &&
+      receita > 0
+    ) {
+
+      criarAlerta(
+        `🔥 Alerta crítico: ${percentualDespesa.toFixed(0)}% da sua receita está comprometida com despesas.`,
+        "vermelho"
+      );
+
+    }
+
+    if (
+      investimento === 0 &&
+      receita > 0
+    ) {
+
+      criarAlerta(
+        "💡 Nenhum investimento identificado neste período. Considere investir parte da sua renda.",
+        "azul"
+      );
+
+    }
+
+    if (
+      receita === 0 &&
+      despesa === 0 &&
+      investimento === 0
+    ) {
+
+      criarAlerta(
+        "ℹ️ Nenhum lançamento encontrado neste período.",
+        "azul"
+      );
+
+    }
+
+    if (
+      saldoAtual > 0 &&
+      receita > 0 &&
+      percentualDespesa < 60
+    ) {
+
+      criarAlerta(
+        "✅ Sua saúde financeira está equilibrada neste período.",
+        "verde"
+      );
+
+    }
+
+  }
+
+  /* ======================================================
      GRÁFICO PRINCIPAL
-     ========================================================= */
+  ====================================================== */
 
   function renderizarGrafico(
-    filtrados,
+    dadosFiltrados,
     receita,
     despesa,
     investimento
   ) {
-    const canvas = $("grafico");
 
-    if (!canvas || !window.Chart) return;
+    const canvas =
+      document.getElementById(
+        "grafico"
+      );
 
-    destruirGrafico(grafico);
+    if (!canvas) return;
 
-    const modo = tipoGrafico?.value || "geral";
+    if (grafico) {
+
+      grafico.destroy();
+
+      grafico = null;
+
+    }
 
     let labels = [];
     let valores = [];
 
-    if (modo === "categoria") {
-      const despesas = agruparPorCategoria(
-        filtrados,
-        "Despesa"
-      );
+    if (
+      tipoGrafico &&
+      tipoGrafico.value === "categoria"
+    ) {
 
-      const investimentos = agruparPorCategoria(
-        filtrados,
-        "Investimento"
-      );
+      const categorias = {};
 
-      const receitas = agruparPorCategoria(
-        filtrados,
-        "Receita"
-      );
+      dadosFiltrados.forEach(l => {
 
-      const todos = [
-        ...despesas.map((x) => ({
-          label: `Despesa • ${x.categoria}`,
-          total: x.total
-        })),
-        ...investimentos.map((x) => ({
-          label: `Investimento • ${x.categoria}`,
-          total: x.total
-        })),
-        ...receitas.map((x) => ({
-          label: `Receita • ${x.categoria}`,
-          total: x.total
-        }))
-      ].sort((a, b) => b.total - a.total);
+        const nomeCategoria =
+          l.categoria ||
+          "Sem categoria";
 
-      labels = todos.map((x) => x.label);
-      valores = todos.map((x) => x.total);
+        categorias[nomeCategoria] =
+          (categorias[nomeCategoria] || 0) +
+          (Number(l.valor) || 0);
+
+      });
+
+      labels =
+        Object.keys(categorias);
+
+      valores =
+        Object.values(categorias);
+
     } else {
-      labels = ["Receitas", "Despesas", "Investimentos"];
-      valores = [receita, despesa, investimento];
+
+      labels = [
+        "Receitas",
+        "Despesas",
+        "Investimentos"
+      ];
+
+      valores = [
+        receita,
+        despesa,
+        investimento
+      ];
+
     }
 
-    grafico = new Chart(canvas, {
-      type: "doughnut",
-      data: {
-        labels,
-        datasets: [
-          {
-            data: valores
+    grafico =
+      new Chart(
+        canvas,
+        {
+
+          type: "pie",
+
+          data: {
+
+            labels,
+
+            datasets: [
+              {
+
+                data: valores,
+
+                borderWidth: 2
+
+              }
+            ]
+
+          },
+
+          options: {
+
+            responsive: true,
+
+            maintainAspectRatio: false,
+
+            plugins: {
+
+              legend: {
+
+                position: "bottom"
+
+              }
+
+            }
+
           }
-        ]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            position: "bottom"
-          }
+
         }
-      }
-    });
+      );
+
   }
 
-  /* =========================================================
+  /* ======================================================
      GRÁFICO MENSAL
-     ========================================================= */
+  ====================================================== */
 
-  function renderizarGraficoMensal(filtrados) {
-    const canvas = $("graficoMensal");
+  function renderizarGraficoMensal(
+    dadosFiltrados
+  ) {
 
-    if (!canvas || !window.Chart) return;
+    const canvas =
+      document.getElementById(
+        "graficoMensal"
+      );
 
-    destruirGrafico(graficoMensal);
+    if (!canvas) return;
 
-    const mapa = agruparPorMes(filtrados);
-    const labels = Object.keys(mapa).sort();
+    if (graficoMensal) {
 
-    if (!labels.length) return;
+      graficoMensal.destroy();
 
-    graficoMensal = new Chart(canvas, {
-      type: "bar",
-      data: {
-        labels,
-        datasets: [
-          {
-            label: "Receitas",
-            data: labels.map((mes) => mapa[mes].receita)
+      graficoMensal = null;
+
+    }
+
+    const resumo = {};
+
+    dadosFiltrados.forEach(l => {
+
+      if (!l.data) return;
+
+      const mes =
+        l.data.slice(0, 7);
+
+      if (!resumo[mes]) {
+
+        resumo[mes] = {
+
+          receita: 0,
+
+          despesa: 0
+
+        };
+
+      }
+
+      const valorLancamento =
+        Number(l.valor) || 0;
+
+      if (
+        l.tipo === "Receita"
+      ) {
+
+        resumo[mes].receita +=
+          valorLancamento;
+
+      }
+
+      if (
+        l.tipo === "Despesa"
+      ) {
+
+        resumo[mes].despesa +=
+          valorLancamento;
+
+      }
+
+    });
+
+    const labels =
+      Object.keys(resumo).sort();
+
+    const receitas =
+      labels.map(
+        m => resumo[m].receita
+      );
+
+    const despesas =
+      labels.map(
+        m => resumo[m].despesa
+      );
+
+    if (labels.length === 0) {
+
+      return;
+
+    }
+
+    graficoMensal =
+      new Chart(
+        canvas,
+        {
+
+          type: "bar",
+
+          data: {
+
+            labels,
+
+            datasets: [
+
+              {
+
+                label: "Receitas",
+
+                data: receitas,
+
+                borderWidth: 1
+
+              },
+
+              {
+
+                label: "Despesas",
+
+                data: despesas,
+
+                borderWidth: 1
+
+              }
+
+            ]
+
           },
-          {
-            label: "Despesas",
-            data: labels.map((mes) => mapa[mes].despesa)
-          },
-          {
-            label: "Investimentos",
-            data: labels.map((mes) => mapa[mes].investimento)
+
+          options: {
+
+            responsive: true,
+
+            maintainAspectRatio: false,
+
+            plugins: {
+
+              legend: {
+
+                position: "bottom"
+
+              }
+
+            },
+
+            scales: {
+
+              y: {
+
+                beginAtZero: true
+
+              }
+
+            }
+
           }
-        ]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            position: "bottom"
-          }
+
+        }
+
+      );
+
+  }
+
+ /* ======================================================
+   GRÁFICO COMPARATIVO
+   Receita x Despesa
+====================================================== */
+
+function renderizarGraficoComparativo() {
+
+  const canvas = document.getElementById("graficoComparativo");
+
+  if (!canvas) return;
+
+  // Destrói o gráfico anterior completamente
+  if (graficoComparativo) {
+    try {
+      graficoComparativo.destroy();
+    } catch (e) {
+      console.warn("Erro ao destruir gráfico comparativo:", e);
+    }
+
+    graficoComparativo = null;
+  }
+
+  const dadosPorMes = {};
+
+  dados.forEach(l => {
+
+    if (!l.data) return;
+
+    const mes = l.data.slice(0, 7);
+
+    if (!dadosPorMes[mes]) {
+      dadosPorMes[mes] = {
+        receita: 0,
+        despesa: 0
+      };
+    }
+
+    const valorNumerico = Number(l.valor) || 0;
+
+    if (l.tipo === "Receita") {
+      dadosPorMes[mes].receita += valorNumerico;
+    }
+
+    if (l.tipo === "Despesa") {
+      dadosPorMes[mes].despesa += valorNumerico;
+    }
+
+  });
+
+  const labels = Object.keys(dadosPorMes).sort();
+
+  // Se não houver dados, não cria o gráfico
+  if (labels.length === 0) {
+    canvas.style.display = "none";
+    return;
+  }
+
+  canvas.style.display = "block";
+
+  const receitas = labels.map(mes => dadosPorMes[mes].receita);
+  const despesas = labels.map(mes => dadosPorMes[mes].despesa);
+
+  // Define tamanho físico fixo do canvas
+  canvas.width = 1200;
+  canvas.height = 320;
+
+  graficoComparativo = new Chart(canvas, {
+
+    type: "line",
+
+    data: {
+      labels: labels,
+
+      datasets: [
+        {
+          label: "Receitas",
+          data: receitas,
+
+          borderWidth: 3,
+          tension: 0.25,
+
+          pointRadius: 4,
+          pointHoverRadius: 6,
+
+          fill: false
         },
-        scales: {
-          y: {
-            beginAtZero: true
+
+        {
+          label: "Despesas",
+          data: despesas,
+
+          borderWidth: 3,
+          tension: 0.25,
+
+          pointRadius: 4,
+          pointHoverRadius: 6,
+
+          fill: false
+        }
+      ]
+    },
+
+    options: {
+
+      // IMPORTANTE:
+      // desliga o redimensionamento automático
+      responsive: false,
+
+      maintainAspectRatio: false,
+
+      animation: false,
+
+      resizeDelay: 0,
+
+      plugins: {
+        legend: {
+          position: "bottom"
+        },
+
+        tooltip: {
+          enabled: true
+        }
+      },
+
+      scales: {
+
+        x: {
+          display: true
+        },
+
+        y: {
+          beginAtZero: true,
+
+          ticks: {
+            callback: function(value) {
+              return Number(value).toLocaleString("pt-BR", {
+                style: "currency",
+                currency: "BRL"
+              });
+            }
           }
         }
+
       }
-    });
-  }
-
-  /* =========================================================
-     GRÁFICO COMPARATIVO
-     ========================================================= */
-
-  function renderizarGraficoComparativo(filtrados) {
-    const canvas = $("graficoComparativo");
-
-    if (!canvas || !window.Chart) return;
-
-    destruirGrafico(graficoComparativo);
-
-    const mapa = agruparPorMes(filtrados);
-    const labels = Object.keys(mapa).sort();
-
-    if (!labels.length) return;
-
-    graficoComparativo = new Chart(canvas, {
-      type: "line",
-      data: {
-        labels,
-        datasets: [
-          {
-            label: "Receitas",
-            data: labels.map((mes) => mapa[mes].receita),
-            tension: 0.25,
-            borderWidth: 3
-          },
-          {
-            label: "Despesas",
-            data: labels.map((mes) => mapa[mes].despesa),
-            tension: 0.25,
-            borderWidth: 3
-          },
-          {
-            label: "Investimentos",
-            data: labels.map((mes) => mapa[mes].investimento),
-            tension: 0.25,
-            borderWidth: 3
-          }
-        ]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        plugins: {
-          legend: {
-            position: "bottom"
-          }
-        },
-        scales: {
-          y: {
-            beginAtZero: true
-          }
-        }
-      }
-    });
-  }
-
-  /* =========================================================
-     ANÁLISE DE CATEGORIAS
-     =========================================================
-     Criada dinamicamente para não exigir alteração imediata
-     no HTML atual.
-     ========================================================= */
-
-  function renderizarAnaliseCategorias(registros) {
-    if (!dashboard) return;
-
-    let bloco = $("analiseCategoriasTCS");
-
-    if (!bloco) {
-      bloco = document.createElement("div");
-      bloco.id = "analiseCategoriasTCS";
-      bloco.className = "grafico-box";
-      dashboard.appendChild(bloco);
     }
 
-    const despesas = agruparPorCategoria(registros, "Despesa");
-    const investimentos = agruparPorCategoria(
-      registros,
-      "Investimento"
+  });
+
+}
+  /* ======================================================
+     MUDANÇA DO TIPO DE GRÁFICO
+  ====================================================== */
+
+  if (tipoGrafico) {
+
+    tipoGrafico.addEventListener(
+      "change",
+      () => {
+
+        atualizarDashboard();
+
+      }
     );
 
-    const totalDespesas = despesas.reduce(
-      (soma, item) => soma + item.total,
-      0
-    );
-
-    const totalInvestimentos = investimentos.reduce(
-      (soma, item) => soma + item.total,
-      0
-    );
-
-    const topDespesas = despesas.slice(0, 5);
-    const topInvestimentos = investimentos.slice(0, 5);
-
-    const montarLista = (lista, total) => {
-      if (!lista.length) {
-        return "<p>Nenhum lançamento no período.</p>";
-      }
-
-      return `
-        <div class="tcs-analise-lista">
-          ${lista
-            .map((item, index) => {
-              const percentual =
-                total > 0
-                  ? (item.total / total) * 100
-                  : 0;
-
-              return `
-                <div class="tcs-analise-item">
-                  <div>
-                    <strong>${index + 1}. ${escapeHtml(
-                item.categoria
-              )}</strong>
-                    <small>${percentual.toFixed(
-                      1
-                    )}% do total</small>
-                  </div>
-                  <strong>${formatarMoeda(
-                    item.total
-                  )}</strong>
-                </div>
-              `;
-            })
-            .join("")}
-        </div>
-      `;
-    };
-
-    bloco.innerHTML = `
-      <div class="grafico-header">
-        <div>
-          <h3>Onde seu dinheiro está indo</h3>
-          <p>Principais categorias de despesas e investimentos no período.</p>
-        </div>
-      </div>
-
-      <div style="
-        display:grid;
-        grid-template-columns:repeat(auto-fit,minmax(280px,1fr));
-        gap:20px;
-      ">
-        <div>
-          <h4>🔴 Maiores despesas</h4>
-          ${montarLista(topDespesas, totalDespesas)}
-        </div>
-
-        <div>
-          <h4>🟢 Maiores investimentos</h4>
-          ${montarLista(
-            topInvestimentos,
-            totalInvestimentos
-          )}
-        </div>
-      </div>
-    `;
   }
 
-  /* =========================================================
-     ALERTAS
-     ========================================================= */
-
-  function renderizarAlertas(registros) {
-    const container = $("alertasInteligentes");
-
-    if (!container) return;
-
-    const resumo = calcularResumo(registros);
-    const alertas = [];
-
-    if (resumo.saldo < 0) {
-      alertas.push(
-        "🔴 Seu saldo está negativo neste período."
-      );
-    }
-
-    if (
-      resumo.receita > 0 &&
-      resumo.despesa > resumo.receita
-    ) {
-      alertas.push(
-        "⚠️ Suas despesas estão maiores que suas receitas."
-      );
-    } else if (resumo.receita > 0) {
-      const percentual =
-        (resumo.despesa / resumo.receita) * 100;
-
-      if (percentual > 70) {
-        alertas.push(
-          `🟡 Suas despesas consomem ${percentual.toFixed(
-            0
-          )}% das receitas.`
-        );
-      }
-    }
-
-    if (
-      resumo.receita > 0 &&
-      resumo.investimento === 0
-    ) {
-      alertas.push(
-        "💡 Não há investimentos registrados neste período."
-      );
-    }
-
-    if (!alertas.length) {
-      alertas.push(
-        "✅ Nenhum alerta crítico identificado neste período."
-      );
-    }
-
-    container.innerHTML = alertas
-      .map(
-        (texto) =>
-          `<div class="alerta">${escapeHtml(texto)}</div>`
-      )
-      .join("");
-  }
-
-  /* =========================================================
-     LISTA / EXTRATO
-     ========================================================= */
+  /* ======================================================
+     LISTA DE LANÇAMENTOS
+  ====================================================== */
 
   function renderizarLista() {
+
     if (!lista) return;
 
     lista.innerHTML = "";
 
-    const filtrados = obterDadosFiltrados();
+    if (dados.length === 0) {
 
-    if (!filtrados.length) {
-      lista.innerHTML =
-        "<li>Nenhum lançamento encontrado para o período.</li>";
+      const vazio =
+        document.createElement("li");
+
+      vazio.innerHTML =
+        "<div class='linha-info'>Nenhum lançamento cadastrado.</div>";
+
+      lista.appendChild(vazio);
+
       return;
+
     }
 
-    filtrados.forEach((item) => {
-      const li = document.createElement("li");
+    dados.forEach(l => {
 
-      const tipoItem = normalizarTipo(item.tipo);
+      const li =
+        document.createElement("li");
+
+      const valorFormatado =
+        formatarMoeda(l.valor);
 
       li.innerHTML = `
-        <div>
+
+        <div class="linha-info">
+
           <strong>
-            ${escapeHtml(
-              item.descricao ||
-                item.categoria ||
-                "Sem descrição"
-            )}
+            ${formatarData(l.data)}
           </strong>
 
-          <small>
-            ${escapeHtml(tipoItem)}
-            •
-            ${escapeHtml(
-              item.categoria || "Sem categoria"
-            )}
-            •
-            ${formatarData(item.data)}
-          </small>
+          –
+          ${l.tipo}
+
+          •
+          ${l.categoria || "Sem categoria"}
+
+          •
+          ${valorFormatado}
+
+          ${
+            l.descricao
+              ? ` • ${l.descricao}`
+              : ""
+          }
+
         </div>
 
-        <div>
-          <strong>${formatarMoeda(item.valor)}</strong>
+        <div class="linha-acoes">
 
           <button
             type="button"
-            data-acao="editar"
-            data-id="${escapeHtml(item.id)}"
+            class="btn-acao editar"
+            data-id="${l.id}"
             title="Editar"
           >
             ✏️
@@ -1238,724 +1773,492 @@ document.addEventListener("DOMContentLoaded", () => {
 
           <button
             type="button"
-            data-acao="excluir"
-            data-id="${escapeHtml(item.id)}"
+            class="btn-acao excluir"
+            data-id="${l.id}"
             title="Excluir"
           >
-            🗑️
+            🗑
           </button>
+
         </div>
+
       `;
 
       lista.appendChild(li);
+
     });
+
   }
 
-  async function editarLancamento(id) {
-    const item = dados.find(
-      (registro) => String(registro.id) === String(id)
+  /* ======================================================
+     EVENTOS DA LISTA
+  ====================================================== */
+
+  if (lista) {
+
+    lista.addEventListener(
+      "click",
+      event => {
+
+        const btnEditar =
+          event.target.closest(
+            ".btn-acao.editar"
+          );
+
+        const btnExcluir =
+          event.target.closest(
+            ".btn-acao.excluir"
+          );
+
+        if (btnEditar) {
+
+          editar(
+            btnEditar.dataset.id
+          );
+
+        }
+
+        if (btnExcluir) {
+
+          excluir(
+            btnExcluir.dataset.id
+          );
+
+        }
+
+      }
     );
 
-    if (!item) {
-      alert("Lançamento não encontrado.");
+  }
+
+  /* ======================================================
+     EDITAR
+  ====================================================== */
+
+  function editar(id) {
+
+    const lancamento =
+      dados.find(
+        d => String(d.id) === String(id)
+      );
+
+    if (!lancamento) {
+
+      alert(
+        "Lançamento não encontrado."
+      );
+
       return;
+
     }
 
-    idEmEdicao = item.id;
+    idEmEdicao =
+      lancamento.id;
 
     if (tipo) {
-      tipo.value = normalizarTipo(item.tipo);
+
+      tipo.value =
+        lancamento.tipo;
+
     }
 
-    atualizarSelectCategorias(
-      tipo?.value || "",
-      item.categoria
+    popularCategorias(
+      lancamento.tipo,
+      lancamento.categoria
     );
 
     if (descricao) {
-      descricao.value = item.descricao || "";
+
+      descricao.value =
+        lancamento.descricao || "";
+
     }
 
     if (valor) {
-      valor.value = formatarNumero(item.valor);
+
+      valor.value =
+        lancamento.valor;
+
     }
 
     if (dataInput) {
-      dataInput.value = String(item.data || "").slice(0, 10);
+
+      dataInput.value =
+        lancamento.data;
+
     }
 
     if (btnSalvar) {
-      btnSalvar.innerText = "Atualizar";
+
+      btnSalvar.innerText =
+        "Atualizar lançamento";
+
     }
 
-    mostrarTela(lancamentos);
+    dashboard.classList.add(
+      "hidden"
+    );
+
+    lancamentos.classList.remove(
+      "hidden"
+    );
+
     fecharMenuMobile();
+
   }
 
-  async function excluirLancamento(id) {
-    if (!confirm("Tem certeza que deseja excluir este lançamento?")) {
-      return;
-    }
+  /* ======================================================
+     EXCLUIR
+  ====================================================== */
 
-    const user = usuarioAtual || (await obterUsuarioAtual());
+  async function excluir(id) {
 
-    if (!user) {
-      mostrarLogin();
-      return;
-    }
+    const confirmar =
+      confirm(
+        "Tem certeza que deseja excluir este lançamento?"
+      );
+
+    if (!confirmar) return;
 
     try {
-      const { error } = await supabaseClient
-        .from("lancamentos")
-        .delete()
-        .eq("id", id)
-        .eq("user_id", user.id);
+
+      const {
+        error
+      } =
+        await supabase
+          .from("lancamentos")
+          .delete()
+          .eq("id", id);
 
       if (error) {
-        mostrarErroSupabase(
-          "Não foi possível excluir o lançamento.",
+
+        console.error(
+          "Erro ao excluir:",
           error
         );
+
+        alert(
+          "Erro ao excluir lançamento."
+        );
+
         return;
+
       }
 
       await carregarDados();
-      atualizarDashboard();
-      renderizarLista();
-    } catch (error) {
-      console.error("Excluir lançamento:", error);
-      alert("Ocorreu um erro ao excluir.");
-    }
-  }
 
-  if (lista) {
-    lista.addEventListener("click", (event) => {
-      const botao = event.target.closest(
-        "button[data-acao]"
+      atualizarDashboard();
+
+      renderizarLista();
+
+      alert(
+        "Lançamento excluído com sucesso!"
       );
 
-      if (!botao) return;
+    } catch (erro) {
 
-      const id = botao.dataset.id;
+      console.error(
+        "Erro inesperado:",
+        erro
+      );
 
-      if (botao.dataset.acao === "editar") {
-        editarLancamento(id);
-      }
+      alert(
+        "Ocorreu um erro ao excluir."
+      );
 
-      if (botao.dataset.acao === "excluir") {
-        excluirLancamento(id);
-      }
-    });
-  }
-
-  /* =========================================================
-     RELATÓRIOS
-     ========================================================= */
-
-  function atualizarRelatorios() {
-    const registros = obterDadosFiltrados();
-    const resumo = calcularResumo(registros);
-
-    const campos = {
-      relatorioReceitas: formatarMoeda(resumo.receita),
-      relatorioDespesas: formatarMoeda(resumo.despesa),
-      relatorioInvestimentos: formatarMoeda(
-        resumo.investimento
-      ),
-      relatorioSaldo: formatarMoeda(resumo.saldo),
-      relatorioResumoReceitas: formatarMoeda(
-        resumo.receita
-      ),
-      relatorioResumoDespesas: formatarMoeda(
-        resumo.despesa
-      ),
-      relatorioResumoInvestimentos: formatarMoeda(
-        resumo.investimento
-      ),
-      relatorioResumoSaldo: formatarMoeda(
-        resumo.saldo
-      ),
-      relatorioPeriodo: formatarPeriodo(
-        filtroMes?.value || ""
-      )
-    };
-
-    Object.entries(campos).forEach(([id, texto]) => {
-      const elemento = $(id);
-      if (elemento) elemento.innerText = texto;
-    });
-  }
-
-  /* =========================================================
-     NAVEGAÇÃO
-     ========================================================= */
-
-  if (btnDashboard) {
-    btnDashboard.addEventListener("click", () => {
-      mostrarTela(dashboard);
-      ativarMenu(btnDashboard);
-      atualizarDashboard();
-    });
-  }
-
-  if (btnLancamentos) {
-    btnLancamentos.addEventListener("click", () => {
-      mostrarTela(lancamentos);
-      ativarMenu(btnLancamentos);
-      renderizarLista();
-    });
-  }
-
-  if (btnRelatorios) {
-    btnRelatorios.addEventListener("click", () => {
-      mostrarTela(relatorios);
-      ativarMenu(btnRelatorios);
-      atualizarRelatorios();
-    });
-  }
-
-  if (btnContas) {
-    btnContas.addEventListener("click", () => {
-      mostrarTela(contas);
-      ativarMenu(btnContas);
-    });
-  }
-
-  /* =========================================================
-     FILTROS
-     ========================================================= */
-
-  if (filtroMes) {
-    filtroMes.value = obterMesAtual();
-
-    filtroMes.addEventListener("change", () => {
-      atualizarPeriodoDashboard();
-      atualizarDashboard();
-      renderizarLista();
-    });
-  }
-
-  if (btnLimparFiltro) {
-    btnLimparFiltro.addEventListener("click", () => {
-      if (filtroMes) filtroMes.value = "";
-
-      atualizarPeriodoDashboard();
-      atualizarDashboard();
-      renderizarLista();
-    });
-  }
-
-  if (tipoGrafico) {
-    tipoGrafico.addEventListener("change", () => {
-      atualizarDashboard();
-    });
-  }
-
-  /* =========================================================
-     MENU MOBILE
-     ========================================================= */
-
-  if (btnMenu) {
-    btnMenu.addEventListener("click", () => {
-      if (sidebar) sidebar.classList.toggle("active");
-      if (menuOverlay) menuOverlay.classList.toggle("hidden");
-    });
-  }
-
-  if (menuOverlay) {
-    menuOverlay.addEventListener("click", fecharMenuMobile);
-  }
-
-  /* =========================================================
-     LOGOUT
-     ========================================================= */
-
-  async function fazerLogout() {
-    try {
-      if (supabaseClient) {
-        await supabaseClient.auth.signOut();
-      }
-    } catch (error) {
-      console.error("Logout:", error);
     }
 
-    usuarioAtual = null;
-    dados = [];
-    categoriasFinanceiras = [];
-    idEmEdicao = null;
-    sessaoPronta = false;
-
-    mostrarLogin();
   }
 
-  if (btnLogoutTop) {
-    btnLogoutTop.addEventListener("click", fazerLogout);
-  }
+  /* ======================================================
+     EXPORTAÇÃO PDF
+  ====================================================== */
 
-  if (btnLogout) {
-    btnLogout.addEventListener("click", fazerLogout);
-  }
+  const btnExportarPdf =
+    document.getElementById(
+      "btnExportarPdf"
+    );
 
-  /* =========================================================
-     SESSÃO
-     ========================================================= */
+  if (btnExportarPdf) {
 
-  async function iniciarSessao(user) {
-    if (!user) return;
+    btnExportarPdf.onclick = () => {
 
-    /*
-      Evita que SIGNED_IN + login manual façam várias
-      inicializações simultâneas.
-    */
-    if (sessaoPronta && usuarioAtual?.id === user.id) {
-      return;
-    }
+      if (
+        !window.jspdf ||
+        !window.jspdf.jsPDF
+      ) {
 
-    usuarioAtual = user;
-    sessaoPronta = true;
+        alert(
+          "Biblioteca de PDF não carregada."
+        );
 
-    const nome =
-      user.user_metadata?.nome ||
-      user.user_metadata?.name ||
-      user.email?.split("@")[0] ||
-      "Usuário";
-
-    if (topbarUser) topbarUser.innerText = nome;
-    if (topbarPlano) topbarPlano.innerText = "FREE";
-    if (planoUsuario) planoUsuario.innerText = "Plano Free";
-    if (nomeCliente) nomeCliente.innerText = `Olá, ${nome}!`;
-
-    mostrarApp();
-    mostrarTela(dashboard);
-    ativarMenu(btnDashboard);
-
-    if (filtroMes && !filtroMes.value) {
-      filtroMes.value = obterMesAtual();
-    }
-
-    atualizarPeriodoDashboard();
-
-    await carregarCategoriasFinanceiras();
-    atualizarSelectCategorias(tipo?.value || "");
-    await carregarDados();
-
-    atualizarDashboard();
-    renderizarLista();
-  }
-
-  /* =========================================================
-     LOGIN
-     ========================================================= */
-
-  if (btnLogin) {
-    btnLogin.addEventListener("click", async () => {
-      if (!supabaseClient) {
-        alert("Sistema ainda não inicializado.");
         return;
+
       }
 
-      const email = emailInput?.value?.trim() || "";
-      const senha = senhaInput?.value || "";
+      const {
+        jsPDF
+      } = window.jspdf;
 
-      if (!email || !senha) {
-        alert("Informe email e senha.");
-        return;
-      }
+      const pdf =
+        new jsPDF();
 
-      btnLogin.disabled = true;
-      const textoOriginal = btnLogin.innerText;
-      btnLogin.innerText = "Entrando...";
+      pdf.setFontSize(16);
 
-      try {
-        const { data, error } =
-          await supabaseClient.auth.signInWithPassword({
-            email: email.toLowerCase(),
-            password: senha
-          });
+      pdf.text(
+        "TCS Finance – Extrato Financeiro",
+        10,
+        15
+      );
 
-        if (error) {
-          console.error("Erro de login:", error);
-          alert(
-            `Não foi possível entrar.\n\n${error.message}`
-          );
-          return;
+      pdf.setFontSize(10);
+
+      pdf.text(
+        `Período: ${
+          formatarPeriodo(
+            filtroMes?.value || ""
+          )
+        }`,
+        10,
+        23
+      );
+
+      let y = 35;
+
+      dados.forEach(l => {
+
+        const linha =
+          `${formatarData(l.data)} | ` +
+          `${l.tipo} | ` +
+          `${l.categoria || ""} | ` +
+          `${formatarMoeda(l.valor)}`;
+
+        pdf.text(
+          linha,
+          10,
+          y
+        );
+
+        y += 7;
+
+        if (y > 280) {
+
+          pdf.addPage();
+
+          y = 20;
+
         }
 
-        if (!data?.user) {
-          alert(
-            "O Supabase não retornou um usuário válido."
-          );
-          return;
+      });
+
+      pdf.save(
+        "extrato-financeiro.pdf"
+      );
+
+    };
+
+  }
+
+  /* ======================================================
+     FILTRO INICIAL
+  ====================================================== */
+
+  if (filtroMes) {
+
+    filtroMes.value =
+      obterMesAtual();
+
+  }
+
+  atualizarPeriodoDashboard();
+
+  /* ======================================================
+     SESSÃO EXISTENTE
+  ====================================================== */
+
+  try {
+
+    const {
+      data: sessionData
+    } =
+      await supabase.auth.getSession();
+
+    const usuario =
+      sessionData?.session?.user;
+
+    if (usuario) {
+
+      window.__USER_SESSION__ =
+        usuario;
+
+      await iniciarSessao(
+        usuario
+      );
+
+    }
+
+  } catch (erro) {
+
+    console.error(
+      "Erro ao recuperar sessão:",
+      erro
+    );
+
+  }
+
+});
+/* =========================================================
+   TCS FINANCE - MENU MOBILE
+   ========================================================= */
+
+(function () {
+
+    function iniciarMenuMobile() {
+
+        const btnMenu = document.getElementById("btnMenu");
+
+        if (!btnMenu) {
+            console.warn("TCS Finance: #btnMenu não encontrado.");
+            return;
         }
 
         /*
-          Em algumas configurações o SIGNED_IN dispara
-          imediatamente; chamamos também aqui para garantir
-          que a interface seja aberta sem depender do callback.
-        */
-        await iniciarSessao(data.user);
-      } catch (error) {
-        console.error("LOGIN:", error);
-        alert(
-          "Não foi possível realizar o login. Verifique sua conexão, email e senha."
-        );
-      } finally {
-        btnLogin.disabled = false;
-        btnLogin.innerText = textoOriginal;
-      }
-    });
-  }
+         * Procura a sidebar existente.
+         * Mantém compatibilidade com diferentes versões
+         * do layout.
+         */
+        const sidebar =
+            document.getElementById("sidebar") ||
+            document.querySelector(".sidebar") ||
+            document.querySelector("aside");
 
-  /* =========================================================
-     CADASTRO
-     ========================================================= */
+        if (!sidebar) {
+            console.warn("TCS Finance: sidebar não encontrada.");
+            return;
+        }
 
-  if (btnCadastro) {
-    btnCadastro.addEventListener("click", async () => {
-      if (!supabaseClient) {
-        alert("Sistema ainda não inicializado.");
-        return;
-      }
 
-      if (aceiteTermos && !aceiteTermos.checked) {
-        alert("Você precisa aceitar os termos.");
-        return;
-      }
+        /* Cria overlay se ainda não existir */
+        let overlay = document.getElementById("mobileOverlay");
 
-      const email = emailInput?.value?.trim() || "";
-      const senha = senhaInput?.value || "";
+        if (!overlay) {
 
-      if (!email || !senha) {
-        alert("Informe email e senha.");
-        return;
-      }
+            overlay = document.createElement("div");
 
-      if (senha.length < 6) {
-        alert("A senha deve possuir pelo menos 6 caracteres.");
-        return;
-      }
+            overlay.id = "mobileOverlay";
 
-      btnCadastro.disabled = true;
-      const textoOriginal = btnCadastro.innerText;
-      btnCadastro.innerText = "Criando...";
+            document.body.appendChild(overlay);
+        }
 
-      try {
-        const { data, error } =
-          await supabaseClient.auth.signUp({
-            email,
-            password: senha,
-            options: {
-              data: {
-                nome: email.split("@")[0]
-              }
+
+        /* Abre menu */
+        function abrirMenu() {
+
+            sidebar.classList.add("mobile-open");
+
+            document.body.classList.add("menu-open");
+
+            btnMenu.setAttribute("aria-expanded", "true");
+
+            document.body.style.overflow = "hidden";
+        }
+
+
+        /* Fecha menu */
+        function fecharMenu() {
+
+            sidebar.classList.remove("mobile-open");
+
+            document.body.classList.remove("menu-open");
+
+            btnMenu.setAttribute("aria-expanded", "false");
+
+            document.body.style.overflow = "";
+        }
+
+
+        /* Botão hamburger */
+        btnMenu.addEventListener("click", function (event) {
+
+            event.preventDefault();
+            event.stopPropagation();
+
+            const aberto =
+                document.body.classList.contains("menu-open");
+
+            if (aberto) {
+                fecharMenu();
+            } else {
+                abrirMenu();
             }
-          });
 
-        if (error) {
-          console.error("Cadastro:", error);
-          alert(
-            `Não foi possível criar a conta.\n\n${error.message}`
-          );
-          return;
-        }
-
-        if (data?.session && data?.user) {
-          await iniciarSessao(data.user);
-          return;
-        }
-
-        alert(
-          "Conta criada com sucesso! Verifique seu email para confirmar o cadastro."
-        );
-      } catch (error) {
-        console.error("CADASTRO:", error);
-        alert("Não foi possível criar a conta.");
-      } finally {
-        btnCadastro.disabled = false;
-        btnCadastro.innerText = textoOriginal;
-      }
-    });
-  }
-
-  /* =========================================================
-     RECUPERAÇÃO DE SENHA
-     ========================================================= */
-
-  if (btnEsqueciSenha) {
-    btnEsqueciSenha.addEventListener("click", async (event) => {
-      event.preventDefault();
-
-      if (!supabaseClient) {
-        alert("Sistema ainda não inicializado.");
-        return;
-      }
-
-      const email = emailInput?.value?.trim() || "";
-
-      if (!email) {
-        alert("Informe seu email primeiro.");
-        return;
-      }
-
-      try {
-        const { error } =
-          await supabaseClient.auth.resetPasswordForEmail(
-            email,
-            {
-              redirectTo:
-                window.location.origin +
-                window.location.pathname
-            }
-          );
-
-        if (error) {
-          alert(
-            `Não foi possível enviar a recuperação.\n\n${error.message}`
-          );
-          return;
-        }
-
-        alert(
-          "Enviamos as instruções de recuperação para seu email."
-        );
-      } catch (error) {
-        console.error("Recuperação:", error);
-        alert(
-          "Não foi possível enviar o email de recuperação."
-        );
-      }
-    });
-  }
-
-  /* =========================================================
-     EXPORTAÇÃO PDF
-     ========================================================= */
-
-  if (btnExportarPdf) {
-    btnExportarPdf.addEventListener("click", () => {
-      try {
-        if (
-          !window.jspdf ||
-          typeof window.jspdf.jsPDF !== "function"
-        ) {
-          alert(
-            "A biblioteca de PDF não foi carregada."
-          );
-          return;
-        }
-
-        const { jsPDF } = window.jspdf;
-        const pdf = new jsPDF();
-
-        const registros = obterDadosFiltrados();
-        const resumo = calcularResumo(registros);
-
-        pdf.setFontSize(16);
-        pdf.text(
-          "TCS Finance - Extrato Financeiro",
-          10,
-          15
-        );
-
-        pdf.setFontSize(10);
-        pdf.text(
-          `Período: ${formatarPeriodo(
-            filtroMes?.value || ""
-          )}`,
-          10,
-          23
-        );
-
-        pdf.text(
-          `Receitas: ${formatarMoeda(resumo.receita)}`,
-          10,
-          31
-        );
-
-        pdf.text(
-          `Despesas: ${formatarMoeda(resumo.despesa)}`,
-          10,
-          38
-        );
-
-        pdf.text(
-          `Investimentos: ${formatarMoeda(
-            resumo.investimento
-          )}`,
-          10,
-          45
-        );
-
-        pdf.text(
-          `Saldo: ${formatarMoeda(resumo.saldo)}`,
-          10,
-          52
-        );
-
-        let y = 65;
-
-        registros.forEach((item) => {
-          if (y > 280) {
-            pdf.addPage();
-            y = 20;
-          }
-
-          const linha =
-            `${formatarData(item.data)} | ` +
-            `${normalizarTipo(item.tipo)} | ` +
-            `${item.categoria || ""} | ` +
-            `${item.descricao || ""} | ` +
-            `${formatarMoeda(item.valor)}`;
-
-          pdf.text(
-            linha.substring(0, 105),
-            10,
-            y
-          );
-
-          y += 7;
         });
 
-        pdf.save("TCS-Finance-Extrato.pdf");
-      } catch (error) {
-        console.error("PDF:", error);
-        alert("Não foi possível gerar o PDF.");
-      }
-    });
-  }
 
-  /* =========================================================
-     AUTH STATE
-     ========================================================= */
+        /* Clicar fora fecha */
+        overlay.addEventListener("click", function () {
+            fecharMenu();
+        });
 
-  function configurarAuth() {
-    if (!supabaseClient) return;
 
-    supabaseClient.auth.onAuthStateChange(
-      (evento, session) => {
-        console.log(
-          "Auth event:",
-          evento
+        /* Clicar em um link do menu fecha no celular */
+        sidebar.addEventListener("click", function (event) {
+
+            const link = event.target.closest("a, button");
+
+            if (!link) return;
+
+            if (window.innerWidth <= 768) {
+
+                /*
+                 * Pequeno atraso para não interferir
+                 * na navegação existente.
+                 */
+                setTimeout(function () {
+                    fecharMenu();
+                }, 50);
+
+            }
+
+        });
+
+
+        /* ESC fecha */
+        document.addEventListener("keydown", function (event) {
+
+            if (event.key === "Escape") {
+                fecharMenu();
+            }
+
+        });
+
+
+        /* Ao voltar para desktop */
+        window.addEventListener("resize", function () {
+
+            if (window.innerWidth > 768) {
+                fecharMenu();
+            }
+
+        });
+
+    }
+
+
+    /*
+     * Garante que o DOM esteja carregado.
+     */
+    if (document.readyState === "loading") {
+
+        document.addEventListener(
+            "DOMContentLoaded",
+            iniciarMenuMobile
         );
 
-        if (
-          evento === "SIGNED_IN" &&
-          session?.user
-        ) {
-          /*
-            Não fazemos chamadas pesadas diretamente dentro
-            do callback do Supabase. Isso evita deadlocks.
-          */
-          setTimeout(() => {
-            iniciarSessao(session.user);
-          }, 0);
-        }
+    } else {
 
-        if (
-          evento === "TOKEN_REFRESHED" &&
-          session?.user
-        ) {
-          usuarioAtual = session.user;
-        }
+        iniciarMenuMobile();
 
-        if (evento === "SIGNED_OUT") {
-          usuarioAtual = null;
-          sessaoPronta = false;
-          dados = [];
-          mostrarLogin();
-        }
-      }
-    );
-  }
-
-  /* =========================================================
-     INICIALIZAÇÃO
-     ========================================================= */
-
-  (async function iniciarSistema() {
-    if (inicializando) return;
-    inicializando = true;
-
-    console.log(
-      "TCS Finance — inicializando versão sem recorrências."
-    );
-
-    const ok = inicializarSupabase();
-
-    if (!ok) {
-      mostrarLogin();
-      inicializando = false;
-      return;
     }
 
-    fecharMenuMobile();
-    mostrarLogin();
-
-    if (filtroMes) {
-      filtroMes.value = obterMesAtual();
-    }
-
-    if (dataInput) {
-      dataInput.value = obterDataHoje();
-    }
-
-    if (categoria) {
-      categoria.disabled = true;
-    }
-
-    if (tipoGrafico && !tipoGrafico.value) {
-      tipoGrafico.value = "geral";
-    }
-
-    atualizarPeriodoDashboard();
-    configurarAuth();
-
-    try {
-      /*
-        getSession recupera a sessão salva pelo Supabase.
-        Isso é o que mantém o usuário logado ao recarregar
-        a página.
-      */
-      const {
-        data,
-        error
-      } = await supabaseClient.auth.getSession();
-
-      if (error) {
-        console.warn(
-          "Erro ao recuperar sessão:",
-          error.message
-        );
-      }
-
-      if (data?.session?.user) {
-        console.log(
-          "Sessão existente encontrada."
-        );
-
-        await iniciarSessao(
-          data.session.user
-        );
-      } else {
-        console.log(
-          "Nenhuma sessão existente."
-        );
-
-        mostrarLogin();
-      }
-    } catch (error) {
-      console.error(
-        "Erro na recuperação da sessão:",
-        error
-      );
-
-      mostrarLogin();
-    }
-
-    console.log(
-      "TCS Finance: inicialização concluída."
-    );
-
-    inicializando = false;
-  })();
-});
+})();
