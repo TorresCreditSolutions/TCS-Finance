@@ -250,16 +250,21 @@
             <option value="Aplicação">Aplicação em investimento</option>
             <option value="Resgate">Resgate de investimento</option>
           </select>
-          <select id="transferenciaTipoInvestimentoLancamento" class="hidden">
-            <option value="">Tipo de investimento</option>
-            <option value="Renda Fixa">Renda Fixa</option>
-            <option value="Ações">Ações</option>
-            <option value="FIIs">FIIs</option>
-            <option value="Tesouro Direto">Tesouro Direto</option>
-            <option value="Criptomoedas">Criptomoedas</option>
-            <option value="Fundos">Fundos</option>
-            <option value="Outros">Outros</option>
-          </select>
+          <div id="campoTipoInvestimentoLancamento" class="campo-condicional hidden">
+            <label for="transferenciaTipoInvestimentoLancamento">Tipo de investimento</label>
+            <select id="transferenciaTipoInvestimentoLancamento">
+              <option value="">Selecione o tipo de investimento</option>
+              <option value="Renda Fixa">Renda Fixa</option>
+              <option value="CDB">CDB</option>
+              <option value="LCI/LCA">LCI / LCA</option>
+              <option value="Tesouro Direto">Tesouro Direto</option>
+              <option value="Ações">Ações</option>
+              <option value="FIIs">FIIs</option>
+              <option value="Fundos">Fundos</option>
+              <option value="Criptomoedas">Criptomoedas</option>
+              <option value="Outros">Outros</option>
+            </select>
+          </div>
           <input type="text" id="descricao" placeholder="Descrição">
           <input type="number" id="valor" placeholder="Valor">
           <input type="date" id="data">
@@ -332,16 +337,21 @@
             <option value="Aplicação">Aplicação em investimento</option>
             <option value="Resgate">Resgate de investimento</option>
           </select>
-          <select id="transferenciaTipoInvestimento" class="hidden">
-            <option value="">Tipo de investimento</option>
-            <option value="Renda Fixa">Renda Fixa</option>
-            <option value="Ações">Ações</option>
-            <option value="FIIs">FIIs</option>
-            <option value="Tesouro Direto">Tesouro Direto</option>
-            <option value="Criptomoedas">Criptomoedas</option>
-            <option value="Fundos">Fundos</option>
-            <option value="Outros">Outros</option>
-          </select>
+          <div id="campoTipoInvestimento" class="campo-condicional hidden">
+            <label for="transferenciaTipoInvestimento">Tipo de investimento</label>
+            <select id="transferenciaTipoInvestimento">
+              <option value="">Selecione o tipo de investimento</option>
+              <option value="Renda Fixa">Renda Fixa</option>
+              <option value="CDB">CDB</option>
+              <option value="LCI/LCA">LCI / LCA</option>
+              <option value="Tesouro Direto">Tesouro Direto</option>
+              <option value="Ações">Ações</option>
+              <option value="FIIs">FIIs</option>
+              <option value="Fundos">Fundos</option>
+              <option value="Criptomoedas">Criptomoedas</option>
+              <option value="Outros">Outros</option>
+            </select>
+          </div>
           <input type="number" id="transferenciaValor" placeholder="Valor" step="0.01" min="0.01">
           <input type="date" id="transferenciaData">
           <select id="transferenciaStatus">
