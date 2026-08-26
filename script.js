@@ -55,11 +55,24 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
+  const campoTipoInvestimentoLancamento = document.getElementById("campoTipoInvestimentoLancamento");
+  const campoTipoInvestimento = document.getElementById("campoTipoInvestimento");
+
   function atualizarCamposInvestimentoTransferencia() {
-    const finalidade = transferenciaFinalidadeLancamento?.value || transferenciaFinalidade?.value || "Transferência";
-    const mostrarTipo = finalidade === "Aplicação" || finalidade === "Resgate";
-    transferenciaTipoInvestimentoLancamento?.classList.toggle("hidden", !mostrarTipo);
-    transferenciaTipoInvestimento?.classList.toggle("hidden", !mostrarTipo);
+    const finalidadeLancamento = transferenciaFinalidadeLancamento?.value || "Transferência";
+    const finalidadePagina = transferenciaFinalidade?.value || "Transferência";
+    const mostrarLancamento = finalidadeLancamento === "Aplicação" || finalidadeLancamento === "Resgate";
+    const mostrarPagina = finalidadePagina === "Aplicação" || finalidadePagina === "Resgate";
+
+    // Usa display diretamente para não depender da classe .hidden do CSS.
+    // Assim o campo de tipo de investimento aparece corretamente em
+    // Aplicação/Resgate mesmo que o style.css tenha regras diferentes.
+    if (campoTipoInvestimentoLancamento) {
+      campoTipoInvestimentoLancamento.style.display = mostrarLancamento ? "block" : "none";
+    }
+    if (campoTipoInvestimento) {
+      campoTipoInvestimento.style.display = mostrarPagina ? "block" : "none";
+    }
   }
 
   function atualizarFormularioPorTipo() {
