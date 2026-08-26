@@ -22,6 +22,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   ====================================================== */
 
   let dados = [];
+  let contas = [];
 
   let grafico = null;
   let graficoMensal = null;
@@ -96,6 +97,13 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   const btnDashboard = document.getElementById("btnDashboard");
   const btnLancamentos = document.getElementById("btnLancamentos");
+  const btnContas = document.getElementById("btnContas");
+  const contasSection = document.getElementById("contas");
+  const nomeConta = document.getElementById("nomeConta");
+  const tipoConta = document.getElementById("tipoConta");
+  const saldoInicialConta = document.getElementById("saldoInicialConta");
+  const btnSalvarConta = document.getElementById("btnSalvarConta");
+  const listaContas = document.getElementById("listaContas");
   /* ======================================================
    RELATÓRIOS
 ====================================================== */
@@ -109,6 +117,9 @@ if (btnRelatorios) {
 
         if (relatorios) {
             relatorios.classList.remove("hidden");
+        }
+        if (contasSection) {
+            contasSection.classList.add("hidden");
         }
 
         fecharMenuMobile();
@@ -363,6 +374,9 @@ function atualizarRelatorios() {
         if (relatorios) {
             relatorios.classList.add("hidden");
         }
+        if (contasSection) {
+            contasSection.classList.add("hidden");
+        }
 
         fecharMenuMobile();
 
@@ -382,6 +396,9 @@ function atualizarRelatorios() {
         if (relatorios) {
             relatorios.classList.add("hidden");
         }
+        if (contasSection) {
+            contasSection.classList.add("hidden");
+        }
 
         fecharMenuMobile();
 
@@ -389,6 +406,199 @@ function atualizarRelatorios() {
     };
 
 }
+
+  /* ======================================================
+     CONTAS E CARTEIRAS — ETAPA 2A
+  ====================================================== */
+
+  async function carregarContas() {
+
+    try {
+
+      const { data, error } =
+        await supabase
+          .from("contas")
+          .select("*")
+          .order("created_at", { ascending: true });
+
+      if (error) {
+
+        console.error("Erro ao carregar contas:", error);
+        contas = [];
+        return;
+
+      }
+
+      contas = data || [];
+
+    } catch (erro) {
+
+      console.error("Erro inesperado ao carregar contas:", erro);
+      contas = [];
+
+    }
+
+  }
+
+  function renderizarContas() {
+
+    if (!listaContas) return;
+
+    if (!contas.length) {
+
+      listaContas.innerHTML = `
+        <div class="contas-vazio">
+          <strong>Nenhuma conta cadastrada</strong>
+          <span>Cadastre sua primeira conta ou carteira acima.</span>
+        </div>
+      `;
+
+      return;
+
+    }
+
+    listaContas.innerHTML = contas.map(conta => `
+      <article class="conta-card">
+        <div class="conta-card-topo">
+          <div>
+            <span class="conta-tipo">${conta.tipo || "Conta"}</span>
+            <h3>${conta.nome || "Sem nome"}</h3>
+          </div>
+          <button type="button" class="btn-excluir-conta" data-conta-id="${conta.id}" title="Excluir conta">×</button>
+        </div>
+        <div class="conta-saldo">
+          <small>Saldo inicial</small>
+          <strong>${formatarMoeda(conta.saldo_inicial)}</strong>
+        </div>
+      </article>
+    `).join("");
+
+    listaContas.querySelectorAll(".btn-excluir-conta").forEach(botao => {
+
+      botao.onclick = async () => {
+
+        const id = botao.dataset.contaId;
+
+        if (!confirm("Excluir esta conta ou carteira?")) return;
+
+        const { error } =
+          await supabase
+            .from("contas")
+            .delete()
+            .eq("id", id);
+
+        if (error) {
+
+          console.error("Erro ao excluir conta:", error);
+          alert("Não foi possível excluir a conta.");
+          return;
+
+        }
+
+        await carregarContas();
+        renderizarContas();
+
+      };
+
+    });
+
+  }
+
+  if (btnSalvarConta) {
+
+    btnSalvarConta.onclick = async () => {
+
+      const nome = nomeConta?.value.trim();
+      const tipoSelecionado = tipoConta?.value;
+      const saldoTexto = saldoInicialConta?.value;
+      const saldoInicial = Number(saldoTexto || 0);
+
+      if (!nome || !tipoSelecionado) {
+
+        alert("Informe o nome e o tipo da conta.");
+        return;
+
+      }
+
+      if (!Number.isFinite(saldoInicial) || saldoInicial < 0) {
+
+        alert("Informe um saldo inicial válido.");
+        return;
+
+      }
+
+      try {
+
+        const { data: userData, error: userError } =
+          await supabase.auth.getUser();
+
+        if (userError || !userData?.user) {
+
+          alert("Sua sessão expirou. Faça login novamente.");
+          return;
+
+        }
+
+        const { error } =
+          await supabase
+            .from("contas")
+            .insert({
+              user_id: userData.user.id,
+              nome,
+              tipo: tipoSelecionado,
+              saldo_inicial: saldoInicial,
+              ativo: true
+            });
+
+        if (error) {
+
+          console.error("Erro ao salvar conta:", error);
+          alert("Não foi possível cadastrar a conta.");
+          return;
+
+        }
+
+        nomeConta.value = "";
+        tipoConta.value = "";
+        saldoInicialConta.value = "";
+
+        await carregarContas();
+        renderizarContas();
+
+        alert("Conta cadastrada com sucesso!");
+
+      } catch (erro) {
+
+        console.error("Erro inesperado ao cadastrar conta:", erro);
+        alert("Ocorreu um erro ao cadastrar a conta.");
+
+      }
+
+    };
+
+  }
+
+  if (btnContas) {
+
+    btnContas.onclick = () => {
+
+      dashboard.classList.add("hidden");
+      lancamentos.classList.add("hidden");
+
+      if (relatorios) {
+        relatorios.classList.add("hidden");
+      }
+
+      if (contasSection) {
+        contasSection.classList.remove("hidden");
+      }
+
+      fecharMenuMobile();
+      renderizarContas();
+
+    };
+
+  }
 
   /* ======================================================
      LOGOUT
@@ -677,10 +887,12 @@ function atualizarRelatorios() {
     atualizarPeriodoDashboard();
 
     await carregarDados();
+    await carregarContas();
 
     atualizarDashboard();
 
     renderizarLista();
+    renderizarContas();
 
   }
 

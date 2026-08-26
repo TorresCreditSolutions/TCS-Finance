@@ -1896,3 +1896,93 @@ body {
         overflow-x: hidden !important;
     }
 }
+
+/* =========================================================
+   ETAPA 2A — CONTAS E CARTEIRAS
+========================================================= */
+.contas-form-card,
+.contas-vazio,
+.conta-card{
+  background:#fff;
+  border:1px solid #e6eaf0;
+  border-radius:16px;
+  box-shadow:0 8px 24px rgba(15,23,42,.05);
+}
+
+.contas-form-card{
+  padding:22px;
+  margin-bottom:20px;
+}
+
+.contas-form-card h3{
+  margin:0 0 16px;
+}
+
+.contas-grid{
+  display:grid;
+  grid-template-columns:repeat(3,minmax(0,1fr));
+  gap:16px;
+}
+
+.conta-card{
+  padding:18px;
+}
+
+.conta-card-topo{
+  display:flex;
+  align-items:flex-start;
+  justify-content:space-between;
+  gap:12px;
+}
+
+.conta-card-topo h3{
+  margin:5px 0 0;
+  font-size:18px;
+}
+
+.conta-tipo{
+  font-size:11px;
+  font-weight:800;
+  text-transform:uppercase;
+  letter-spacing:.06em;
+  opacity:.65;
+}
+
+.btn-excluir-conta{
+  border:0;
+  background:transparent;
+  font-size:24px;
+  line-height:1;
+  cursor:pointer;
+  opacity:.55;
+}
+
+.btn-excluir-conta:hover{opacity:1}
+
+.conta-saldo{
+  margin-top:22px;
+  display:flex;
+  flex-direction:column;
+  gap:4px;
+}
+
+.conta-saldo small{opacity:.65}
+.conta-saldo strong{font-size:22px}
+
+.contas-vazio{
+  padding:28px;
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  text-align:center;
+}
+
+.contas-vazio span{opacity:.65}
+
+@media(max-width:900px){
+  .contas-grid{grid-template-columns:repeat(2,minmax(0,1fr));}
+}
+
+@media(max-width:600px){
+  .contas-grid{grid-template-columns:1fr;}
+}

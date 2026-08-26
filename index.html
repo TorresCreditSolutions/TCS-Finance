@@ -48,6 +48,10 @@
         <span class="nav-icon">⇄</span><span>Lançamentos</span>
       </button>
 
+      <button type="button" id="btnContas" class="nav-item">
+        <span class="nav-icon">▣</span><span>Contas e Carteiras</span>
+      </button>
+
       <button type="button" id="btnRelatorios" class="nav-item">
     <span class="nav-icon">◔</span>
     <span>Relatórios</span>
@@ -247,6 +251,34 @@
         <ul id="listaLancamentos"></ul>
         <button id="btnExportarPdf">Exportar PDF</button>
       </div>
+    </section>
+
+    <section id="contas" class="hidden">
+      <div class="page-heading">
+        <span class="eyebrow">ORGANIZAÇÃO</span>
+        <h2>Contas e Carteiras</h2>
+        <p>Cadastre onde seu dinheiro está. Nesta etapa, o saldo ainda não altera os lançamentos existentes.</p>
+      </div>
+
+      <div class="contas-form-card">
+        <h3>Nova conta ou carteira</h3>
+        <div class="form-grid">
+          <input type="text" id="nomeConta" placeholder="Nome da conta ou carteira">
+          <select id="tipoConta">
+            <option value="">Tipo</option>
+            <option value="Conta corrente">Conta corrente</option>
+            <option value="Conta poupança">Conta poupança</option>
+            <option value="Dinheiro em espécie">Dinheiro em espécie</option>
+            <option value="Carteira digital">Carteira digital</option>
+            <option value="Investimentos">Investimentos</option>
+            <option value="Outros">Outros</option>
+          </select>
+          <input type="number" id="saldoInicialConta" placeholder="Saldo inicial" step="0.01" min="0">
+        </div>
+        <button id="btnSalvarConta" type="button">Cadastrar conta</button>
+      </div>
+
+      <div class="contas-grid" id="listaContas"></div>
     </section>
 
     <section id="relatorios" class="hidden">
