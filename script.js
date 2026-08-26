@@ -2054,7 +2054,7 @@ function renderizarGraficoComparativo() {
         const linha =
           `${formatarData(l.data)} | ` +
           `${l.tipo} | ` +
-          ``${l.categoria || ""} | ` +
+          `${l.categoria || ""} | ` +
           `${formatarMoeda(l.valor)} | ` +
           `${l.status || "Pago"}`;
 
