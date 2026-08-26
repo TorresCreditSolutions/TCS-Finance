@@ -52,6 +52,10 @@
         <span class="nav-icon">▣</span><span>Contas e Carteiras</span>
       </button>
 
+      <button type="button" id="btnTransferencias" class="nav-item">
+        <span class="nav-icon">⇆</span><span>Transferências</span>
+      </button>
+
       <button type="button" id="btnRelatorios" class="nav-item">
     <span class="nav-icon">◔</span>
     <span>Relatórios</span>
@@ -283,6 +287,39 @@
       </div>
 
       <div class="contas-grid" id="listaContas"></div>
+    </section>
+
+    <section id="transferencias" class="hidden">
+      <div class="page-heading">
+        <span class="eyebrow">MOVIMENTAÇÃO INTERNA</span>
+        <h2>Transferências</h2>
+        <p>Mova dinheiro entre suas contas sem alterar suas receitas ou despesas.</p>
+      </div>
+
+      <div class="transferencia-form-card">
+        <h3>Nova transferência</h3>
+        <div class="form-grid">
+          <select id="transferenciaOrigem">
+            <option value="">Conta de origem</option>
+          </select>
+          <select id="transferenciaDestino">
+            <option value="">Conta de destino</option>
+          </select>
+          <input type="number" id="transferenciaValor" placeholder="Valor" step="0.01" min="0.01">
+          <input type="date" id="transferenciaData">
+          <select id="transferenciaStatus">
+            <option value="Pago">Concluída</option>
+            <option value="Em aberto">Em aberto</option>
+          </select>
+          <input type="text" id="transferenciaDescricao" placeholder="Descrição (opcional)">
+        </div>
+        <button id="btnSalvarTransferencia" type="button">Realizar transferência</button>
+      </div>
+
+      <div class="extrato-card">
+        <h3>Histórico de transferências</h3>
+        <ul id="listaTransferencias"></ul>
+      </div>
     </section>
 
     <section id="relatorios" class="hidden">

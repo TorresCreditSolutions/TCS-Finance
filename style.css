@@ -2000,3 +2000,84 @@ body {
 .conta-saldo strong{
   display:block;
 }
+
+/* =========================================================
+   ETAPA 2D — TRANSFERÊNCIAS
+========================================================= */
+.transferencia-form-card{
+  background:var(--card-bg, #fff);
+  border-radius:18px;
+  padding:24px;
+  margin-bottom:20px;
+  box-shadow:0 8px 30px rgba(20,40,70,.06);
+}
+
+.transferencia-form-card h3{
+  margin:0 0 18px;
+}
+
+.transferencia-item{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:18px;
+  padding:16px 0;
+  border-bottom:1px solid #edf1f5;
+  list-style:none;
+}
+
+.transferencia-item:last-child{
+  border-bottom:0;
+}
+
+.transferencia-info{
+  display:flex;
+  align-items:center;
+  flex-wrap:wrap;
+  gap:10px;
+}
+
+.transferencia-rota{
+  font-weight:700;
+}
+
+.transferencia-rota b{
+  margin:0 5px;
+}
+
+.transferencia-valor{
+  font-weight:800;
+}
+
+.transferencia-descricao{
+  color:#7a8798;
+}
+
+.transferencia-vazia{
+  list-style:none;
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  padding:18px 0;
+  color:#7a8798;
+}
+
+.transferencia-vazia strong{
+  color:#27364a;
+}
+
+.transferencia-acoes{
+  flex-shrink:0;
+}
+
+@media(max-width:700px){
+  .transferencia-item{
+    align-items:flex-start;
+  }
+
+  .transferencia-info{
+    align-items:flex-start;
+    flex-direction:column;
+    gap:6px;
+  }
+}

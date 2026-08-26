@@ -23,6 +23,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   let dados = [];
   let contas = [];
+  let transferencias = [];
 
   let grafico = null;
   let graficoMensal = null;
@@ -99,7 +100,17 @@ document.addEventListener("DOMContentLoaded", async () => {
   const btnDashboard = document.getElementById("btnDashboard");
   const btnLancamentos = document.getElementById("btnLancamentos");
   const btnContas = document.getElementById("btnContas");
+  const btnTransferencias = document.getElementById("btnTransferencias");
   const contasSection = document.getElementById("contas");
+  const transferenciasSection = document.getElementById("transferencias");
+  const transferenciaOrigem = document.getElementById("transferenciaOrigem");
+  const transferenciaDestino = document.getElementById("transferenciaDestino");
+  const transferenciaValor = document.getElementById("transferenciaValor");
+  const transferenciaData = document.getElementById("transferenciaData");
+  const transferenciaStatus = document.getElementById("transferenciaStatus");
+  const transferenciaDescricao = document.getElementById("transferenciaDescricao");
+  const btnSalvarTransferencia = document.getElementById("btnSalvarTransferencia");
+  const listaTransferencias = document.getElementById("listaTransferencias");
   const nomeConta = document.getElementById("nomeConta");
   const tipoConta = document.getElementById("tipoConta");
   const saldoInicialConta = document.getElementById("saldoInicialConta");
@@ -121,6 +132,10 @@ if (btnRelatorios) {
         }
         if (contasSection) {
             contasSection.classList.add("hidden");
+        }
+
+        if (transferenciasSection) {
+            transferenciasSection.classList.add("hidden");
         }
 
         fecharMenuMobile();
@@ -539,18 +554,25 @@ function atualizarRelatorios() {
 
     });
 
+    saldo += calcularImpactoTransferencia(conta.id);
+
     return saldo;
 
   }
 
   function calcularPatrimonioInvestido() {
 
-    let total = 0;
+    let total = contas
+      .filter(c => String(c.tipo || "") === "Investimentos")
+      .reduce(
+        (soma, conta) =>
+          soma + (Number(conta.saldo_inicial) || 0),
+        0
+      );
 
     dados.forEach(l => {
 
       if (l.tipo !== "Investimento") return;
-
       if ((l.status || "Pago") !== "Pago") return;
 
       const valor = Number(l.valor) || 0;
@@ -563,10 +585,28 @@ function atualizarRelatorios() {
 
     });
 
-    /*
-     * O patrimônio investido é acumulado de todos os meses.
-     * O filtro mensal do Dashboard não interfere neste total.
-     */
+    transferencias.forEach(t => {
+
+      if ((t.status || "Pago") !== "Pago") return;
+
+      const valor = Number(t.valor) || 0;
+
+      const origem =
+        contas.find(c => String(c.id) === String(t.origem_id));
+
+      const destino =
+        contas.find(c => String(c.id) === String(t.destino_id));
+
+      if (origem && String(origem.tipo || "") === "Investimentos") {
+        total -= valor;
+      }
+
+      if (destino && String(destino.tipo || "") === "Investimentos") {
+        total += valor;
+      }
+
+    });
+
     return Math.max(total, 0);
 
   }
@@ -646,6 +686,316 @@ function atualizarRelatorios() {
 
   }
 
+  async function carregarTransferencias() {
+
+    try {
+
+      const { data, error } =
+        await supabase
+          .from("transferencias")
+          .select("*")
+          .order("data", { ascending: false })
+          .order("created_at", { ascending: false });
+
+      if (error) {
+
+        console.error("Erro ao carregar transferências:", error);
+        transferencias = [];
+        return;
+
+      }
+
+      transferencias = data || [];
+
+    } catch (erro) {
+
+      console.error("Erro inesperado ao carregar transferências:", erro);
+      transferencias = [];
+
+    }
+
+  }
+
+  function popularContasTransferencia() {
+
+    [transferenciaOrigem, transferenciaDestino].forEach(select => {
+
+      if (!select) return;
+
+      const valorAtual = select.value;
+
+      select.innerHTML =
+        '<option value="">Selecione a conta</option>';
+
+      contas
+        .filter(c => c.ativo !== false)
+        .forEach(conta => {
+
+          const option = document.createElement("option");
+
+          option.value = conta.id;
+          option.textContent =
+            `${conta.nome} — ${conta.tipo}`;
+
+          select.appendChild(option);
+
+        });
+
+      if (
+        valorAtual &&
+        contas.some(c => String(c.id) === String(valorAtual))
+      ) {
+        select.value = valorAtual;
+      }
+
+    });
+
+  }
+
+  function obterNomeContaTransferencia(id) {
+
+    if (!id) return "Conta não informada";
+
+    const conta = contas.find(
+      c => String(c.id) === String(id)
+    );
+
+    return conta
+      ? conta.nome
+      : "Conta não encontrada";
+
+  }
+
+  function calcularImpactoTransferencia(contaId) {
+
+    let impacto = 0;
+
+    transferencias.forEach(t => {
+
+      if ((t.status || "Pago") !== "Pago") return;
+
+      const valor = Number(t.valor) || 0;
+
+      if (String(t.origem_id) === String(contaId)) {
+        impacto -= valor;
+      }
+
+      if (String(t.destino_id) === String(contaId)) {
+        impacto += valor;
+      }
+
+    });
+
+    return impacto;
+
+  }
+
+  function renderizarTransferencias() {
+
+    if (!listaTransferencias) return;
+
+    if (!transferencias.length) {
+
+      listaTransferencias.innerHTML = `
+        <li class="transferencia-vazia">
+          <strong>Nenhuma transferência cadastrada.</strong>
+          <span>Use o formulário acima para movimentar dinheiro entre suas contas.</span>
+        </li>
+      `;
+
+      return;
+
+    }
+
+    listaTransferencias.innerHTML =
+      transferencias.map(t => {
+
+        const statusTexto = t.status || "Pago";
+
+        return `
+          <li class="transferencia-item">
+            <div class="transferencia-info">
+              <strong>${formatarData(t.data)}</strong>
+              <span class="transferencia-rota">
+                ${obterNomeContaTransferencia(t.origem_id)}
+                <b>→</b>
+                ${obterNomeContaTransferencia(t.destino_id)}
+              </span>
+              <span class="transferencia-valor">
+                ${formatarMoeda(t.valor)}
+              </span>
+              ${
+                t.descricao
+                  ? `<span class="transferencia-descricao">• ${t.descricao}</span>`
+                  : ""
+              }
+              <span class="status-lancamento ${
+                statusTexto === "Pago"
+                  ? "status-pago"
+                  : "status-aberto"
+              }">
+                ${statusTexto}
+              </span>
+            </div>
+
+            <div class="transferencia-acoes">
+              <button
+                type="button"
+                class="btn-acao excluir-transferencia"
+                data-id="${t.id}"
+                title="Excluir transferência"
+              >🗑</button>
+            </div>
+          </li>
+        `;
+
+      }).join("");
+
+    listaTransferencias
+      .querySelectorAll(".excluir-transferencia")
+      .forEach(botao => {
+
+        botao.onclick = async () => {
+
+          const id = botao.dataset.id;
+
+          if (!confirm(
+            "Excluir esta transferência? Os saldos das contas serão recalculados."
+          )) return;
+
+          const { error } =
+            await supabase
+              .from("transferencias")
+              .delete()
+              .eq("id", id);
+
+          if (error) {
+
+            console.error("Erro ao excluir transferência:", error);
+            alert("Não foi possível excluir a transferência.");
+            return;
+
+          }
+
+          await carregarTransferencias();
+          renderizarTransferencias();
+          renderizarContas();
+          atualizarDashboard();
+
+        };
+
+      });
+
+  }
+
+  if (btnTransferencias) {
+
+    btnTransferencias.onclick = () => {
+
+      dashboard.classList.add("hidden");
+      lancamentos.classList.add("hidden");
+      contasSection?.classList.add("hidden");
+      relatorios?.classList.add("hidden");
+      transferenciasSection?.classList.remove("hidden");
+
+      popularContasTransferencia();
+      renderizarTransferencias();
+      fecharMenuMobile();
+
+    };
+
+  }
+
+  if (btnSalvarTransferencia) {
+
+    btnSalvarTransferencia.onclick = async () => {
+
+      const origem = transferenciaOrigem?.value;
+      const destino = transferenciaDestino?.value;
+      const valor = Number(transferenciaValor?.value || 0);
+      const data = transferenciaData?.value;
+      const statusTransferencia =
+        transferenciaStatus?.value || "Pago";
+      const descricao =
+        transferenciaDescricao?.value.trim() || "";
+
+      if (!origem || !destino) {
+        alert("Selecione a conta de origem e a conta de destino.");
+        return;
+      }
+
+      if (String(origem) === String(destino)) {
+        alert("A conta de origem e a conta de destino devem ser diferentes.");
+        return;
+      }
+
+      if (!Number.isFinite(valor) || valor <= 0) {
+        alert("Informe um valor válido para a transferência.");
+        return;
+      }
+
+      if (!data) {
+        alert("Informe a data da transferência.");
+        return;
+      }
+
+      try {
+
+        const {
+          data: userData,
+          error: userError
+        } = await supabase.auth.getUser();
+
+        if (userError || !userData?.user) {
+          alert("Sua sessão expirou. Faça login novamente.");
+          return;
+        }
+
+        const { error } =
+          await supabase
+            .from("transferencias")
+            .insert({
+              user_id: userData.user.id,
+              origem_id: origem,
+              destino_id: destino,
+              valor,
+              data,
+              status: statusTransferencia,
+              descricao
+            });
+
+        if (error) {
+
+          console.error("Erro ao salvar transferência:", error);
+          alert("Não foi possível salvar a transferência.");
+          return;
+
+        }
+
+        transferenciaOrigem.value = "";
+        transferenciaDestino.value = "";
+        transferenciaValor.value = "";
+        transferenciaDescricao.value = "";
+
+        await carregarTransferencias();
+
+        renderizarTransferencias();
+        renderizarContas();
+        atualizarDashboard();
+
+        alert("Transferência realizada com sucesso!");
+
+      } catch (erro) {
+
+        console.error("Erro inesperado ao salvar transferência:", erro);
+        alert("Ocorreu um erro ao salvar a transferência.");
+
+      }
+
+    };
+
+  }
+
   if (btnSalvarConta) {
 
     btnSalvarConta.onclick = async () => {
@@ -705,6 +1055,7 @@ function atualizarRelatorios() {
         saldoInicialConta.value = "";
 
         await carregarContas();
+        popularContasTransferencia();
         renderizarContas();
 
         alert("Conta cadastrada com sucesso!");
@@ -1030,12 +1381,15 @@ function atualizarRelatorios() {
 
     await carregarDados();
     await carregarContas();
+    await carregarTransferencias();
 
     atualizarDashboard();
 
     renderizarLista();
     renderizarContas();
     popularContasLancamento();
+    popularContasTransferencia();
+    renderizarTransferencias();
 
   }
 
