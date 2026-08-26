@@ -245,6 +245,21 @@
           <select id="transferenciaDestinoLancamento" class="hidden">
             <option value="">Conta de destino</option>
           </select>
+          <select id="transferenciaFinalidadeLancamento" class="hidden">
+            <option value="Transferência">Transferência normal</option>
+            <option value="Aplicação">Aplicação em investimento</option>
+            <option value="Resgate">Resgate de investimento</option>
+          </select>
+          <select id="transferenciaTipoInvestimentoLancamento" class="hidden">
+            <option value="">Tipo de investimento</option>
+            <option value="Renda Fixa">Renda Fixa</option>
+            <option value="Ações">Ações</option>
+            <option value="FIIs">FIIs</option>
+            <option value="Tesouro Direto">Tesouro Direto</option>
+            <option value="Criptomoedas">Criptomoedas</option>
+            <option value="Fundos">Fundos</option>
+            <option value="Outros">Outros</option>
+          </select>
           <input type="text" id="descricao" placeholder="Descrição">
           <input type="number" id="valor" placeholder="Valor">
           <input type="date" id="data">
@@ -300,7 +315,7 @@
       <div class="page-heading">
         <span class="eyebrow">MOVIMENTAÇÃO INTERNA</span>
         <h2>Transferências</h2>
-        <p>Mova dinheiro entre suas contas sem alterar suas receitas ou despesas.</p>
+        <p>Mova dinheiro entre suas contas, registre aplicações e resgates sem duplicar seu patrimônio.</p>
       </div>
 
       <div class="transferencia-form-card">
@@ -311,6 +326,21 @@
           </select>
           <select id="transferenciaDestino">
             <option value="">Conta de destino</option>
+          </select>
+          <select id="transferenciaFinalidade">
+            <option value="Transferência">Transferência normal</option>
+            <option value="Aplicação">Aplicação em investimento</option>
+            <option value="Resgate">Resgate de investimento</option>
+          </select>
+          <select id="transferenciaTipoInvestimento" class="hidden">
+            <option value="">Tipo de investimento</option>
+            <option value="Renda Fixa">Renda Fixa</option>
+            <option value="Ações">Ações</option>
+            <option value="FIIs">FIIs</option>
+            <option value="Tesouro Direto">Tesouro Direto</option>
+            <option value="Criptomoedas">Criptomoedas</option>
+            <option value="Fundos">Fundos</option>
+            <option value="Outros">Outros</option>
           </select>
           <input type="number" id="transferenciaValor" placeholder="Valor" step="0.01" min="0.01">
           <input type="date" id="transferenciaData">

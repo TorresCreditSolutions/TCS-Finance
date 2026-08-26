@@ -55,15 +55,24 @@ document.addEventListener("DOMContentLoaded", async () => {
     });
   }
 
+  function atualizarCamposInvestimentoTransferencia() {
+    const finalidade = transferenciaFinalidadeLancamento?.value || transferenciaFinalidade?.value || "Transferência";
+    const mostrarTipo = finalidade === "Aplicação" || finalidade === "Resgate";
+    transferenciaTipoInvestimentoLancamento?.classList.toggle("hidden", !mostrarTipo);
+    transferenciaTipoInvestimento?.classList.toggle("hidden", !mostrarTipo);
+  }
+
   function atualizarFormularioPorTipo() {
     const transferencia = tipo?.value === "Transferência";
     categoria?.classList.toggle("hidden", transferencia);
     contaLancamento?.classList.toggle("hidden", transferencia);
     transferenciaOrigemLancamento?.classList.toggle("hidden", !transferencia);
     transferenciaDestinoLancamento?.classList.toggle("hidden", !transferencia);
+    transferenciaFinalidadeLancamento?.classList.toggle("hidden", !transferencia);
     if (transferencia) {
       popularContasTransferenciaLancamento();
       if (btnSalvar) btnSalvar.innerText = "Realizar transferência";
+      atualizarCamposInvestimentoTransferencia();
     } else if (btnSalvar) {
       btnSalvar.innerText = idEmEdicao ? "Atualizar lançamento" : "Salvar lançamento";
     }
@@ -191,6 +200,10 @@ if (btnRelatorios) {
   const contaLancamento = document.getElementById("contaLancamento");
   const transferenciaOrigemLancamento = document.getElementById("transferenciaOrigemLancamento");
   const transferenciaDestinoLancamento = document.getElementById("transferenciaDestinoLancamento");
+  const transferenciaFinalidadeLancamento = document.getElementById("transferenciaFinalidadeLancamento");
+  const transferenciaTipoInvestimentoLancamento = document.getElementById("transferenciaTipoInvestimentoLancamento");
+  const transferenciaFinalidade = document.getElementById("transferenciaFinalidade");
+  const transferenciaTipoInvestimento = document.getElementById("transferenciaTipoInvestimento");
 
   const filtroMes = document.getElementById("filtroMes");
   const btnLimparFiltro = document.getElementById("btnLimparFiltro");
@@ -629,18 +642,26 @@ function atualizarRelatorios() {
       if ((t.status || "Pago") !== "Pago") return;
 
       const valor = Number(t.valor) || 0;
+      const origem = contas.find(c => String(c.id) === String(t.origem_id));
+      const destino = contas.find(c => String(c.id) === String(t.destino_id));
+      const finalidade = t.finalidade || "Transferência";
 
-      const origem =
-        contas.find(c => String(c.id) === String(t.origem_id));
-
-      const destino =
-        contas.find(c => String(c.id) === String(t.destino_id));
-
-      if (origem && String(origem.tipo || "") === "Investimentos") {
-        total -= valor;
+      if (finalidade === "Aplicação") {
+        if (destino && String(destino.tipo || "") === "Investimentos") total += valor;
+        return;
       }
 
-      if (destino && String(destino.tipo || "") === "Investimentos") {
+      if (finalidade === "Resgate") {
+        if (origem && String(origem.tipo || "") === "Investimentos") total -= valor;
+        return;
+      }
+
+      // Compatibilidade com transferências antigas sem finalidade.
+      if (origem && String(origem.tipo || "") === "Investimentos" &&
+          !(destino && String(destino.tipo || "") === "Investimentos")) {
+        total -= valor;
+      } else if (destino && String(destino.tipo || "") === "Investimentos" &&
+                 !(origem && String(origem.tipo || "") === "Investimentos")) {
         total += valor;
       }
 
@@ -860,6 +881,7 @@ function atualizarRelatorios() {
                 <b>→</b>
                 ${obterNomeContaTransferencia(t.destino_id)}
               </span>
+              <span class="transferencia-descricao">${t.finalidade || "Transferência"}${t.tipo_investimento ? ` • ${t.tipo_investimento}` : ""}</span>
               <span class="transferencia-valor">
                 ${formatarMoeda(t.valor)}
               </span>
@@ -955,6 +977,10 @@ function atualizarRelatorios() {
       const data = transferenciaData?.value;
       const statusTransferencia =
         transferenciaStatus?.value || "Pago";
+      const finalidadeTransferencia =
+        transferenciaFinalidade?.value || "Transferência";
+      const tipoInvestimentoTransferencia =
+        transferenciaTipoInvestimento?.value || null;
       const descricao =
         transferenciaDescricao?.value.trim() || "";
 
@@ -976,6 +1002,31 @@ function atualizarRelatorios() {
       if (!data) {
         alert("Informe a data da transferência.");
         return;
+      }
+
+      const contaOrigem = contas.find(c => String(c.id) === String(origem));
+      const contaDestino = contas.find(c => String(c.id) === String(destino));
+
+      if (finalidadeTransferencia === "Aplicação") {
+        if (!contaDestino || String(contaDestino.tipo || "") !== "Investimentos") {
+          alert("Para uma aplicação, a conta de destino deve ser uma carteira de Investimentos.");
+          return;
+        }
+        if (!tipoInvestimentoTransferencia) {
+          alert("Selecione o tipo de investimento da aplicação.");
+          return;
+        }
+      }
+
+      if (finalidadeTransferencia === "Resgate") {
+        if (!contaOrigem || String(contaOrigem.tipo || "") !== "Investimentos") {
+          alert("Para um resgate, a conta de origem deve ser uma carteira de Investimentos.");
+          return;
+        }
+        if (!tipoInvestimentoTransferencia) {
+          alert("Selecione o tipo de investimento do resgate.");
+          return;
+        }
       }
 
       try {
@@ -1000,6 +1051,8 @@ function atualizarRelatorios() {
               valor,
               data,
               status: statusTransferencia,
+              finalidade: finalidadeTransferencia,
+              tipo_investimento: tipoInvestimentoTransferencia,
               descricao
             });
 
@@ -1015,6 +1068,9 @@ function atualizarRelatorios() {
         transferenciaDestino.value = "";
         transferenciaValor.value = "";
         transferenciaDescricao.value = "";
+        if (transferenciaFinalidade) transferenciaFinalidade.value = "Transferência";
+        if (transferenciaTipoInvestimento) transferenciaTipoInvestimento.value = "";
+        atualizarCamposInvestimentoTransferencia();
 
         await carregarTransferencias();
 
@@ -1228,6 +1284,9 @@ function atualizarRelatorios() {
     };
 
   }
+
+  transferenciaFinalidadeLancamento?.addEventListener("change", atualizarCamposInvestimentoTransferencia);
+  transferenciaFinalidade?.addEventListener("change", atualizarCamposInvestimentoTransferencia);
 
   atualizarFormularioPorTipo();
 
@@ -1500,6 +1559,8 @@ function atualizarRelatorios() {
         const valorTransferencia = Number(String(valor?.value || "").replace(",", "."));
         const dataTransferencia = dataInput?.value;
         const statusTransferencia = status?.value || "Pago";
+        const finalidadeTransferencia = transferenciaFinalidadeLancamento?.value || "Transferência";
+        const tipoInvestimentoTransferencia = transferenciaTipoInvestimentoLancamento?.value || null;
         const descricaoTransferencia = descricao?.value.trim() || "";
 
         if (!origem || !destino) {
@@ -1519,6 +1580,31 @@ function atualizarRelatorios() {
           return;
         }
 
+        const contaOrigem = contas.find(c => String(c.id) === String(origem));
+        const contaDestino = contas.find(c => String(c.id) === String(destino));
+
+        if (finalidadeTransferencia === "Aplicação") {
+          if (!contaDestino || String(contaDestino.tipo || "") !== "Investimentos") {
+            alert("Para uma aplicação, a conta de destino deve ser uma carteira de Investimentos.");
+            return;
+          }
+          if (!tipoInvestimentoTransferencia) {
+            alert("Selecione o tipo de investimento da aplicação.");
+            return;
+          }
+        }
+
+        if (finalidadeTransferencia === "Resgate") {
+          if (!contaOrigem || String(contaOrigem.tipo || "") !== "Investimentos") {
+            alert("Para um resgate, a conta de origem deve ser uma carteira de Investimentos.");
+            return;
+          }
+          if (!tipoInvestimentoTransferencia) {
+            alert("Selecione o tipo de investimento do resgate.");
+            return;
+          }
+        }
+
         try {
           const { data: userData, error: userError } = await supabase.auth.getUser();
           if (userError || !userData?.user) {
@@ -1533,6 +1619,8 @@ function atualizarRelatorios() {
             valor: valorTransferencia,
             data: dataTransferencia,
             status: statusTransferencia,
+            finalidade: finalidadeTransferencia,
+            tipo_investimento: tipoInvestimentoTransferencia,
             descricao: descricaoTransferencia
           });
 
@@ -1781,6 +1869,10 @@ function atualizarRelatorios() {
 
     if (transferenciaOrigemLancamento) transferenciaOrigemLancamento.value = "";
     if (transferenciaDestinoLancamento) transferenciaDestinoLancamento.value = "";
+    if (transferenciaFinalidadeLancamento) transferenciaFinalidadeLancamento.value = "Transferência";
+    if (transferenciaTipoInvestimentoLancamento) transferenciaTipoInvestimentoLancamento.value = "";
+    if (transferenciaFinalidade) transferenciaFinalidade.value = "Transferência";
+    if (transferenciaTipoInvestimento) transferenciaTipoInvestimento.value = "";
 
     atualizarFormularioPorTipo();
 
@@ -1874,7 +1966,7 @@ function atualizarRelatorios() {
 
     let receita = 0;
     let despesa = 0;
-    let investimento = 0;
+    let investimentoPeriodo = 0;
 
     filtrados.forEach(l => {
 
@@ -1895,7 +1987,7 @@ function atualizarRelatorios() {
 
       if (l.tipo === "Investimento") {
 
-        investimento += valorLancamento;
+        investimentoPeriodo += valorLancamento;
 
       }
 
@@ -1918,12 +2010,12 @@ function atualizarRelatorios() {
 
     }
 
+    const patrimonioInvestido = calcularPatrimonioInvestido();
+
     if (totalInvestimentos) {
 
       totalInvestimentos.innerText =
-        formatarMoeda(
-          calcularPatrimonioInvestido()
-        );
+        formatarMoeda(patrimonioInvestido);
 
     }
 
@@ -1942,7 +2034,7 @@ function atualizarRelatorios() {
       filtrados,
       receita,
       despesa,
-      investimento
+      patrimonioInvestido
     );
 
     renderizarGraficoMensal(
