@@ -65,7 +65,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       "Renda Fixa",
       "Ações",
       "Criptomoedas",
-      "Outros"
+      "Outros",
+      "Resgate / Saque"
     ]
 
   };
@@ -480,6 +481,96 @@ function atualizarRelatorios() {
 
   }
 
+  /* ======================================================
+     SALDOS DAS CONTAS — ETAPA 2C
+     O saldo atual usa o saldo inicial + lançamentos pagos.
+     Lançamentos "Em aberto" não alteram o saldo disponível.
+     Investimentos acumulam separadamente ao longo dos meses.
+  ====================================================== */
+
+  function calcularSaldoConta(conta) {
+
+    let saldo = Number(conta?.saldo_inicial) || 0;
+
+    if (!conta?.id) return saldo;
+
+    dados.forEach(l => {
+
+      if (String(l.conta_id || "") !== String(conta.id)) {
+        return;
+      }
+
+      if ((l.status || "Pago") !== "Pago") {
+        return;
+      }
+
+      const valor = Number(l.valor) || 0;
+
+      if (l.tipo === "Receita") {
+        saldo += valor;
+        return;
+      }
+
+      if (l.tipo === "Despesa") {
+        saldo -= valor;
+        return;
+      }
+
+      /*
+       * Para uma conta do tipo Investimentos:
+       * - aportes aumentam o patrimônio;
+       * - resgates reduzem o patrimônio.
+       *
+       * Para as demais contas, investimentos não alteram
+       * o saldo disponível nesta etapa. A movimentação
+       * entre uma conta bancária e um investimento será
+       * tratada em uma etapa posterior de transferências.
+       */
+      if (l.tipo === "Investimento" &&
+          String(conta.tipo || "") === "Investimentos") {
+
+        if (l.categoria === "Resgate / Saque") {
+          saldo -= valor;
+        } else {
+          saldo += valor;
+        }
+
+      }
+
+    });
+
+    return saldo;
+
+  }
+
+  function calcularPatrimonioInvestido() {
+
+    let total = 0;
+
+    dados.forEach(l => {
+
+      if (l.tipo !== "Investimento") return;
+
+      if ((l.status || "Pago") !== "Pago") return;
+
+      const valor = Number(l.valor) || 0;
+
+      if (l.categoria === "Resgate / Saque") {
+        total -= valor;
+      } else {
+        total += valor;
+      }
+
+    });
+
+    /*
+     * O patrimônio investido é acumulado de todos os meses.
+     * O filtro mensal do Dashboard não interfere neste total.
+     */
+    return Math.max(total, 0);
+
+  }
+
   function renderizarContas() {
 
     if (!listaContas) return;
@@ -497,7 +588,11 @@ function atualizarRelatorios() {
 
     }
 
-    listaContas.innerHTML = contas.map(conta => `
+    listaContas.innerHTML = contas.map(conta => {
+
+      const saldoAtual = calcularSaldoConta(conta);
+
+      return `
       <article class="conta-card">
         <div class="conta-card-topo">
           <div>
@@ -506,12 +601,19 @@ function atualizarRelatorios() {
           </div>
           <button type="button" class="btn-excluir-conta" data-conta-id="${conta.id}" title="Excluir conta">×</button>
         </div>
+
         <div class="conta-saldo">
-          <small>Saldo inicial</small>
-          <strong>${formatarMoeda(conta.saldo_inicial)}</strong>
+          <small>Saldo atual</small>
+          <strong>${formatarMoeda(saldoAtual)}</strong>
+        </div>
+
+        <div class="conta-saldo-inicial">
+          Saldo inicial: ${formatarMoeda(conta.saldo_inicial)}
         </div>
       </article>
-    `).join("");
+      `;
+
+    }).join("");
 
     listaContas.querySelectorAll(".btn-excluir-conta").forEach(botao => {
 
@@ -1142,6 +1244,8 @@ function atualizarRelatorios() {
 
         renderizarLista();
 
+        renderizarContas();
+
         limparFormulario();
 
         alert("Lançamento salvo com sucesso!");
@@ -1351,7 +1455,9 @@ function atualizarRelatorios() {
     if (totalInvestimentos) {
 
       totalInvestimentos.innerText =
-        formatarMoeda(investimento);
+        formatarMoeda(
+          calcularPatrimonioInvestido()
+        );
 
     }
 

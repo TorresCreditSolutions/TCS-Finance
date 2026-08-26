@@ -627,3 +627,10 @@ body{
         font-size: 16px !important;
     }
 }
+
+/* =========================================================
+   ETAPA 2C — PATRIMÔNIO INVESTIDO ACUMULADO
+========================================================= */
+#totalInvestimentos{
+  white-space:nowrap;
+}
