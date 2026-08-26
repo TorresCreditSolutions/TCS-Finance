@@ -137,6 +137,7 @@ if (btnRelatorios) {
   const valor = document.getElementById("valor");
   const dataInput = document.getElementById("data");
   const status = document.getElementById("status");
+  const contaLancamento = document.getElementById("contaLancamento");
 
   const filtroMes = document.getElementById("filtroMes");
   const btnLimparFiltro = document.getElementById("btnLimparFiltro");
@@ -411,6 +412,44 @@ function atualizarRelatorios() {
      CONTAS E CARTEIRAS — ETAPA 2A
   ====================================================== */
 
+  function popularContasLancamento(contaSelecionada = "") {
+
+    if (!contaLancamento) return;
+
+    contaLancamento.innerHTML =
+      "<option value=''>Conta / Carteira</option>";
+
+    contas
+      .filter(conta => conta.ativo !== false)
+      .forEach(conta => {
+
+        const option = document.createElement("option");
+
+        option.value = conta.id;
+        option.textContent = `${conta.nome} — ${conta.tipo}`;
+
+        if (String(conta.id) === String(contaSelecionada)) {
+          option.selected = true;
+        }
+
+        contaLancamento.appendChild(option);
+
+      });
+
+  }
+
+  function obterNomeConta(contaId) {
+
+    if (!contaId) return "";
+
+    const conta = contas.find(
+      c => String(c.id) === String(contaId)
+    );
+
+    return conta ? conta.nome : "Conta não encontrada";
+
+  }
+
   async function carregarContas() {
 
     try {
@@ -430,6 +469,7 @@ function atualizarRelatorios() {
       }
 
       contas = data || [];
+      popularContasLancamento();
 
     } catch (erro) {
 
@@ -893,6 +933,7 @@ function atualizarRelatorios() {
 
     renderizarLista();
     renderizarContas();
+    popularContasLancamento();
 
   }
 
@@ -958,11 +999,12 @@ function atualizarRelatorios() {
         !tipo.value ||
         !categoria.value ||
         !valor.value ||
-        !dataInput.value
+        !dataInput.value ||
+        !contaLancamento?.value
       ) {
 
         alert(
-          "Preencha tipo, categoria, valor e data."
+          "Preencha tipo, categoria, valor, data e conta/carteira."
         );
 
         return;
@@ -1037,7 +1079,9 @@ function atualizarRelatorios() {
 
                 data: dataInput.value,
 
-                status: status?.value || "Pago"
+                status: status?.value || "Pago",
+
+                conta_id: contaLancamento.value
 
               })
               .eq("id", idEmEdicao);
@@ -1065,7 +1109,9 @@ function atualizarRelatorios() {
 
                 data: dataInput.value,
 
-                 status: status?.value || "Pago"
+                 status: status?.value || "Pago",
+
+                 conta_id: contaLancamento.value
 
               });
 
@@ -1159,6 +1205,12 @@ function atualizarRelatorios() {
     if (status) {
 
       status.value = "Pago";
+
+    }
+
+    if (contaLancamento) {
+
+      contaLancamento.value = "";
 
     }
 
@@ -1987,6 +2039,11 @@ function renderizarGraficoComparativo() {
           }">
             ${l.status || "Pago"}
           </span>
+          ${
+            l.conta_id
+              ? ` • ${obterNomeConta(l.conta_id)}`
+              : ""
+          }
         </div>
 
         <div class="linha-acoes">
@@ -2121,6 +2178,15 @@ function renderizarGraficoComparativo() {
 
       status.value =
         lancamento.status || "Pago";
+
+    }
+
+    popularContasLancamento(lancamento.conta_id || "");
+
+    if (contaLancamento) {
+
+      contaLancamento.value =
+        lancamento.conta_id || "";
 
     }
 
