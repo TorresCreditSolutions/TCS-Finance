@@ -235,9 +235,16 @@
             <option value="Receita">Receita</option>
             <option value="Despesa">Despesa</option>
             <option value="Investimento">Investimento</option>
+            <option value="Transferência">Transferência</option>
           </select>
 
           <select id="categoria"></select>
+          <select id="transferenciaOrigemLancamento" class="hidden">
+            <option value="">Conta de origem</option>
+          </select>
+          <select id="transferenciaDestinoLancamento" class="hidden">
+            <option value="">Conta de destino</option>
+          </select>
           <input type="text" id="descricao" placeholder="Descrição">
           <input type="number" id="valor" placeholder="Valor">
           <input type="date" id="data">

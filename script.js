@@ -35,6 +35,41 @@ document.addEventListener("DOMContentLoaded", async () => {
   let planoUsuario = "FREE";
 
   /* ======================================================
+     TRANSFERÊNCIA DENTRO DE LANÇAMENTOS
+  ====================================================== */
+
+  function popularContasTransferenciaLancamento() {
+    [transferenciaOrigemLancamento, transferenciaDestinoLancamento].forEach(select => {
+      if (!select) return;
+      const valorAtual = select.value;
+      select.innerHTML = '<option value="">Selecione a conta</option>';
+      contas.filter(conta => conta.ativo !== false).forEach(conta => {
+        const option = document.createElement("option");
+        option.value = conta.id;
+        option.textContent = `${conta.nome} — ${conta.tipo}`;
+        select.appendChild(option);
+      });
+      if (valorAtual && contas.some(c => String(c.id) === String(valorAtual))) {
+        select.value = valorAtual;
+      }
+    });
+  }
+
+  function atualizarFormularioPorTipo() {
+    const transferencia = tipo?.value === "Transferência";
+    categoria?.classList.toggle("hidden", transferencia);
+    contaLancamento?.classList.toggle("hidden", transferencia);
+    transferenciaOrigemLancamento?.classList.toggle("hidden", !transferencia);
+    transferenciaDestinoLancamento?.classList.toggle("hidden", !transferencia);
+    if (transferencia) {
+      popularContasTransferenciaLancamento();
+      if (btnSalvar) btnSalvar.innerText = "Realizar transferência";
+    } else if (btnSalvar) {
+      btnSalvar.innerText = idEmEdicao ? "Atualizar lançamento" : "Salvar lançamento";
+    }
+  }
+
+  /* ======================================================
      CATEGORIAS
   ====================================================== */
 
@@ -154,6 +189,8 @@ if (btnRelatorios) {
   const dataInput = document.getElementById("data");
   const status = document.getElementById("status");
   const contaLancamento = document.getElementById("contaLancamento");
+  const transferenciaOrigemLancamento = document.getElementById("transferenciaOrigemLancamento");
+  const transferenciaDestinoLancamento = document.getElementById("transferenciaDestinoLancamento");
 
   const filtroMes = document.getElementById("filtroMes");
   const btnLimparFiltro = document.getElementById("btnLimparFiltro");
@@ -486,6 +523,8 @@ function atualizarRelatorios() {
 
       contas = data || [];
       popularContasLancamento();
+      popularContasTransferenciaLancamento();
+      popularContasTransferencia();
 
     } catch (erro) {
 
@@ -1184,10 +1223,13 @@ function atualizarRelatorios() {
     tipo.onchange = () => {
 
       popularCategorias(tipo.value);
+      atualizarFormularioPorTipo();
 
     };
 
   }
+
+  atualizarFormularioPorTipo();
 
   /* ======================================================
      LOGIN
@@ -1451,6 +1493,71 @@ function atualizarRelatorios() {
 
     btnSalvar.onclick = async () => {
 
+      if (tipo?.value === "Transferência") {
+
+        const origem = transferenciaOrigemLancamento?.value;
+        const destino = transferenciaDestinoLancamento?.value;
+        const valorTransferencia = Number(String(valor?.value || "").replace(",", "."));
+        const dataTransferencia = dataInput?.value;
+        const statusTransferencia = status?.value || "Pago";
+        const descricaoTransferencia = descricao?.value.trim() || "";
+
+        if (!origem || !destino) {
+          alert("Selecione a conta de origem e a conta de destino.");
+          return;
+        }
+        if (String(origem) === String(destino)) {
+          alert("A conta de origem e a conta de destino devem ser diferentes.");
+          return;
+        }
+        if (!Number.isFinite(valorTransferencia) || valorTransferencia <= 0) {
+          alert("Informe um valor válido para a transferência.");
+          return;
+        }
+        if (!dataTransferencia) {
+          alert("Informe a data da transferência.");
+          return;
+        }
+
+        try {
+          const { data: userData, error: userError } = await supabase.auth.getUser();
+          if (userError || !userData?.user) {
+            alert("Sua sessão expirou. Faça login novamente.");
+            return;
+          }
+
+          const { error } = await supabase.from("transferencias").insert({
+            user_id: userData.user.id,
+            origem_id: origem,
+            destino_id: destino,
+            valor: valorTransferencia,
+            data: dataTransferencia,
+            status: statusTransferencia,
+            descricao: descricaoTransferencia
+          });
+
+          if (error) {
+            console.error("Erro ao salvar transferência:", error);
+            alert("Não foi possível salvar a transferência.");
+            return;
+          }
+
+          await carregarTransferencias();
+          await carregarDados();
+          renderizarTransferencias();
+          renderizarContas();
+          atualizarDashboard();
+          limparFormulario();
+          alert("Transferência realizada com sucesso!");
+          return;
+
+        } catch (erro) {
+          console.error("Erro inesperado ao salvar transferência:", erro);
+          alert("Ocorreu um erro ao salvar a transferência.");
+          return;
+        }
+      }
+
       if (
         !tipo.value ||
         !categoria.value ||
@@ -1672,9 +1779,14 @@ function atualizarRelatorios() {
 
     }
 
+    if (transferenciaOrigemLancamento) transferenciaOrigemLancamento.value = "";
+    if (transferenciaDestinoLancamento) transferenciaDestinoLancamento.value = "";
+
+    atualizarFormularioPorTipo();
+
     if (btnSalvar) {
 
-      btnSalvar.innerText = "Salvar";
+      btnSalvar.innerText = "Salvar lançamento";
 
     }
 
@@ -2607,6 +2719,8 @@ function renderizarGraficoComparativo() {
         lancamento.tipo;
 
     }
+
+    atualizarFormularioPorTipo();
 
     popularCategorias(
       lancamento.tipo,
